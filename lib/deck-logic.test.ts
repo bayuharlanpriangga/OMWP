@@ -398,7 +398,7 @@ test('hacker theme normalizes cleanly and exports neon green styles with matrix 
   assert.ok(html.includes('JetBrains Mono'));
 });
 
-test('astronomi theme normalizes cleanly and exports deep-space styles with animated space canvas', () => {
+test('astronomi theme normalizes cleanly and exports monochrome black-white-gray styles with realistic Saturn space canvas', () => {
   const deck = createDefaultDeck();
   deck.theme = 'astronomi';
   deck.title = 'Eksplorasi Tata Surya';
@@ -410,8 +410,11 @@ test('astronomi theme normalizes cleanly and exports deep-space styles with anim
   const html = buildStandaloneHtml(normalized);
   assert.ok(html.includes('data-theme="astronomi"'));
   assert.ok(html.includes('[data-theme=astronomi]'));
-  assert.ok(html.includes('#03060e'));
-  assert.ok(html.includes('#f5c451'));
+  assert.ok(html.includes('#050507'));
+  assert.ok(html.includes('#f4f4f5'));
+  assert.ok(html.includes('#dfc28d'));
+  assert.ok(!html.includes('#7dd3fc'));
+  assert.ok(!html.includes('#38bdf8'));
   assert.ok(html.includes('space-bg'));
   assert.ok(html.includes('Chakra Petch'));
 });
@@ -432,6 +435,24 @@ test('ghost theme normalizes cleanly and exports blood-red styles with animated 
   assert.ok(html.includes('#dc2626'));
   assert.ok(html.includes('ghost-bg'));
   assert.ok(html.includes('Cinzel'));
+});
+
+test('halloween theme normalizes cleanly and exports orange styles with animated castle-cemetery canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'halloween';
+  deck.title = 'Malam Halloween';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'halloween');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="halloween"'));
+  assert.ok(html.includes('[data-theme=halloween]'));
+  assert.ok(html.includes('#09060d'));
+  assert.ok(html.includes('#f97316'));
+  assert.ok(html.includes('halloween-bg'));
+  assert.ok(html.includes('Creepster'));
 });
 
 test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {

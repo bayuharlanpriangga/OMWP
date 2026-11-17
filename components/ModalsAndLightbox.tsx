@@ -49,11 +49,15 @@ const THEME_SWATCHES: Record<
   },
   astronomi: {
     name: 'Astronomi',
-    colors: ['#03060e', '#080e1c', '#7dd3fc', '#f5c451', '#eef4ff'],
+    colors: ['#050507', '#18181b', '#71717a', '#d4d4d8', '#ffffff'],
   },
   ghost: {
     name: 'Ghost',
     colors: ['#080405', '#1a0a0c', '#dc2626', '#7f1d1d', '#f4eaea'],
+  },
+  halloween: {
+    name: 'Halloween',
+    colors: ['#09060d', '#1c1024', '#f97316', '#fbbf24', '#fff4e8'],
   },
 };
 
@@ -83,6 +87,7 @@ export function ThemeModal({
     'hacker',
     'astronomi',
     'ghost',
+    'halloween',
   ];
 
   const handleChoose = (id: ThemeId) => {
@@ -131,6 +136,7 @@ export function ThemeModal({
             const isHacker = id === 'hacker';
             const isAstronomi = id === 'astronomi';
             const isGhost = id === 'ghost';
+            const isHalloween = id === 'halloween';
 
             return (
               <button
@@ -169,10 +175,10 @@ export function ThemeModal({
                                 : 'border-[#00ff66]/55 hover:border-[#00ff66]'
                             }`
                           : isAstronomi
-                            ? `bg-[#03060e] text-[#eef4ff] border rounded-[4px] ${
+                            ? `bg-[#050507] text-[#f4f4f5] border rounded-[4px] ${
                                 active
-                                  ? 'border-[#f5c451] shadow-[0_0_16px_rgba(125,211,252,0.28)]'
-                                  : 'border-[#7dd3fc]/45 hover:border-[#7dd3fc]'
+                                  ? 'border-[#ffffff] shadow-[0_0_16px_rgba(255,255,255,0.22)]'
+                                  : 'border-[#a1a1aa]/50 hover:border-[#e4e4e7]'
                               }`
                             : isGhost
                               ? `bg-[#080405] text-[#f4eaea] border rounded-[4px] ${
@@ -180,7 +186,13 @@ export function ThemeModal({
                                     ? 'border-[#ef4444] shadow-[0_0_16px_rgba(220,38,38,0.42)]'
                                     : 'border-[#dc2626]/55 hover:border-[#ef4444]'
                                 }`
-                              : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                              : isHalloween
+                                ? `bg-[#09060d] text-[#fff4e8] border rounded-[4px] ${
+                                    active
+                                      ? 'border-[#f97316] shadow-[0_0_16px_rgba(249,115,22,0.42)]'
+                                      : 'border-[#f97316]/55 hover:border-[#fb923c]'
+                                  }`
+                                : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -311,10 +323,10 @@ export function ThemeModal({
                       style={{
                         fontFamily:
                           'var(--font-astro-display), var(--font-orias-sans), system-ui, sans-serif',
-                        color: '#eef4ff',
+                        color: '#f4f4f5',
                         textShadow:
                           isEngaged || active
-                            ? '0 0 12px rgba(125, 211, 252, 0.55)'
+                            ? '0 0 12px rgba(255, 255, 255, 0.36)'
                             : 'none',
                       }}
                       animate={
@@ -331,11 +343,11 @@ export function ThemeModal({
                         className="relative inline-block w-3.5 h-3.5 rounded-full shrink-0"
                         style={{
                           background:
-                            'radial-gradient(circle at 35% 35%, #bae6fd, #38bdf8 60%, #0b162c 100%)',
+                            'radial-gradient(circle at 35% 35%, #f5e9ce, #dfc28d 55%, #3f3220 100%)',
                           boxShadow:
                             active || isEngaged
-                              ? '0 0 0 2px rgba(245, 196, 81, 0.55)'
-                              : '0 0 0 1.5px rgba(125, 211, 252, 0.4)',
+                              ? '0 0 0 2px rgba(255, 255, 255, 0.65)'
+                              : '0 0 0 1.5px rgba(212, 212, 216, 0.45)',
                         }}
                         animate={
                           clickedTheme === id
@@ -389,6 +401,47 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isHalloween ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl tracking-wider"
+                      style={{
+                        fontFamily:
+                          'var(--font-halloween-display), var(--font-ghost-display), Georgia, serif',
+                        color: '#fff4e8',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(249, 115, 22, 0.78)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.06, rotate: -1.5 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1, rotate: 0 }
+                      }
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3 rounded-full shrink-0 bg-[#f97316]"
+                        style={{
+                          boxShadow:
+                            active || isEngaged
+                              ? '0 0 10px rgba(251, 146, 60, 0.92)'
+                              : '0 0 4px rgba(249, 115, 22, 0.5)',
+                        }}
+                        animate={{
+                          scale: isEngaged || active ? [1, 1.12, 1] : 1,
+                        }}
+                        transition={{
+                          duration: 1.2,
+                          repeat: isEngaged || active ? Infinity : 0,
+                          ease: 'easeInOut',
+                        }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -433,10 +486,12 @@ export function ThemeModal({
                               : isHacker
                                 ? 'bg-[#00ff66] text-[#030804] rounded-[3px]'
                                 : isAstronomi
-                                  ? 'bg-[#f5c451] text-[#03060e] rounded-[3px]'
+                                  ? 'bg-[#ffffff] text-[#050507] rounded-[3px]'
                                   : isGhost
                                     ? 'bg-[#dc2626] text-[#fff5f5] rounded-[3px]'
-                                    : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                    : isHalloween
+                                      ? 'bg-[#f97316] text-[#09060d] rounded-[3px]'
+                                      : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -461,9 +516,13 @@ export function ThemeModal({
                               ? 'rounded-[2px] border border-[#a855f7]/60'
                               : isHacker
                                 ? 'rounded-[2px] border border-[#00ff66]/60'
-                                : isGhost
-                                  ? 'rounded-[2px] border border-[#dc2626]/65'
-                                  : 'rounded-[3px] border border-[#c5ccd8]'
+                                : isAstronomi
+                                  ? 'rounded-[2px] border border-[#a1a1aa]/60'
+                                  : isGhost
+                                    ? 'rounded-[2px] border border-[#dc2626]/65'
+                                    : isHalloween
+                                      ? 'rounded-[2px] border border-[#f97316]/65'
+                                      : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />

@@ -201,3 +201,23 @@ test('importDeckFromHtml preserves ghost theme attribute on standalone round-tri
   assert.ok(generic);
   assert.equal(generic.deck.theme, 'ghost');
 });
+
+test('importDeckFromHtml preserves halloween theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'halloween';
+  deck.title = 'Istana Malam Halloween';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Labu Oren & Kelelawar';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'halloween');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="halloween"><head><title>Kastil Tua</title></head><body><section class="slide"><h1>Kuburan Berkabut</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'halloween');
+});

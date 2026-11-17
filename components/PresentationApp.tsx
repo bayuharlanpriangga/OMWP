@@ -43,6 +43,7 @@ import { ApiKeysModal } from './ApiKeysModal';
 import { AiAssistant } from './AiAssistant';
 import { LayoutInspector } from './LayoutInspector';
 import { GhostBackdrop } from './GhostBackdrop';
+import { HalloweenBackdrop } from './HalloweenBackdrop';
 import { MatrixRainBackdrop } from './MatrixRainBackdrop';
 import { SpaceBackdrop } from './SpaceBackdrop';
 import {
@@ -654,6 +655,7 @@ export function PresentationApp() {
         {deck.theme === 'hacker' && <MatrixRainBackdrop />}
         {deck.theme === 'astronomi' && <SpaceBackdrop />}
         {deck.theme === 'ghost' && <GhostBackdrop />}
+        {deck.theme === 'halloween' && <HalloweenBackdrop />}
         <span className="tb-a" />
         <span className="tb-b" />
         <span className="tb-c" />

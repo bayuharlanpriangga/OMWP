@@ -7,7 +7,8 @@ export type ThemeId =
   | 'cyberpunk'
   | 'hacker'
   | 'astronomi'
-  | 'ghost';
+  | 'ghost'
+  | 'halloween';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';
 export type TextAlign = 'l' | 'c' | 'r';

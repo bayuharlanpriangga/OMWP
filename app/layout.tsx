@@ -3,6 +3,7 @@ import {
   Bricolage_Grotesque,
   Chakra_Petch,
   Cinzel,
+  Creepster,
   IBM_Plex_Sans,
   JetBrains_Mono,
   Lora,
@@ -32,6 +33,13 @@ const cinzel = Cinzel({
   subsets: ['latin'],
   weight: ['600', '700'],
   variable: '--font-ghost-display',
+  display: 'swap',
+});
+
+const creepster = Creepster({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-halloween-display',
   display: 'swap',
 });
 
@@ -94,18 +102,18 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: 'Presentasi Interaktif',
   description:
-    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker & Astronomi, ekspor HTML mandiri, dan Orias AI.',
+    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost & Halloween, ekspor HTML mandiri, dan Orias AI.',
   openGraph: {
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker & Astronomi, ekspor HTML mandiri, dan Orias AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost & Halloween, ekspor HTML mandiri, dan Orias AI.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker & Astronomi, ekspor HTML mandiri, dan Orias AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost & Halloween, ekspor HTML mandiri, dan Orias AI.',
   },
 };
 
@@ -114,7 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="id"
       data-theme="default"
-      className={`${bricolage.variable} ${chakraPetch.variable} ${cinzel.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${lora.variable} ${orbitron.variable} ${rajdhani.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
+      className={`${bricolage.variable} ${chakraPetch.variable} ${cinzel.variable} ${creepster.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${lora.variable} ${orbitron.variable} ${rajdhani.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
       suppressHydrationWarning
     >
       <body suppressHydrationWarning>{children}</body>

@@ -714,7 +714,8 @@ export function importDeckFromHtml(rawHtml: string): HtmlImportResult | null {
     themeAttr === 'cyberpunk' ||
     themeAttr === 'hacker' ||
     themeAttr === 'astronomi' ||
-    themeAttr === 'ghost'
+    themeAttr === 'ghost' ||
+    themeAttr === 'halloween'
       ? themeAttr
       : 'default';
 
