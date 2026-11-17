@@ -1,0 +1,6 @@
+{
+  "name": "Presentasi Interaktif",
+  "description": "Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
