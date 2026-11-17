@@ -412,9 +412,16 @@ test('astronomi theme normalizes cleanly and exports monochrome black-white-gray
   assert.ok(html.includes('[data-theme=astronomi]'));
   assert.ok(html.includes('#050507'));
   assert.ok(html.includes('#f4f4f5'));
-  assert.ok(html.includes('#dfc28d'));
-  assert.ok(!html.includes('#7dd3fc'));
-  assert.ok(!html.includes('#38bdf8'));
+  const astroTokenMatch = html.match(/:root\[data-theme=astronomi\]\{[^}]+\}/);
+  assert.ok(astroTokenMatch);
+  assert.ok(!astroTokenMatch[0].includes('#7dd3fc'));
+  assert.ok(!astroTokenMatch[0].includes('#38bdf8'));
+  const astroScriptIdx = html.indexOf("else if(deck.theme==='astronomi')");
+  const ghostScriptIdx = html.indexOf("else if(deck.theme==='ghost')");
+  assert.ok(astroScriptIdx > -1 && ghostScriptIdx > astroScriptIdx);
+  const astroScript = html.slice(astroScriptIdx, ghostScriptIdx);
+  assert.ok(!astroScript.includes('#7dd3fc'));
+  assert.ok(!astroScript.includes('#38bdf8'));
   assert.ok(html.includes('space-bg'));
   assert.ok(html.includes('Chakra Petch'));
 });
@@ -453,6 +460,25 @@ test('halloween theme normalizes cleanly and exports orange styles with animated
   assert.ok(html.includes('#f97316'));
   assert.ok(html.includes('halloween-bg'));
   assert.ok(html.includes('Creepster'));
+});
+
+test('aquarium theme normalizes cleanly and exports ocean-blue styles with animated marine canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'aquarium';
+  deck.title = 'Ekosistem Laut Dalam';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'aquarium');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="aquarium"'));
+  assert.ok(html.includes('[data-theme=aquarium]'));
+  assert.ok(html.includes('#04182e'));
+  assert.ok(html.includes('#0ea5e9'));
+  assert.ok(html.includes('#38bdf8'));
+  assert.ok(html.includes('aquarium-bg'));
+  assert.ok(html.includes('Fredoka'));
 });
 
 test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {

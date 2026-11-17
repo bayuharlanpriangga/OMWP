@@ -59,6 +59,10 @@ const THEME_SWATCHES: Record<
     name: 'Halloween',
     colors: ['#09060d', '#1c1024', '#f97316', '#fbbf24', '#fff4e8'],
   },
+  aquarium: {
+    name: 'Aquarium',
+    colors: ['#04182e', '#0c4a6e', '#0ea5e9', '#38bdf8', '#e0f2fe'],
+  },
 };
 
 export function ThemeModal({
@@ -88,6 +92,7 @@ export function ThemeModal({
     'astronomi',
     'ghost',
     'halloween',
+    'aquarium',
   ];
 
   const handleChoose = (id: ThemeId) => {
@@ -137,6 +142,7 @@ export function ThemeModal({
             const isAstronomi = id === 'astronomi';
             const isGhost = id === 'ghost';
             const isHalloween = id === 'halloween';
+            const isAquarium = id === 'aquarium';
 
             return (
               <button
@@ -192,7 +198,13 @@ export function ThemeModal({
                                       ? 'border-[#f97316] shadow-[0_0_16px_rgba(249,115,22,0.42)]'
                                       : 'border-[#f97316]/55 hover:border-[#fb923c]'
                                   }`
-                                : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                                : isAquarium
+                                  ? `bg-[#04182e] text-[#e0f2fe] border rounded-[6px] ${
+                                      active
+                                        ? 'border-[#38bdf8] shadow-[0_0_16px_rgba(14,165,233,0.46)]'
+                                        : 'border-[#0ea5e9]/55 hover:border-[#38bdf8]'
+                                    }`
+                                  : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -442,6 +454,49 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isAquarium ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-semibold tracking-wide"
+                      style={{
+                        fontFamily:
+                          'var(--font-aquarium-display), var(--font-orias-sans), system-ui, sans-serif',
+                        color: '#e0f2fe',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(56, 189, 248, 0.72)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.05, y: -1 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1, y: 0 }
+                      }
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3.5 rounded-full shrink-0"
+                        style={{
+                          background:
+                            'radial-gradient(circle at 32% 32%, #e0f2fe, #38bdf8 55%, #0284c7 100%)',
+                          boxShadow:
+                            active || isEngaged
+                              ? '0 0 10px rgba(56, 189, 248, 0.92)'
+                              : '0 0 4px rgba(14, 165, 233, 0.5)',
+                        }}
+                        animate={{
+                          y: isEngaged || active ? [0, -2, 0] : 0,
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: isEngaged || active ? Infinity : 0,
+                          ease: 'easeInOut',
+                        }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -491,7 +546,9 @@ export function ThemeModal({
                                     ? 'bg-[#dc2626] text-[#fff5f5] rounded-[3px]'
                                     : isHalloween
                                       ? 'bg-[#f97316] text-[#09060d] rounded-[3px]'
-                                      : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                      : isAquarium
+                                        ? 'bg-[#38bdf8] text-[#04182e] rounded-full'
+                                        : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -522,7 +579,9 @@ export function ThemeModal({
                                     ? 'rounded-[2px] border border-[#dc2626]/65'
                                     : isHalloween
                                       ? 'rounded-[2px] border border-[#f97316]/65'
-                                      : 'rounded-[3px] border border-[#c5ccd8]'
+                                      : isAquarium
+                                        ? 'rounded-full border border-[#38bdf8]/65'
+                                        : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />

@@ -221,3 +221,23 @@ test('importDeckFromHtml preserves halloween theme attribute on standalone round
   assert.ok(generic);
   assert.equal(generic.deck.theme, 'halloween');
 });
+
+test('importDeckFromHtml preserves aquarium theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'aquarium';
+  deck.title = 'Biota Laut Dalam';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Megalodon, Gurita & Ikan Lampu';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'aquarium');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="aquarium"><head><title>Aquarium Laut</title></head><body><section class="slide"><h1>Terumbu Karang</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'aquarium');
+});

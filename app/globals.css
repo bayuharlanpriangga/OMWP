@@ -173,6 +173,27 @@
   --font-code: var(--font-mono), ui-monospace, monospace;
 }
 
+:root[data-theme="aquarium"] {
+  --bg: #04182e;
+  --fg: #eef8ff;
+  --card: rgba(6, 30, 56, 0.88);
+  --ln: #0ea5e9;
+  --acc: #38bdf8;
+  --acc2: #0284c7;
+  --acc3: #7dd3fc;
+  --mut: #93c5fd;
+  --r: 6px;
+  --sb-track: rgba(14, 165, 233, 0.08);
+  --sb-track-line: rgba(56, 189, 248, 0.26);
+  --sb-thumb: #0ea5e9;
+  --sb-thumb-hover: #38bdf8;
+  --sb-thumb-border: #04182e;
+  --sb-radius: 999px;
+  --font-display: var(--font-aquarium-display), var(--font-orias-sans), system-ui, sans-serif;
+  --font-body: var(--font-orias-sans), system-ui, sans-serif;
+  --font-code: var(--font-mono), ui-monospace, monospace;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -4303,6 +4324,437 @@
 
 :root[data-theme="halloween"] .pres-scroll::-webkit-scrollbar-thumb:active {
   background: #fb923c;
+  background-clip: padding-box;
+}
+
+/* ==========================================================================
+   Aquarium Theme — Deep Ocean Blue & Animated Underwater Marine Life Backdrop
+   ========================================================================== */
+
+[data-theme="aquarium"] body {
+  background: #04182e;
+  color: #eef8ff;
+}
+
+[data-theme="aquarium"] .theme-backdrop {
+  background: #04182e;
+}
+
+[data-theme="aquarium"] .theme-backdrop .tb-aquarium-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+[data-theme="aquarium"] .theme-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    rgba(4, 24, 46, 0.04) 0%,
+    rgba(3, 19, 38, 0.22) 72%,
+    rgba(2, 12, 26, 0.45) 100%
+  );
+  pointer-events: none;
+}
+
+[data-theme="aquarium"] .theme-backdrop .tb-a,
+[data-theme="aquarium"] .theme-backdrop .tb-b,
+[data-theme="aquarium"] .theme-backdrop .tb-c,
+[data-theme="aquarium"] .theme-backdrop .tb-d {
+  display: none;
+}
+
+[data-theme="aquarium"] .pres-top {
+  background: transparent;
+  backdrop-filter: none;
+  color: #eef8ff;
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+[data-theme="aquarium"] .pres-brand {
+  color: #eef8ff;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 10px rgba(2, 16, 36, 0.9), 0 0 14px rgba(56, 189, 248, 0.42);
+}
+
+[data-theme="aquarium"] .pbtn {
+  border: 1.5px solid rgba(56, 189, 248, 0.56);
+  border-radius: 6px;
+  background: rgba(6, 32, 60, 0.9);
+  color: #eef8ff;
+  box-shadow: 0 4px 14px rgba(2, 14, 30, 0.52);
+  font-weight: 600;
+}
+
+[data-theme="aquarium"] .pbtn:hover:not(:disabled) {
+  background: rgba(14, 165, 233, 0.24);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.34);
+}
+
+[data-theme="aquarium"] .pbtn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.28);
+}
+
+[data-theme="aquarium"] .pbtn.on {
+  background: #0ea5e9;
+  color: #031528;
+  border-color: #7dd3fc;
+  font-weight: 700;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.48);
+}
+
+[data-theme="aquarium"] .pbtn.on:hover:not(:disabled) {
+  background: #38bdf8;
+  border-color: #bae6fd;
+}
+
+[data-theme="aquarium"] .pres-top .pbtn {
+  background: rgba(6, 32, 60, 0.86);
+  color: #eef8ff;
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: none;
+}
+
+[data-theme="aquarium"] .pres-top .pbtn:hover:not(:disabled) {
+  background: rgba(14, 165, 233, 0.24);
+  border-color: #7dd3fc;
+}
+
+[data-theme="aquarium"] .pres-top .pbtn.on {
+  background: #0ea5e9;
+  border-color: #7dd3fc;
+  color: #031528;
+  font-weight: 700;
+}
+
+[data-theme="aquarium"] .card {
+  position: relative;
+  border: 1px solid rgba(56, 189, 248, 0.44);
+  border-top: 2px solid #0ea5e9;
+  border-radius: 6px;
+  background: rgba(6, 30, 56, 0.92);
+  color: #eef8ff;
+  box-shadow: 0 10px 30px rgba(2, 14, 30, 0.6), 0 0 18px rgba(14, 165, 233, 0.14);
+}
+
+[data-theme="aquarium"] .card.open {
+  border-color: #7dd3fc;
+  border-top-color: #38bdf8;
+  box-shadow: 0 12px 32px rgba(2, 14, 30, 0.72), 0 0 22px rgba(56, 189, 248, 0.3);
+}
+
+[data-theme="aquarium"] .ch {
+  padding: 15px 16px 16px 16px;
+  min-height: 55px;
+  font-weight: 600;
+  color: #eef8ff;
+}
+
+[data-theme="aquarium"] .ch .n {
+  border: 1.5px solid #0ea5e9;
+  border-radius: 6px;
+  background: rgba(14, 165, 233, 0.22);
+  color: #7dd3fc;
+  font-family: var(--font-code);
+  font-weight: 700;
+}
+
+[data-theme="aquarium"] .card.open .n {
+  background: #38bdf8;
+  border-color: #7dd3fc;
+  color: #04182e;
+}
+
+[data-theme="aquarium"] .cb {
+  margin: 0 16px 16px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(56, 189, 248, 0.4);
+}
+
+[data-theme="aquarium"] .box {
+  padding: 17px 18px 18px 18px;
+}
+
+[data-theme="aquarium"] .bt {
+  color: #7dd3fc;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.34);
+  padding-bottom: 8px;
+}
+
+[data-theme="aquarium"] .s-l,
+[data-theme="aquarium"] .s-xl,
+[data-theme="aquarium"] .s-xxl {
+  color: #f0f9ff;
+  text-shadow: 0 2px 14px rgba(2, 16, 36, 0.85), 0 0 18px rgba(56, 189, 248, 0.28);
+}
+
+[data-theme="aquarium"] .term {
+  background: rgba(14, 165, 233, 0.24);
+  color: #bae6fd;
+  border-bottom: 2px solid #38bdf8;
+  border-radius: 3px;
+}
+
+[data-theme="aquarium"] .term.mt {
+  background: rgba(2, 132, 199, 0.3);
+  color: #7dd3fc;
+  border-bottom: 2px solid #0ea5e9;
+}
+
+[data-theme="aquarium"] .concl {
+  background: rgba(6, 32, 60, 0.9);
+  color: #eef8ff;
+  border: 1px solid rgba(56, 189, 248, 0.56);
+  border-top: 2px solid #38bdf8;
+  padding: 17px 18px 18px 18px;
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(2, 14, 30, 0.66), 0 0 18px rgba(14, 165, 233, 0.2);
+}
+
+[data-theme="aquarium"] .cv .pbtn {
+  padding: 9px 16px;
+}
+
+[data-theme="aquarium"] .ptbl-wrap {
+  padding: 0 0 5px 0;
+}
+
+[data-theme="aquarium"] .ptbl {
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 10px 28px rgba(2, 14, 30, 0.64);
+  background: rgba(6, 28, 52, 0.92);
+  color: #eef8ff;
+}
+
+[data-theme="aquarium"] .ptbl th {
+  background: rgba(14, 165, 233, 0.22);
+  color: #bae6fd;
+  border-bottom: 2px solid #0ea5e9;
+  font-weight: 600;
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+[data-theme="aquarium"] .ptbl td {
+  border-bottom: 1px solid rgba(56, 189, 248, 0.22);
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+[data-theme="aquarium"] .ptbl tbody tr:nth-child(even) td {
+  background: rgba(14, 165, 233, 0.05);
+}
+
+[data-theme="aquarium"] .ptbl tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+[data-theme="aquarium"] .ptbl th + th,
+[data-theme="aquarium"] .ptbl td + td {
+  border-left: 1px solid rgba(56, 189, 248, 0.22);
+}
+
+[data-theme="aquarium"] .pres-nav {
+  background: transparent;
+  backdrop-filter: none;
+  color: #eef8ff;
+  border-top: 0;
+  text-shadow: 0 1px 8px rgba(2, 14, 30, 0.94);
+}
+
+[data-theme="aquarium"] .prog {
+  height: 7px;
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  border-radius: 999px;
+  background: rgba(4, 22, 44, 0.9);
+}
+
+[data-theme="aquarium"] .prog-bar {
+  background: linear-gradient(90deg, #0284c7, #0ea5e9, #7dd3fc);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.48);
+}
+
+[data-theme="aquarium"] .pres-fab {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  color: #031528;
+  border: 1.5px solid #bae6fd;
+  box-shadow: 0 0 18px rgba(14, 165, 233, 0.52);
+}
+
+[data-theme="aquarium"] .ai-bubble,
+[data-theme="aquarium"] .ai-mini-bubble {
+  border: 1.5px solid #0ea5e9;
+  border-radius: 8px;
+  background: rgba(6, 28, 52, 0.96);
+  color: #eef8ff;
+  box-shadow: 0 16px 42px rgba(2, 14, 30, 0.8), 0 0 24px rgba(14, 165, 233, 0.24);
+}
+
+[data-theme="aquarium"] .ai-mini-bubble::after {
+  background: rgba(6, 28, 52, 0.95);
+  border-right: 1.5px solid #0ea5e9;
+  border-bottom: 1.5px solid #0ea5e9;
+}
+
+[data-theme="aquarium"] .ai-bh {
+  background: rgba(14, 165, 233, 0.22);
+  color: #eef8ff;
+  border-bottom: 1.5px solid #0ea5e9;
+}
+
+[data-theme="aquarium"] .ai-msg {
+  border: 1px solid rgba(56, 189, 248, 0.34);
+  border-radius: 6px;
+}
+
+[data-theme="aquarium"] .ai-msg.user {
+  background: rgba(2, 132, 199, 0.36);
+  color: #f0f9ff;
+  border-color: #38bdf8;
+}
+
+[data-theme="aquarium"] .ai-msg.ai {
+  background: rgba(8, 34, 62, 0.94);
+  color: #eef8ff;
+  border-color: rgba(56, 189, 248, 0.36);
+}
+
+[data-theme="aquarium"] .ai-msg.err {
+  background: rgba(127, 29, 29, 0.52);
+  color: #fecaca;
+  border-color: #f87171;
+}
+
+[data-theme="aquarium"] .pinput,
+[data-theme="aquarium"] .ptarea,
+[data-theme="aquarium"] .pselect {
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  border-radius: 6px;
+  background: #041930;
+  color: #eef8ff;
+}
+
+[data-theme="aquarium"] .pinput::placeholder,
+[data-theme="aquarium"] .ptarea::placeholder {
+  color: rgba(147, 197, 253, 0.65);
+}
+
+[data-theme="aquarium"] .pinput:focus,
+[data-theme="aquarium"] .pinput:focus-visible,
+[data-theme="aquarium"] .ptarea:focus,
+[data-theme="aquarium"] .ptarea:focus-visible,
+[data-theme="aquarium"] .pselect:focus,
+[data-theme="aquarium"] .pselect:focus-visible {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.28);
+}
+
+[data-theme="aquarium"] .ec {
+  border: 1px dashed rgba(56, 189, 248, 0.45);
+  border-radius: 6px;
+  background: rgba(6, 30, 56, 0.82);
+  color: #eef8ff;
+}
+
+[data-theme="aquarium"] .mv,
+[data-theme="aquarium"] .wb {
+  border: 1.5px solid #0ea5e9;
+  background: #062544;
+  color: #7dd3fc;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.34);
+}
+
+[data-theme="aquarium"] .rz {
+  border: 1.5px solid #38bdf8;
+  background: #0284c7;
+  color: #eef8ff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.44);
+}
+
+[data-theme="aquarium"] .pres-insp {
+  background: rgba(5, 24, 46, 0.96);
+  color: #eef8ff;
+  border-top: 1.5px solid #0ea5e9;
+}
+
+[data-theme="aquarium"] .modal-backdrop {
+  background: rgba(2, 12, 26, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+[data-theme="aquarium"] .modal-card {
+  background: rgba(6, 28, 52, 0.96);
+  color: #eef8ff;
+  border: 1.5px solid #0ea5e9;
+  border-radius: 8px;
+  box-shadow: 0 20px 55px rgba(2, 12, 26, 0.84), 0 0 28px rgba(14, 165, 233, 0.24);
+}
+
+.fx-aquarium::before {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: -24px;
+  width: 48px;
+  height: 48px;
+  border: 2px solid #38bdf8;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.72), inset 0 0 10px rgba(14, 165, 233, 0.42);
+  animation: fxaq 0.46s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fxaq {
+  from {
+    transform: scale(0.25);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.36);
+    opacity: 0;
+  }
+}
+
+[data-theme="aquarium"] .ai-cur {
+  width: 3px;
+  border: 0;
+  background: #38bdf8;
+  box-shadow: 0 0 8px #0ea5e9;
+  animation: cura 0.85s ease-in-out infinite;
+}
+
+[data-theme="aquarium"] .bg-black\/5 {
+  background-color: rgba(14, 165, 233, 0.14);
+}
+
+[data-theme="aquarium"] .bg-black\/10 {
+  background-color: rgba(14, 165, 233, 0.22);
+}
+
+[data-theme="aquarium"] .hover\:bg-black\/10:hover {
+  background-color: rgba(14, 165, 233, 0.28);
+}
+
+[data-theme="aquarium"] .text-emerald-700,
+[data-theme="aquarium"] .text-emerald-600 {
+  color: #4ade80;
+}
+
+[data-theme="aquarium"] .text-rose-600,
+[data-theme="aquarium"] .text-rose-700 {
+  color: #fca5a5;
+}
+
+:root[data-theme="aquarium"] .pres-scroll::-webkit-scrollbar-thumb:active {
+  background: #7dd3fc;
   background-clip: padding-box;
 }
 
