@@ -43,6 +43,7 @@ import { ApiKeysModal } from './ApiKeysModal';
 import { AiAssistant } from './AiAssistant';
 import { LayoutInspector } from './LayoutInspector';
 import { MatrixRainBackdrop } from './MatrixRainBackdrop';
+import { SpaceBackdrop } from './SpaceBackdrop';
 import {
   ImageLightbox,
   PreferencesModal,
@@ -650,6 +651,7 @@ export function PresentationApp() {
           />
         )}
         {deck.theme === 'hacker' && <MatrixRainBackdrop />}
+        {deck.theme === 'astronomi' && <SpaceBackdrop />}
         <span className="tb-a" />
         <span className="tb-b" />
         <span className="tb-c" />

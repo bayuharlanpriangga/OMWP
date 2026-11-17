@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import {
   Bricolage_Grotesque,
+  Chakra_Petch,
   IBM_Plex_Sans,
   JetBrains_Mono,
   Lora,
@@ -16,6 +17,13 @@ const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
   weight: ['400', '600', '700'],
   variable: '--font-brutal',
+  display: 'swap',
+});
+
+const chakraPetch = Chakra_Petch({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-astro-display',
   display: 'swap',
 });
 
@@ -78,18 +86,18 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: 'Presentasi Interaktif',
   description:
-    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk & Hacker, ekspor HTML mandiri, dan Orias AI.',
+    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker & Astronomi, ekspor HTML mandiri, dan Orias AI.',
   openGraph: {
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk & Hacker, ekspor HTML mandiri, dan Orias AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker & Astronomi, ekspor HTML mandiri, dan Orias AI.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk & Hacker, ekspor HTML mandiri, dan Orias AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker & Astronomi, ekspor HTML mandiri, dan Orias AI.',
   },
 };
 
@@ -98,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="id"
       data-theme="default"
-      className={`${bricolage.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${lora.variable} ${orbitron.variable} ${rajdhani.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
+      className={`${bricolage.variable} ${chakraPetch.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${lora.variable} ${orbitron.variable} ${rajdhani.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
       suppressHydrationWarning
     >
       <body suppressHydrationWarning>{children}</body>

@@ -47,6 +47,10 @@ const THEME_SWATCHES: Record<
     name: 'Hacker',
     colors: ['#030804', '#06150b', '#00ff66', '#16a34a', '#d9ffe5'],
   },
+  astronomi: {
+    name: 'Astronomi',
+    colors: ['#03060e', '#080e1c', '#7dd3fc', '#f5c451', '#eef4ff'],
+  },
 };
 
 export function ThemeModal({
@@ -73,6 +77,7 @@ export function ThemeModal({
     'auditor',
     'cyberpunk',
     'hacker',
+    'astronomi',
   ];
 
   const handleChoose = (id: ThemeId) => {
@@ -119,6 +124,7 @@ export function ThemeModal({
             const isDefault = id === 'default';
             const isCyberpunk = id === 'cyberpunk';
             const isHacker = id === 'hacker';
+            const isAstronomi = id === 'astronomi';
 
             return (
               <button
@@ -156,7 +162,13 @@ export function ThemeModal({
                                 ? 'border-[#00ff66] shadow-[0_0_16px_rgba(0,255,102,0.32)]'
                                 : 'border-[#00ff66]/55 hover:border-[#00ff66]'
                             }`
-                          : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                          : isAstronomi
+                            ? `bg-[#03060e] text-[#eef4ff] border rounded-[4px] ${
+                                active
+                                  ? 'border-[#f5c451] shadow-[0_0_16px_rgba(125,211,252,0.28)]'
+                                  : 'border-[#7dd3fc]/45 hover:border-[#7dd3fc]'
+                              }`
+                            : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -281,6 +293,49 @@ export function ThemeModal({
                         }}
                       />
                     </motion.span>
+                  ) : isAstronomi ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-semibold tracking-wide"
+                      style={{
+                        fontFamily:
+                          'var(--font-astro-display), var(--font-orias-sans), system-ui, sans-serif',
+                        color: '#eef4ff',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(125, 211, 252, 0.55)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.05 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1 }
+                      }
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="relative inline-block w-3.5 h-3.5 rounded-full shrink-0"
+                        style={{
+                          background:
+                            'radial-gradient(circle at 35% 35%, #bae6fd, #38bdf8 60%, #0b162c 100%)',
+                          boxShadow:
+                            active || isEngaged
+                              ? '0 0 0 2px rgba(245, 196, 81, 0.55)'
+                              : '0 0 0 1.5px rgba(125, 211, 252, 0.4)',
+                        }}
+                        animate={
+                          clickedTheme === id
+                            ? { rotate: 180, scale: 1.15 }
+                            : isEngaged
+                              ? { rotate: 24, scale: 1.08 }
+                              : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -324,7 +379,9 @@ export function ThemeModal({
                               ? 'bg-[#00e5ff] text-[#070a14] rounded-[3px]'
                               : isHacker
                                 ? 'bg-[#00ff66] text-[#030804] rounded-[3px]'
-                                : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                : isAstronomi
+                                  ? 'bg-[#f5c451] text-[#03060e] rounded-[3px]'
+                                  : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >

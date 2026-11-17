@@ -396,3 +396,21 @@ test('hacker theme normalizes cleanly and exports neon green styles with matrix 
   assert.ok(html.includes('JetBrains Mono'));
 });
 
+test('astronomi theme normalizes cleanly and exports deep-space styles with animated space canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'astronomi';
+  deck.title = 'Eksplorasi Tata Surya';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'astronomi');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="astronomi"'));
+  assert.ok(html.includes('[data-theme=astronomi]'));
+  assert.ok(html.includes('#03060e'));
+  assert.ok(html.includes('#f5c451'));
+  assert.ok(html.includes('space-bg'));
+  assert.ok(html.includes('Chakra Petch'));
+});
+

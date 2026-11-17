@@ -161,3 +161,23 @@ test('importDeckFromHtml preserves hacker theme attribute on standalone round-tr
   assert.ok(generic);
   assert.equal(generic.deck.theme, 'hacker');
 });
+
+test('importDeckFromHtml preserves astronomi theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'astronomi';
+  deck.title = 'Kosmologi Modern';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Galaksi Bima Sakti';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'astronomi');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="astronomi"><head><title>Observatorium</title></head><body><section class="slide"><h1>Exoplanet</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'astronomi');
+});
