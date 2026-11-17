@@ -115,6 +115,7 @@ export function PresentationApp() {
   const storageWarnedRef = React.useRef<number>(0);
   const touchRef = React.useRef<{ x: number; y: number } | null>(null);
   const canvasActionRef = React.useRef<SlideCanvasHandle | null>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
 
   const showToast = React.useCallback((msg: string) => {
     setToastMessage(msg);
@@ -276,7 +277,7 @@ export function PresentationApp() {
         setSlideDirection(next > prev ? 'next' : 'prev');
         setActiveModalId(null);
         setSelectedBlockId(null);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
         return next;
       });
     },
@@ -291,7 +292,7 @@ export function PresentationApp() {
     setSlideIndex(next);
     setActiveModalId(null);
     setSelectedBlockId(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Keyboard navigation in present mode
@@ -425,11 +426,11 @@ export function PresentationApp() {
         ) {
           if (activeByokKeys.length === 0) {
             throw new Error(
-              'Pada mode statis (GitHub Pages), tambahkan API key di Pengaturan AI (ikon kunci) untuk memakai Asisten AI.'
+              'Pada mode statis (GitHub Pages), tambahkan API key di Pengaturan Orias AI (ikon kunci) untuk memakai Orias AI.'
             );
           }
           const sys = [
-            `Kamu asisten dalam presentasi "${slideContext.deckTitle}" (Slide ${slideContext.slideNumber || 1} dari ${slideContext.totalSlides || 1}).`,
+            `Kamu adalah Orias AI, asisten cerdas dalam presentasi "${slideContext.deckTitle}" (Slide ${slideContext.slideNumber || 1} dari ${slideContext.totalSlides || 1}).`,
             slideContext.deckOverview
               ? `Alur presentasi:\n${slideContext.deckOverview}`
               : '',
@@ -464,7 +465,7 @@ export function PresentationApp() {
         ]);
       } catch (err) {
         const errText =
-          err instanceof Error ? err.message : 'Gagal menghubungi Asisten AI.';
+          err instanceof Error ? err.message : 'Gagal menghubungi Orias AI.';
         setChatMessages((prev) => [
           ...prev,
           { id: uid(), role: 'error', text: errText },
@@ -596,7 +597,7 @@ export function PresentationApp() {
 
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="pres-shell"
       onTouchStart={(e) => {
         touchRef.current = {
           x: e.touches[0].clientX,
@@ -628,7 +629,7 @@ export function PresentationApp() {
           setActiveModalId(null);
           setSelectedBlockId(null);
           setMode(nextMode);
-          window.scrollTo({ top: 0 });
+          scrollContainerRef.current?.scrollTo({ top: 0 });
         }}
         onToggleFullscreen={() => {
           if (document.fullscreenElement) {
@@ -640,7 +641,12 @@ export function PresentationApp() {
         onOpenThemes={() => setThemeModalOpen(true)}
       />
 
-      <main className={`pres-main m-${mode}`}>
+      <div
+        ref={scrollContainerRef}
+        className="pres-scroll"
+        data-testid="workspace-scroll"
+      >
+        <main className={`pres-main m-${mode}`}>
         {mode === 'layout' && (
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {deck.slides.map((s, idx) => (
@@ -861,10 +867,32 @@ export function PresentationApp() {
             onImageZoom={(src, alt) => setLightboxImage({ src, alt })}
           />
         )}
-      </main>
+        </main>
+      </div>
 
-      {/* Bottom Slide Progress Bar in Present Mode */}
-      {mode === 'present' && (
+      {/* Bottom Dock: Layout Inspector (above nav when active) + Persistent Slide Footer */}
+      <div className="pres-bottom">
+        {mode === 'layout' && selectedInfo && (
+          <LayoutInspector
+            block={selectedInfo.block}
+            isTopLevel={selectedInfo.parentKind === 'slide'}
+            onDeselect={() => {
+              canvasActionRef.current?.clearGuides();
+              setSelectedBlockId(null);
+            }}
+            onNudge={handleNudgeSelected}
+            onMoveOrder={handleMoveOrderSelected}
+            onResizeWidth={handleResizeSelected}
+            onSetSize={(size) => handleSetSelectedTextProp({ size })}
+            onToggleBold={() =>
+              handleSetSelectedTextProp({
+                b: selectedInfo.block.t === 'text' ? !selectedInfo.block.b : false,
+              })
+            }
+            onSetAlign={(align) => handleSetSelectedTextProp({ align })}
+          />
+        )}
+
         <nav className="pres-nav" aria-label="Navigasi slide">
           <button
             type="button"
@@ -905,29 +933,7 @@ export function PresentationApp() {
             <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </button>
         </nav>
-      )}
-
-      {/* Layout Inspector in Layout Mode */}
-      {mode === 'layout' && selectedInfo && (
-        <LayoutInspector
-          block={selectedInfo.block}
-          isTopLevel={selectedInfo.parentKind === 'slide'}
-          onDeselect={() => {
-            canvasActionRef.current?.clearGuides();
-            setSelectedBlockId(null);
-          }}
-          onNudge={handleNudgeSelected}
-          onMoveOrder={handleMoveOrderSelected}
-          onResizeWidth={handleResizeSelected}
-          onSetSize={(size) => handleSetSelectedTextProp({ size })}
-          onToggleBold={() =>
-            handleSetSelectedTextProp({
-              b: selectedInfo.block.t === 'text' ? !selectedInfo.block.b : false,
-            })
-          }
-          onSetAlign={(align) => handleSetSelectedTextProp({ align })}
-        />
-      )}
+      </div>
 
       {/* Floating AI Assistant */}
       <AiAssistant

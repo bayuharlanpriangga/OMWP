@@ -333,7 +333,7 @@ export function SlideCanvas({
         el.style.top = `${top}px`;
         bottom = Math.max(bottom, top + el.offsetHeight);
       }
-      root.style.height = `${bottom + 220}px`;
+      root.style.height = `${bottom + 80}px`;
     }
   }, [slide.blocks, isFree, mode]);
 
@@ -413,8 +413,15 @@ export function SlideCanvas({
       const d = dragStateRef.current;
       if (!d) return;
 
-      if (e.clientY < 90) window.scrollBy(0, -12);
-      else if (e.clientY > window.innerHeight - 90) window.scrollBy(0, 12);
+      const scrollEl = rootRef.current?.closest('.pres-scroll') as HTMLElement | null;
+      if (scrollEl) {
+        const sr = scrollEl.getBoundingClientRect();
+        if (e.clientY < sr.top + 48) scrollEl.scrollBy(0, -12);
+        else if (e.clientY > sr.bottom - 48) scrollEl.scrollBy(0, 12);
+      } else {
+        if (e.clientY < 90) window.scrollBy(0, -12);
+        else if (e.clientY > window.innerHeight - 90) window.scrollBy(0, 12);
+      }
 
       if (d.kind === 'resize') {
         const raw = d.origW + (e.clientX - d.startX) / d.colWidth;
@@ -452,6 +459,7 @@ export function SlideCanvas({
         );
         onUpdateLayoutRef.current(d.latestBlocks);
       } else {
+        const currentScrollY = scrollEl ? scrollEl.scrollTop : window.scrollY;
         const maxPct = 100 - (d.origW / 12) * 100;
         const rawNextX = clamp(
           d.origX + ((e.clientX - d.startX) / d.rootWidth) * 100,
@@ -461,7 +469,7 @@ export function SlideCanvas({
         const rawNextY = Math.max(
           0,
           Math.round(
-            d.origY + e.clientY - d.startY + window.scrollY - d.startScrollY
+            d.origY + e.clientY - d.startY + currentScrollY - d.startScrollY
           )
         );
         const res = computeAlignmentGuides(
@@ -526,12 +534,13 @@ export function SlideCanvas({
     const activeHeight = measured?.activeHeight ?? 60;
     const otherRects = measured?.otherRects ?? [];
 
+    const scrollEl = root.closest('.pres-scroll') as HTMLElement | null;
     dragStateRef.current = {
       kind,
       blockId: block.id,
       startX: e.clientX,
       startY: e.clientY,
-      startScrollY: window.scrollY,
+      startScrollY: scrollEl ? scrollEl.scrollTop : window.scrollY,
       origX: block.x ?? 0,
       origY: block.y ?? 0,
       origW: block.w,

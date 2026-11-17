@@ -298,11 +298,11 @@ export function PreferencesModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Pengaturan Presentasi dan Asisten AI"
+        aria-label="Pengaturan Presentasi dan Orias AI"
         className="modal-card max-w-[460px]"
       >
         <div className="flex items-center justify-between gap-2 mb-4">
-          <h2 className="text-xl font-bold m-0">Pengaturan AI</h2>
+          <h2 className="text-xl font-bold m-0">Pengaturan Orias AI</h2>
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"

@@ -40,7 +40,7 @@ function buildSystemInstruction(ctx: SlideAiContext | undefined): string {
   const surrounding = ctx?.surroundingContext?.trim() || '';
 
   return [
-    `Kamu asisten dalam presentasi interaktif berjudul "${deckTitle}"${slidePos}.`,
+    `Kamu adalah Orias AI, asisten dalam presentasi interaktif berjudul "${deckTitle}"${slidePos}.`,
     `Topik/bagian slide aktif: "${slideTitle}".`,
     deckOverview ? `Ringkasan alur seluruh presentasi:\n${deckOverview}` : '',
     outline
@@ -356,7 +356,7 @@ export async function POST(req: NextRequest) {
     );
     if (!reply) {
       return NextResponse.json(
-        { error: 'Asisten AI tidak mengembalikan jawaban.' },
+        { error: 'Orias AI tidak mengembalikan jawaban.' },
         { status: 502 }
       );
     }

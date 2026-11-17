@@ -10,6 +10,12 @@
   --acc3: #ffd23f;
   --mut: #555555;
   --r: 10px;
+  --sb-track: rgba(17, 17, 17, 0.06);
+  --sb-track-line: rgba(17, 17, 17, 0.28);
+  --sb-thumb: #ffd23f;
+  --sb-thumb-hover: #ff6b35;
+  --sb-thumb-border: #111111;
+  --sb-radius: 6px;
   --font-display: var(--font-brutal), system-ui, sans-serif;
   --font-body: var(--font-brutal), system-ui, sans-serif;
   --font-code: var(--font-mono), ui-monospace, monospace;
@@ -31,6 +37,12 @@
   --acc3: #EEF1F4;
   --mut: #4A5663;
   --r: 2px;
+  --sb-track: rgba(79, 122, 153, 0.08);
+  --sb-track-line: rgba(79, 122, 153, 0.28);
+  --sb-thumb: #4F7A99;
+  --sb-thumb-hover: #D4A72C;
+  --sb-thumb-border: transparent;
+  --sb-radius: 2px;
   --font-display: var(--font-orias-serif), Georgia, serif;
   --font-body: var(--font-orias-sans), system-ui, sans-serif;
   --font-code: var(--font-mono), ui-monospace, monospace;
@@ -46,6 +58,12 @@
   --acc3: #14243d;
   --mut: #5b6677;
   --r: 6px;
+  --sb-track: rgba(20, 36, 61, 0.045);
+  --sb-track-line: rgba(20, 36, 61, 0.14);
+  --sb-thumb: rgba(20, 36, 61, 0.34);
+  --sb-thumb-hover: #b08d3c;
+  --sb-thumb-border: transparent;
+  --sb-radius: 999px;
   --font-display: var(--font-serif), Georgia, serif;
   --font-body: var(--font-jakarta), system-ui, sans-serif;
 }
@@ -57,7 +75,8 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -67,6 +86,15 @@ body {
   font-size: 16px;
   line-height: 1.5;
   transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.pres-shell {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
 }
 
 button {
@@ -93,6 +121,7 @@ select:focus-visible {
 
 /* Header */
 .pres-top {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,8 +131,7 @@ select:focus-visible {
   border-bottom: 3px solid var(--ln);
   background: var(--acc3);
   color: #111111;
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 25;
 }
 
@@ -217,19 +245,33 @@ select:focus-visible {
   line-height: 1;
 }
 
+/* Bounded Scroll Viewport (strictly between Header and Footer) */
+.pres-scroll {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Main container */
 .pres-main {
   position: relative;
   z-index: 1;
-  flex: 1;
-  padding: 20px 16px 116px;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px 36px;
   max-width: 1020px;
   width: 100%;
   margin: 0 auto;
 }
 
 .pres-main.m-layout {
-  padding-bottom: 240px;
+  padding-bottom: 44px;
 }
 
 /* Canvas grid / free layout */
@@ -280,7 +322,8 @@ select:focus-visible {
 }
 
 .slide {
-  min-height: calc(100vh - 210px);
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -876,19 +919,20 @@ select:focus-visible {
   font-weight: 500;
 }
 
-/* Bottom Navigation Bar */
+/* Bottom Dock & Navigation Bar */
+.pres-bottom {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+}
+
 .pres-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 84px 12px 16px;
   background: var(--bg);
   border-top: 3px solid var(--ln);
-  z-index: 20;
 }
 
 [data-theme="auditor"] .pres-nav {
@@ -1275,15 +1319,10 @@ select:focus-visible {
 }
 
 .pres-insp {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 12px 84px 14px 16px;
+  padding: 12px 16px 14px;
   background: var(--bg);
   border-top: 3px solid var(--ln);
-  z-index: 20;
-  max-height: 45vh;
+  max-height: 36vh;
   overflow: auto;
 }
 
@@ -1796,7 +1835,7 @@ select:focus-visible {
 
 @media (max-width: 480px) {
   [data-theme="default"] .pres-main {
-    padding: 14px 12px 104px;
+    padding: 14px 12px 28px;
   }
   [data-theme="default"] .s-xl {
     font-size: clamp(24px, 6vw, 32px);
@@ -1811,6 +1850,100 @@ select:focus-visible {
   [data-theme="default"] .ptarea,
   [data-theme="default"] .pselect {
     font-size: 16px;
+  }
+}
+
+/* Theme-integrated Scrollbars (Brutalis, Identitas Orias, Auditor) */
+.pres-scroll::-webkit-scrollbar,
+.pres-insp::-webkit-scrollbar,
+.modal-card::-webkit-scrollbar,
+.ai-bubble ::-webkit-scrollbar,
+.ai-mini-bubble ::-webkit-scrollbar,
+.ptbl-wrap::-webkit-scrollbar,
+.ptarea::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.pres-scroll::-webkit-scrollbar-track,
+.pres-insp::-webkit-scrollbar-track,
+.modal-card::-webkit-scrollbar-track,
+.ai-bubble ::-webkit-scrollbar-track,
+.ai-mini-bubble ::-webkit-scrollbar-track,
+.ptbl-wrap::-webkit-scrollbar-track,
+.ptarea::-webkit-scrollbar-track {
+  background: var(--sb-track);
+}
+
+.pres-scroll::-webkit-scrollbar-track {
+  border-left: 1px solid var(--sb-track-line);
+}
+
+.pres-scroll::-webkit-scrollbar-thumb,
+.pres-insp::-webkit-scrollbar-thumb,
+.modal-card::-webkit-scrollbar-thumb,
+.ai-bubble ::-webkit-scrollbar-thumb,
+.ai-mini-bubble ::-webkit-scrollbar-thumb,
+.ptbl-wrap::-webkit-scrollbar-thumb,
+.ptarea::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb);
+  border-radius: var(--sb-radius);
+  border: 2px solid var(--sb-thumb-border);
+  background-clip: padding-box;
+}
+
+.pres-scroll::-webkit-scrollbar-thumb:hover,
+.pres-insp::-webkit-scrollbar-thumb:hover,
+.modal-card::-webkit-scrollbar-thumb:hover,
+.ai-bubble ::-webkit-scrollbar-thumb:hover,
+.ai-mini-bubble ::-webkit-scrollbar-thumb:hover,
+.ptbl-wrap::-webkit-scrollbar-thumb:hover,
+.ptarea::-webkit-scrollbar-thumb:hover {
+  background: var(--sb-thumb-hover);
+  background-clip: padding-box;
+}
+
+.pres-scroll::-webkit-scrollbar-corner,
+.pres-insp::-webkit-scrollbar-corner,
+.modal-card::-webkit-scrollbar-corner,
+.ptbl-wrap::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+:root[data-theme="brutal"] .pres-scroll::-webkit-scrollbar-thumb,
+:root[data-theme="brutal"] .pres-insp::-webkit-scrollbar-thumb,
+:root[data-theme="brutal"] .modal-card::-webkit-scrollbar-thumb,
+:root[data-theme="brutal"] .ai-bubble ::-webkit-scrollbar-thumb,
+:root[data-theme="brutal"] .ai-mini-bubble ::-webkit-scrollbar-thumb,
+:root[data-theme="brutal"] .ptbl-wrap::-webkit-scrollbar-thumb,
+:root[data-theme="brutal"] .ptarea::-webkit-scrollbar-thumb {
+  background-clip: border-box;
+}
+
+:root[data-theme="brutal"] .pres-scroll::-webkit-scrollbar-track {
+  border-left: 2px solid #111111;
+}
+
+:root[data-theme="auditor"] .pres-scroll::-webkit-scrollbar-thumb:active {
+  background: #14243d;
+  background-clip: padding-box;
+}
+
+:root[data-theme="default"] .pres-scroll::-webkit-scrollbar-thumb:active {
+  background: #0D0D0D;
+  background-clip: padding-box;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .pres-scroll,
+  .pres-insp,
+  .modal-card,
+  .ai-bubble *,
+  .ai-mini-bubble *,
+  .ptbl-wrap,
+  .ptarea {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sb-thumb) var(--sb-track);
   }
 }
 

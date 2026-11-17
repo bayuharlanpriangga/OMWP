@@ -54,18 +54,18 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: 'Presentasi Interaktif',
   description:
-    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
+    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Orias AI.',
   openGraph: {
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Orias AI.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Orias AI.',
   },
 };
 

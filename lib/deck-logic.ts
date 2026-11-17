@@ -1120,15 +1120,15 @@ export function buildStandaloneHtml(
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#fff4d6;--fg:#111;--card:#fff;--ln:#111;--acc:#ff6b35;--acc2:#2ec4b6;--acc3:#ffd23f;--mut:#555;--r:10px}
-:root[data-theme=default]{--bg:#EEF1F4;--fg:#0D0D0D;--card:#fff;--ln:#4F7A99;--acc:#D4A72C;--acc2:#A9C6DC;--acc3:#EEF1F4;--mut:#4A5663;--r:2px}
-:root[data-theme=auditor]{--bg:#f4f6f9;--fg:#1b2430;--card:#fff;--ln:#14243d;--acc:#b08d3c;--acc2:#14243d;--acc3:#14243d;--mut:#5b6677;--r:6px}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+:root{--bg:#fff4d6;--fg:#111;--card:#fff;--ln:#111;--acc:#ff6b35;--acc2:#2ec4b6;--acc3:#ffd23f;--mut:#555;--r:10px;--sb-track:rgba(17,17,17,.06);--sb-track-line:rgba(17,17,17,.28);--sb-thumb:#ffd23f;--sb-thumb-hover:#ff6b35;--sb-thumb-border:#111;--sb-radius:6px}
+:root[data-theme=default]{--bg:#EEF1F4;--fg:#0D0D0D;--card:#fff;--ln:#4F7A99;--acc:#D4A72C;--acc2:#A9C6DC;--acc3:#EEF1F4;--mut:#4A5663;--r:2px;--sb-track:rgba(79,122,153,.08);--sb-track-line:rgba(79,122,153,.28);--sb-thumb:#4F7A99;--sb-thumb-hover:#D4A72C;--sb-thumb-border:transparent;--sb-radius:2px}
+:root[data-theme=auditor]{--bg:#f4f6f9;--fg:#1b2430;--card:#fff;--ln:#14243d;--acc:#b08d3c;--acc2:#14243d;--acc3:#14243d;--mut:#5b6677;--r:6px;--sb-track:rgba(20,36,61,.045);--sb-track-line:rgba(20,36,61,.14);--sb-thumb:rgba(20,36,61,.34);--sb-thumb-hover:#b08d3c;--sb-thumb-border:transparent;--sb-radius:999px}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--fg);font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:16px;line-height:1.5}
 [data-theme=default] body{font-family:'IBM Plex Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums}
 [data-theme=auditor] body{font-family:'Plus Jakarta Sans',system-ui,sans-serif}
-#app{min-height:100vh;display:flex;flex-direction:column}
-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:3px solid var(--ln);background:var(--acc3);color:#111;position:sticky;top:0;z-index:20}
+#app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative}
+header{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:3px solid var(--ln);background:var(--acc3);color:#111;position:relative;z-index:20}
 [data-theme=default] header{background:#EEF1F4;color:#0D0D0D;border-bottom:1px solid #4F7A99}
 [data-theme=auditor] header{background:#14243d;color:#fff;border-bottom:3px solid #b08d3c}
 .brand{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1136,8 +1136,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
 .btn{border:3px solid var(--ln);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:var(--r);box-shadow:3px 3px 0 var(--ln);font-weight:600;cursor:pointer}
 [data-theme=default] .btn{border:1px solid #4F7A99;border-radius:2px;box-shadow:none;font-weight:500}
 [data-theme=auditor] .btn{border:1px solid #c5ccd8;border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.08)}
-main{position:relative;z-index:1;flex:1;padding:20px 16px 100px;max-width:1000px;width:100%;margin:0 auto}
-.slide{min-height:calc(100vh - 200px);display:flex;flex-direction:column;position:relative}
+.scroll-area{flex:1 1 0%;min-height:0;overflow-y:auto;overflow-x:hidden;position:relative;z-index:1;display:flex;flex-direction:column}
+main{position:relative;z-index:1;flex:1 0 auto;display:flex;flex-direction:column;padding:20px 16px 36px;max-width:1000px;width:100%;margin:0 auto}
+.slide{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
 .theme-backdrop{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .theme-backdrop span{position:absolute;display:block}
 .theme-backdrop .tb-a{top:76px;right:26px;width:58px;height:58px;background:var(--acc3);border:3px solid var(--ln);box-shadow:5px 5px 0 var(--ln);opacity:.78}
@@ -1200,8 +1201,9 @@ main{position:relative;z-index:1;flex:1;padding:20px 16px 100px;max-width:1000px
 [data-theme=auditor] .ptbl td+td{border-left:1px solid #e1e6ee}
 @media(max-width:639px){.ptbl{font-size:14px}.ptbl th,.ptbl td{padding:8px 10px}}
 .im{display:block;width:100%;height:auto;border-radius:6px}
-nav{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:10px ${hasByok ? '84px' : '16px'} 12px 16px;background:var(--bg);border-top:3px solid var(--ln);z-index:15}
+nav{flex:0 0 auto;position:relative;display:flex;align-items:center;gap:10px;padding:10px ${hasByok ? '84px' : '16px'} 12px 16px;background:var(--bg);border-top:3px solid var(--ln);z-index:15}
 [data-theme=default] nav{border-top:1px solid #4F7A99}
+[data-theme=auditor] nav{background:#fff;border-top:1px solid #d5dbe5}
 .prog{flex:1;height:14px;border:3px solid var(--ln);border-radius:99px;background:var(--card);overflow:hidden}.prog i{display:block;height:100%;background:var(--acc)}
 [data-theme=default] .prog{height:6px;border:1px solid #4F7A99;border-radius:0}
 .cnt{font-family:'Space Mono',monospace;font-size:13px;min-width:42px;text-align:center}
@@ -1217,6 +1219,14 @@ nav{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:1
 .bubm{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:14px}
 .bmsg{padding:8px 10px;border:2px solid var(--ln);border-radius:10px;max-width:92%}.bmsg.u{align-self:flex-end;background:var(--acc2)}.bmsg.a{align-self:flex-start}
 [data-theme=default] .bmsg{border:1px solid #4F7A99;border-radius:2px}[data-theme=default] .bmsg.u{background:#0D0D0D;color:#EEF1F4;border-color:#0D0D0D}[data-theme=default] .bmsg.a{background:#EEF1F4;border-color:#A9C6DC}
+.scroll-area::-webkit-scrollbar,.pmc::-webkit-scrollbar,.bubm::-webkit-scrollbar,.ptbl-wrap::-webkit-scrollbar{width:10px;height:10px}
+.scroll-area::-webkit-scrollbar-track,.pmc::-webkit-scrollbar-track,.bubm::-webkit-scrollbar-track,.ptbl-wrap::-webkit-scrollbar-track{background:var(--sb-track)}
+.scroll-area::-webkit-scrollbar-track{border-left:1px solid var(--sb-track-line)}
+[data-theme=brutal] .scroll-area::-webkit-scrollbar-track{border-left:2px solid #111}
+.scroll-area::-webkit-scrollbar-thumb,.pmc::-webkit-scrollbar-thumb,.bubm::-webkit-scrollbar-thumb,.ptbl-wrap::-webkit-scrollbar-thumb{background:var(--sb-thumb);border-radius:var(--sb-radius);border:2px solid var(--sb-thumb-border);background-clip:padding-box}
+[data-theme=brutal] .scroll-area::-webkit-scrollbar-thumb,[data-theme=brutal] .pmc::-webkit-scrollbar-thumb,[data-theme=brutal] .bubm::-webkit-scrollbar-thumb,[data-theme=brutal] .ptbl-wrap::-webkit-scrollbar-thumb{background-clip:border-box}
+.scroll-area::-webkit-scrollbar-thumb:hover,.pmc::-webkit-scrollbar-thumb:hover,.bubm::-webkit-scrollbar-thumb:hover,.ptbl-wrap::-webkit-scrollbar-thumb:hover{background:var(--sb-thumb-hover);background-clip:padding-box}
+@supports not selector(::-webkit-scrollbar){.scroll-area,.pmc,.bubm,.ptbl-wrap{scrollbar-width:thin;scrollbar-color:var(--sb-thumb) var(--sb-track)}}
 </style>
 </head>
 <body data-locked="1">
@@ -1251,7 +1261,7 @@ const callAi=async(q,localCtx)=>{
   const slideLines=descBlocks(sl.blocks);
   (sl.modals||[]).forEach(m=>{const ml=descBlocks(m.children||[],'Modal "'+stText(m.title)+'"');if(ml.length)slideLines.push(...ml)});
   const overview=deck.slides.map((s,i)=>'Slide '+(i+1)+(i===idx?' [AKTIF]':'')+': '+descBlocks(s.blocks).slice(0,2).join(' — ').slice(0,160)).join('\\n');
-  const sys='Kamu asisten dalam presentasi "'+deck.title+'" (Slide '+(idx+1)+' dari '+deck.slides.length+').\\nAlur presentasi:\\n'+overview+'\\nMateri lengkap slide aktif:\\n'+slideLines.join('\\n').slice(0,2400)+(localCtx?'\\nKonteks spesifik istilah: '+localCtx:'')+'\\nPahami topik yang sebenarnya sedang dibahas secara menyeluruh. Jika istilah/pertanyaan singkat atau implisit, tafsirkan maknanya sesuai konteks materi di atas. Jawab dalam bahasa Indonesia secara ringkas dan jelas (~100-150 kata).';
+  const sys='Kamu adalah Orias AI, asisten dalam presentasi "'+deck.title+'" (Slide '+(idx+1)+' dari '+deck.slides.length+').\\nAlur presentasi:\\n'+overview+'\\nMateri lengkap slide aktif:\\n'+slideLines.join('\\n').slice(0,2400)+(localCtx?'\\nKonteks spesifik istilah: '+localCtx:'')+'\\nPahami topik yang sebenarnya sedang dibahas secara menyeluruh. Jika istilah/pertanyaan singkat atau implisit, tafsirkan maknanya sesuai konteks materi di atas. Jawab dalam bahasa Indonesia secara ringkas dan jelas (~100-150 kata).';
   const hist=msgs.filter(m=>m.r!=='e').slice(-8).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t}));
   let reply='';
   for(const k of byok){
@@ -1275,8 +1285,8 @@ const callAi=async(q,localCtx)=>{
 };
 const render=()=>{
   const sl=deck.slides[idx],free=sl.blocks.some(b=>b.y!=null);
-  const aiHtml=byok.length?('<button class="fab" id="fab">✦</button>'+(aiOpen?'<div class="bub"><div class="bubh"><span>Asisten AI</span><button class="btn" id="cbub" style="padding:2px 8px">✕</button></div><div class="bubm">'+(msgs.length?msgs.map(m=>'<div class="bmsg '+m.r+'">'+fmt(m.t)+'</div>').join(''):'<div class="bmsg a">Klik istilah bertanda kuning untuk penjelasan.</div>')+(aiBusy?'<div class="bmsg a">Sedang berpikir…</div>':'')+'</div></div>':'')):'';
-  document.getElementById('app').innerHTML='<div class="theme-backdrop" aria-hidden="true"><span class="tb-a"></span><span class="tb-b"></span><span class="tb-c"></span><span class="tb-d"></span></div><header><div class="brand">'+esc(deck.title)+'</div><button class="btn" id="fs">▶</button></header><main><div class="slide"><div class="cv'+(free?' free':'')+'">'+renderBlocks(sl.blocks)+'</div></div></main><nav><button class="btn" id="pv"'+(idx<=0?' disabled':'')+'>◀</button><div class="prog"><i style="width:'+((idx+1)/deck.slides.length*100)+'%"></i></div><span class="cnt">'+(idx+1)+'/'+deck.slides.length+'</span><button class="btn" id="nx"'+(idx>=deck.slides.length-1?' disabled':'')+'>▶</button></nav>'+aiHtml+'<div id="pm"'+(pmId?'':' hidden')+'>'+(pmId?(() => {const m=(sl.modals||[]).find(x=>x.id===pmId);return m?'<div class="pmc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>'+esc(m.title)+'</h2><button class="btn" id="cpm">✕</button></div><div class="cv">'+renderBlocks(m.children||[])+'</div></div>':'';})():'')+'</div>';
+  const aiHtml=byok.length?('<button class="fab" id="fab">✦</button>'+(aiOpen?'<div class="bub"><div class="bubh"><span>Orias AI</span><button class="btn" id="cbub" style="padding:2px 8px">✕</button></div><div class="bubm">'+(msgs.length?msgs.map(m=>'<div class="bmsg '+m.r+'">'+fmt(m.t)+'</div>').join(''):'<div class="bmsg a">Klik istilah bertanda kuning untuk penjelasan.</div>')+(aiBusy?'<div class="bmsg a">Sedang berpikir…</div>':'')+'</div></div>':'')):'';
+  document.getElementById('app').innerHTML='<div class="theme-backdrop" aria-hidden="true"><span class="tb-a"></span><span class="tb-b"></span><span class="tb-c"></span><span class="tb-d"></span></div><header><div class="brand">'+esc(deck.title)+'</div><button class="btn" id="fs">▶</button></header><div class="scroll-area"><main><div class="slide"><div class="cv'+(free?' free':'')+'">'+renderBlocks(sl.blocks)+'</div></div></main></div><nav><button class="btn" id="pv"'+(idx<=0?' disabled':'')+'>◀</button><div class="prog"><i style="width:'+((idx+1)/deck.slides.length*100)+'%"></i></div><span class="cnt">'+(idx+1)+'/'+deck.slides.length+'</span><button class="btn" id="nx"'+(idx>=deck.slides.length-1?' disabled':'')+'>▶</button></nav>'+aiHtml+'<div id="pm"'+(pmId?'':' hidden')+'>'+(pmId?(() => {const m=(sl.modals||[]).find(x=>x.id===pmId);return m?'<div class="pmc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>'+esc(m.title)+'</h2><button class="btn" id="cpm">✕</button></div><div class="cv">'+renderBlocks(m.children||[])+'</div></div>':'';})():'')+'</div>';
   if(free){const r=document.querySelector('.cv.free');let b=0;[...r.children].forEach(e=>{b=Math.max(b,e.offsetTop+e.offsetHeight)});r.style.height=(b+40)+'px'}
 };
 document.addEventListener('click',e=>{

@@ -166,7 +166,7 @@ function RichMarkupTextarea({
             type="button"
             className="pbtn sm"
             onClick={() => wrapSelection('[[', ']]', 'istilah')}
-            title="Tandai istilah agar bisa dijelaskan Asisten AI"
+            title="Tandai istilah agar bisa dijelaskan Orias AI"
           >
             <Sparkles className="w-3 h-3" aria-hidden="true" />
             <span>[[Istilah AI]]</span>

@@ -145,7 +145,7 @@ export function AiAssistant({
             onToggleOpen();
           }
         }}
-        aria-label={open ? 'Tutup Asisten AI' : 'Buka Asisten AI'}
+        aria-label={open ? 'Tutup Orias AI' : 'Buka Orias AI'}
         aria-expanded={open}
       >
         <Sparkles className="w-6 h-6" aria-hidden="true" />
@@ -156,7 +156,7 @@ export function AiAssistant({
         {!open && miniOpen && (
           <motion.aside
             role="status"
-            aria-label="Penjelasan singkat Asisten AI"
+            aria-label="Penjelasan singkat Orias AI"
             className="ai-mini-bubble"
             initial={{ opacity: 0, y: 12, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -169,7 +169,7 @@ export function AiAssistant({
               <div className="flex items-center gap-1.5 min-w-0">
                 <Sparkles className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 <span className="text-xs font-bold truncate">
-                  {activeTerm || 'Asisten AI'}
+                  {activeTerm || 'Orias AI'}
                 </span>
               </div>
               <div
@@ -235,7 +235,7 @@ export function AiAssistant({
         {open && (
           <motion.section
             role="dialog"
-            aria-label="Asisten AI Presentasi"
+            aria-label="Orias AI"
             className="ai-bubble"
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -244,14 +244,14 @@ export function AiAssistant({
           >
             <div className="ai-bh">
               <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span className="flex-1 text-sm">Asisten AI</span>
+              <span className="flex-1 text-sm">Orias AI</span>
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
                   className="pbtn sm w-7 h-7 !p-0"
                   onClick={onOpenPrefs}
-                  aria-label="Pengaturan Asisten AI"
-                  title="Pengaturan AI"
+                  aria-label="Pengaturan Orias AI"
+                  title="Pengaturan Orias AI"
                 >
                   <Settings className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
@@ -268,7 +268,7 @@ export function AiAssistant({
                   type="button"
                   className="pbtn sm w-7 h-7 !p-0"
                   onClick={onClose}
-                  aria-label="Tutup asisten AI"
+                  aria-label="Tutup Orias AI"
                   title="Tutup"
                 >
                   <X className="w-3.5 h-3.5" aria-hidden="true" />
@@ -347,7 +347,7 @@ export function AiAssistant({
                 type="text"
                 className="pinput flex-1 text-sm"
                 placeholder="Tanya lanjutan…"
-                aria-label="Pertanyaan lanjutan untuk Asisten AI"
+                aria-label="Pertanyaan lanjutan untuk Orias AI"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
               />
