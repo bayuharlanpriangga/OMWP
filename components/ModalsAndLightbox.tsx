@@ -41,7 +41,7 @@ const THEME_SWATCHES: Record<
   },
   cyberpunk: {
     name: 'Cyberpunk',
-    colors: ['#070a14', '#0b1224', '#00e5ff', '#ff2a85', '#fcee0a'],
+    colors: ['#090612', '#150d28', '#a855f7', '#ff2a85', '#fcee0a'],
   },
   hacker: {
     name: 'Hacker',
@@ -50,6 +50,10 @@ const THEME_SWATCHES: Record<
   astronomi: {
     name: 'Astronomi',
     colors: ['#03060e', '#080e1c', '#7dd3fc', '#f5c451', '#eef4ff'],
+  },
+  ghost: {
+    name: 'Ghost',
+    colors: ['#080405', '#1a0a0c', '#dc2626', '#7f1d1d', '#f4eaea'],
   },
 };
 
@@ -78,6 +82,7 @@ export function ThemeModal({
     'cyberpunk',
     'hacker',
     'astronomi',
+    'ghost',
   ];
 
   const handleChoose = (id: ThemeId) => {
@@ -125,6 +130,7 @@ export function ThemeModal({
             const isCyberpunk = id === 'cyberpunk';
             const isHacker = id === 'hacker';
             const isAstronomi = id === 'astronomi';
+            const isGhost = id === 'ghost';
 
             return (
               <button
@@ -151,10 +157,10 @@ export function ThemeModal({
                     : isBrutal
                       ? 'bg-[#fff4d6] text-[#111111] border-[3px] border-[#111111] rounded-[10px] shadow-[4px_4px_0_#111111]'
                       : isCyberpunk
-                        ? `bg-[#070a14] text-[#e6f1ff] border rounded-[4px] ${
+                        ? `bg-[#090612] text-[#f3e8ff] border rounded-[4px] ${
                             active
-                              ? 'border-[#00e5ff] shadow-[0_0_16px_rgba(0,229,255,0.35)]'
-                              : 'border-[#00e5ff]/55 hover:border-[#00e5ff]'
+                              ? 'border-[#a855f7] shadow-[0_0_16px_rgba(168,85,247,0.38)]'
+                              : 'border-[#a855f7]/55 hover:border-[#c084fc]'
                           }`
                         : isHacker
                           ? `bg-[#030804] text-[#d9ffe5] border rounded-[4px] ${
@@ -168,7 +174,13 @@ export function ThemeModal({
                                   ? 'border-[#f5c451] shadow-[0_0_16px_rgba(125,211,252,0.28)]'
                                   : 'border-[#7dd3fc]/45 hover:border-[#7dd3fc]'
                               }`
-                            : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                            : isGhost
+                              ? `bg-[#080405] text-[#f4eaea] border rounded-[4px] ${
+                                  active
+                                    ? 'border-[#ef4444] shadow-[0_0_16px_rgba(220,38,38,0.42)]'
+                                    : 'border-[#dc2626]/55 hover:border-[#ef4444]'
+                                }`
+                              : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -230,7 +242,7 @@ export function ThemeModal({
                         fontFamily:
                           'var(--font-cyber-display), system-ui, sans-serif',
                         textShadow: isEngaged || active
-                          ? '0 0 10px rgba(0, 229, 255, 0.7)'
+                          ? '0 0 10px rgba(168, 85, 247, 0.72)'
                           : 'none',
                       }}
                       animate={
@@ -248,7 +260,7 @@ export function ThemeModal({
                         className="block h-[2px] origin-left mt-0.5"
                         style={{
                           background:
-                            'linear-gradient(90deg, #00e5ff 0%, #ff2a85 100%)',
+                            'linear-gradient(90deg, #a855f7 0%, #ff2a85 100%)',
                         }}
                         initial={false}
                         animate={{ scaleX: isEngaged || active ? 1 : 0 }}
@@ -336,6 +348,47 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isGhost ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-bold tracking-wider"
+                      style={{
+                        fontFamily:
+                          'var(--font-ghost-display), var(--font-serif), Georgia, serif',
+                        color: '#f4eaea',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(220, 38, 38, 0.72)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { x: [0, -2, 2, 0], scale: 1.04 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1 }
+                      }
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3 h-3 rounded-full shrink-0 bg-[#dc2626]"
+                        style={{
+                          boxShadow:
+                            active || isEngaged
+                              ? '0 0 10px rgba(239, 68, 68, 0.9)'
+                              : '0 0 4px rgba(220, 38, 38, 0.5)',
+                        }}
+                        animate={{
+                          opacity: isEngaged || active ? [1, 0.35, 1] : 0.75,
+                        }}
+                        transition={{
+                          duration: 1.4,
+                          repeat: isEngaged || active ? Infinity : 0,
+                          ease: 'easeInOut',
+                        }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -376,12 +429,14 @@ export function ThemeModal({
                           : isBrutal
                             ? 'bg-[#ff6b35] text-[#111111] border-2 border-[#111111] rounded-full'
                             : isCyberpunk
-                              ? 'bg-[#00e5ff] text-[#070a14] rounded-[3px]'
+                              ? 'bg-[#a855f7] text-[#090612] rounded-[3px]'
                               : isHacker
                                 ? 'bg-[#00ff66] text-[#030804] rounded-[3px]'
                                 : isAstronomi
                                   ? 'bg-[#f5c451] text-[#03060e] rounded-[3px]'
-                                  : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                  : isGhost
+                                    ? 'bg-[#dc2626] text-[#fff5f5] rounded-[3px]'
+                                    : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -403,10 +458,12 @@ export function ThemeModal({
                           : isBrutal
                             ? 'rounded-[4px] border-2 border-[#111111]'
                             : isCyberpunk
-                              ? 'rounded-[2px] border border-[#00e5ff]/60'
+                              ? 'rounded-[2px] border border-[#a855f7]/60'
                               : isHacker
                                 ? 'rounded-[2px] border border-[#00ff66]/60'
-                                : 'rounded-[3px] border border-[#c5ccd8]'
+                                : isGhost
+                                  ? 'rounded-[2px] border border-[#dc2626]/65'
+                                  : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />

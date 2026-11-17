@@ -181,3 +181,23 @@ test('importDeckFromHtml preserves astronomi theme attribute on standalone round
   assert.ok(generic);
   assert.equal(generic.deck.theme, 'astronomi');
 });
+
+test('importDeckFromHtml preserves ghost theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'ghost';
+  deck.title = 'Ruangan Angker';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'TV Rusak & Kursi Goyang';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'ghost');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="ghost"><head><title>Gedung Kosong</title></head><body><section class="slide"><h1>Lorong Gelap</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'ghost');
+});

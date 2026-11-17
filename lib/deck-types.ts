@@ -6,7 +6,8 @@ export type ThemeId =
   | 'auditor'
   | 'cyberpunk'
   | 'hacker'
-  | 'astronomi';
+  | 'astronomi'
+  | 'ghost';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';
 export type TextAlign = 'l' | 'c' | 'r';

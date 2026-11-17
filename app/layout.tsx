@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import {
   Bricolage_Grotesque,
   Chakra_Petch,
+  Cinzel,
   IBM_Plex_Sans,
   JetBrains_Mono,
   Lora,
@@ -24,6 +25,13 @@ const chakraPetch = Chakra_Petch({
   subsets: ['latin'],
   weight: ['500', '600', '700'],
   variable: '--font-astro-display',
+  display: 'swap',
+});
+
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-ghost-display',
   display: 'swap',
 });
 
@@ -106,7 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="id"
       data-theme="default"
-      className={`${bricolage.variable} ${chakraPetch.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${lora.variable} ${orbitron.variable} ${rajdhani.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
+      className={`${bricolage.variable} ${chakraPetch.variable} ${cinzel.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${lora.variable} ${orbitron.variable} ${rajdhani.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
       suppressHydrationWarning
     >
       <body suppressHydrationWarning>{children}</body>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import cyberpunkCityBg from '@/public/assets/cyberpunk-night-city.jpg';
+import cyberpunkCityBg from '@/src/assets/images/cyberpunk_purple_city_1794952180578.jpg';
 import {
   addBlockToSlide,
   buildSlideAiContext,
@@ -42,6 +42,7 @@ import {
 import { ApiKeysModal } from './ApiKeysModal';
 import { AiAssistant } from './AiAssistant';
 import { LayoutInspector } from './LayoutInspector';
+import { GhostBackdrop } from './GhostBackdrop';
 import { MatrixRainBackdrop } from './MatrixRainBackdrop';
 import { SpaceBackdrop } from './SpaceBackdrop';
 import {
@@ -652,6 +653,7 @@ export function PresentationApp() {
         )}
         {deck.theme === 'hacker' && <MatrixRainBackdrop />}
         {deck.theme === 'astronomi' && <SpaceBackdrop />}
+        {deck.theme === 'ghost' && <GhostBackdrop />}
         <span className="tb-a" />
         <span className="tb-b" />
         <span className="tb-c" />

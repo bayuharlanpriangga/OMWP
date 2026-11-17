@@ -363,7 +363,7 @@ test('TableBlock normalizes custom rows/columns, feeds modal scan & AI context, 
   assert.ok(html.includes('tblWidths'));
 });
 
-test('cyberpunk theme normalizes cleanly and exports self-contained cityscape styles', () => {
+test('cyberpunk theme normalizes cleanly and exports purple self-contained cityscape styles', () => {
   const deck = createDefaultDeck();
   deck.theme = 'cyberpunk';
   deck.title = 'Metropolis Malam';
@@ -375,7 +375,9 @@ test('cyberpunk theme normalizes cleanly and exports self-contained cityscape st
   const html = buildStandaloneHtml(normalized);
   assert.ok(html.includes('data-theme="cyberpunk"'));
   assert.ok(html.includes('[data-theme=cyberpunk]'));
-  assert.ok(html.includes('#070a14'));
+  assert.ok(html.includes('#090612'));
+  assert.ok(html.includes('#a855f7'));
+  assert.ok(!html.includes('#00e5ff'));
   assert.ok(html.includes('data:image/svg+xml'));
 });
 
@@ -412,6 +414,24 @@ test('astronomi theme normalizes cleanly and exports deep-space styles with anim
   assert.ok(html.includes('#f5c451'));
   assert.ok(html.includes('space-bg'));
   assert.ok(html.includes('Chakra Petch'));
+});
+
+test('ghost theme normalizes cleanly and exports blood-red styles with animated haunted room canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'ghost';
+  deck.title = 'Gedung Kosong Berhantu';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'ghost');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="ghost"'));
+  assert.ok(html.includes('[data-theme=ghost]'));
+  assert.ok(html.includes('#080405'));
+  assert.ok(html.includes('#dc2626'));
+  assert.ok(html.includes('ghost-bg'));
+  assert.ok(html.includes('Cinzel'));
 });
 
 test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {
