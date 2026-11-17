@@ -10,6 +10,7 @@ import type {
   Slide,
   SlideAiContext,
   SlideModal,
+  TableBlock,
   TextAlign,
   TextBlock,
   TextSize,
@@ -39,6 +40,7 @@ export const BLOCK_NAMES: Record<Block['t'], string> = {
   dd: 'Dropdown',
   box: 'Container',
   concl: 'Kesimpulan',
+  table: 'Tabel',
 };
 
 export function uid(): string {
@@ -76,6 +78,17 @@ export function createBlock(type: Block['t']): Block {
       return { id: uid(), t: 'box', title: '', children: [], w: 12 };
     case 'concl':
       return { id: uid(), t: 'concl', label: '★ Kesimpulan', text: '', w: 12 };
+    case 'table':
+      return {
+        id: uid(),
+        t: 'table',
+        headers: ['Nama', 'Keterangan'],
+        rows: [
+          ['', ''],
+          ['', ''],
+        ],
+        w: 12,
+      };
   }
 }
 
@@ -151,6 +164,33 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
       };
       return box;
     }
+    if (raw.t === 'table') {
+      const rawHeaders = Array.isArray(raw.headers)
+        ? raw.headers.map((h) => String(h ?? ''))
+        : [];
+      const colCount = Math.max(1, rawHeaders.length);
+      const headers =
+        rawHeaders.length > 0 ? rawHeaders : ['Kolom 1'];
+      const rawRows = Array.isArray(raw.rows) ? raw.rows : [];
+      const rows =
+        rawRows.length > 0
+          ? rawRows.map((row) => {
+              const cells = Array.isArray(row) ? row : [];
+              return Array.from({ length: colCount }, (_, idx) =>
+                String(cells[idx] ?? '')
+              );
+            })
+          : [Array.from({ length: colCount }, () => '')];
+      const tb: TableBlock = {
+        id,
+        t: 'table',
+        headers,
+        rows,
+        w,
+        ...coords,
+      };
+      return tb;
+    }
     const cb: ConclusionBlock = {
       id,
       t: 'concl',
@@ -164,17 +204,137 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
   });
 }
 
+export interface TableColumnLayout {
+  widths: number[];
+  mode: 'symmetric' | 'adaptive';
+  colMaxLens: number[];
+  threshold: number;
+}
+
+/**
+ * Computes responsive percentage widths for table columns based on their text length.
+ * - If every column fits within its fair equal-division character budget, columns are
+ *   distributed symmetrically (equal widths).
+ * - If any column exceeds the fair budget (e.g. "Keterangan" with long text vs "Nama"),
+ *   short columns shrink neatly to fit their longest text + cell padding while
+ *   long-text columns expand proportionally to occupy the remaining width.
+ */
+export function computeTableColumnWidths(
+  headers: string[],
+  rows: string[][],
+  blockWidth = 12
+): TableColumnLayout {
+  const colCount = Math.max(1, headers.length);
+  if (colCount === 1) {
+    const hLen = stripMarkup(headers[0] ?? '').trim().length;
+    const maxCell = rows.reduce(
+      (m, r) => Math.max(m, stripMarkup(r?.[0] ?? '').trim().length),
+      0
+    );
+    return {
+      widths: [100],
+      mode: 'symmetric',
+      colMaxLens: [Math.max(hLen, maxCell)],
+      threshold: 64,
+    };
+  }
+
+  const maxLineLen = (raw: string | null | undefined): number => {
+    const clean = stripMarkup(raw ?? '').trim();
+    if (!clean) return 0;
+    return clean
+      .split(/\n/)
+      .reduce((m, line) => Math.max(m, line.trim().length), 0);
+  };
+
+  const colMaxLens = Array.from({ length: colCount }, (_, colIdx) => {
+    let maxLen = maxLineLen(headers[colIdx]);
+    for (const row of rows) {
+      maxLen = Math.max(maxLen, maxLineLen(row?.[colIdx]));
+    }
+    return maxLen;
+  });
+
+  const widthFactor = clamp(blockWidth || 12, 3, 12) / 12;
+  const totalCapacityChars = Math.max(24, Math.round(64 * widthFactor));
+  const threshold = Math.max(10, Math.round(totalCapacityChars / colCount));
+
+  const anyOverflow = colMaxLens.some((len) => len > threshold);
+  if (!anyOverflow) {
+    const base = Math.floor((10000 / colCount)) / 100;
+    const widths = Array.from({ length: colCount }, () => base);
+    const diff = Number((100 - widths.reduce((a, b) => a + b, 0)).toFixed(2));
+    widths[colCount - 1] = Number((widths[colCount - 1] + diff).toFixed(2));
+    return {
+      widths,
+      mode: 'symmetric',
+      colMaxLens,
+      threshold,
+    };
+  }
+
+  const refChars = Math.max(36, 84 * widthFactor);
+  const equalPct = 100 / colCount;
+  const minColPct = clamp(Number((28 / colCount).toFixed(2)), 7, 10.5);
+
+  const widths = new Array<number>(colCount).fill(0);
+  const shortCols: number[] = [];
+  const longCols: number[] = [];
+
+  colMaxLens.forEach((len, idx) => {
+    if (len <= threshold) shortCols.push(idx);
+    else longCols.push(idx);
+  });
+
+  let usedShortPct = 0;
+  for (const idx of shortCols) {
+    // Fit longest line text in column + ~4 chars comfort margin for cell padding
+    const neededChars = Math.max(colMaxLens[idx], 2) + 4;
+    const fitPct = clamp(
+      (neededChars / refChars) * 100,
+      minColPct,
+      equalPct * 0.92
+    );
+    widths[idx] = fitPct;
+    usedShortPct += fitPct;
+  }
+
+  const maxAllowedShortTotal = 100 - longCols.length * minColPct;
+  if (usedShortPct > maxAllowedShortTotal && usedShortPct > 0) {
+    const scale = maxAllowedShortTotal / usedShortPct;
+    usedShortPct = 0;
+    for (const idx of shortCols) {
+      widths[idx] = Math.max(minColPct, widths[idx] * scale);
+      usedShortPct += widths[idx];
+    }
+  }
+
+  const remainingPct = Math.max(longCols.length * minColPct, 100 - usedShortPct);
+  const longWeights = longCols.map((idx) => Math.max(1, Math.pow(colMaxLens[idx], 0.85)));
+  const totalLongWeight = longWeights.reduce((a, b) => a + b, 0) || 1;
+
+  longCols.forEach((colIdx, pos) => {
+    widths[colIdx] = (longWeights[pos] / totalLongWeight) * remainingPct;
+  });
+
+  // Normalize precisely to 100.00
+  const rounded = widths.map((v) => Number(v.toFixed(2)));
+  const sum = rounded.reduce((a, b) => a + b, 0);
+  const residual = Number((100 - sum).toFixed(2));
+  const adjustIdx = longCols[longCols.length - 1] ?? colCount - 1;
+  rounded[adjustIdx] = Number((rounded[adjustIdx] + residual).toFixed(2));
+
+  return {
+    widths: rounded,
+    mode: 'adaptive',
+    colMaxLens,
+    threshold,
+  };
+}
+
 export function scanModalTitles(slide: Slide): string[] {
   const out: string[] = [];
-  walkBlocks(slide.blocks, (b) => {
-    const str =
-      b.t === 'text' || b.t === 'concl'
-        ? b.text
-        : b.t === 'dd'
-          ? b.detail
-          : b.t === 'box'
-            ? b.title
-            : '';
+  const collectFromString = (str: string | null | undefined) => {
     String(str || '').replace(/\[\[\[(.*?)\]\]\]/g, (match, inner) => {
       const clean = String(inner).trim();
       if (!out.includes(clean)) {
@@ -182,6 +342,18 @@ export function scanModalTitles(slide: Slide): string[] {
       }
       return match;
     });
+  };
+  walkBlocks(slide.blocks, (b) => {
+    if (b.t === 'text' || b.t === 'concl') {
+      collectFromString(b.text);
+    } else if (b.t === 'dd') {
+      collectFromString(b.detail);
+    } else if (b.t === 'box') {
+      collectFromString(b.title);
+    } else if (b.t === 'table') {
+      b.headers.forEach(collectFromString);
+      b.rows.forEach((row) => row.forEach(collectFromString));
+    }
   });
   return out;
 }
@@ -427,6 +599,27 @@ function describeBlockLines(blocks: Block[], scope?: string): string[] {
     } else if (b.t === 'img') {
       const alt = b.alt?.trim();
       if (alt) lines.push(`[Gambar: ${alt}]`);
+    } else if (b.t === 'table') {
+      const headerLine = b.headers
+        .map((h) => stripMarkup(h).replace(/\s*\n+\s*/g, ' ').trim())
+        .filter(Boolean)
+        .join(' | ');
+      const rowSummaries = b.rows
+        .map((r) =>
+          r
+            .map((cell) => stripMarkup(cell).replace(/\s*\n+\s*/g, ' ').trim())
+            .join(' | ')
+        )
+        .filter((line) => line.replace(/\|/g, '').trim().length > 0);
+      const tableText = [
+        headerLine ? `Header: ${headerLine}` : '',
+        ...rowSummaries.slice(0, 8),
+      ]
+        .filter(Boolean)
+        .join(' ; ');
+      if (tableText) {
+        lines.push(scope ? `[${scope} > Tabel] ${tableText}` : `[Tabel] ${tableText}`);
+      }
     }
   }
   return lines;
@@ -462,6 +655,19 @@ function findSurroundingContextForTerm(slide: Slide, term: string): string {
       }
       if (b.t === 'img' && b.alt && matches(b.alt)) {
         return `Keterangan gambar: "${b.alt.trim()}"`;
+      }
+      if (b.t === 'table') {
+        const headerHit = b.headers.some((h) => matches(h));
+        const matchedRow = b.rows.find((row) => row.some((cell) => matches(cell)));
+        if (headerHit || matchedRow) {
+          const cols = b.headers.map((h, i) => {
+            const hk = stripMarkup(h).trim() || `Kolom ${i + 1}`;
+            const cv = matchedRow ? stripMarkup(matchedRow[i] || '').replace(/\s*\n+\s*/g, ' ').trim() : '';
+            return cv ? `${hk}: ${cv}` : hk;
+          });
+          const prefix = containerLabel ? `${containerLabel} > Tabel` : 'Tabel';
+          return `${prefix} (${cols.join(' | ')})`;
+        }
       }
       if (b.t === 'box') {
         const boxTitle = stripMarkup(b.title).trim();
@@ -525,6 +731,17 @@ export function getSlideTitle(slide: Slide): string {
     (b): b is ConclusionBlock => b.t === 'concl' && stripMarkup(b.text).trim().length > 0
   );
   if (firstConcl) return stripMarkup(firstConcl.text).split('\n')[0].trim().slice(0, 80);
+
+  const firstTable = flat.find(
+    (b): b is TableBlock => b.t === 'table' && b.headers.some((h) => stripMarkup(h).trim().length > 0)
+  );
+  if (firstTable) {
+    return firstTable.headers
+      .map((h) => stripMarkup(h).trim())
+      .filter(Boolean)
+      .join(' · ')
+      .slice(0, 80);
+  }
 
   return trimmedName || 'Slide';
 }
@@ -959,6 +1176,29 @@ main{position:relative;z-index:1;flex:1;padding:20px 16px 100px;max-width:1000px
 [data-theme=default] .s-l,[data-theme=default] .s-xl,[data-theme=default] .s-xxl{font-family:'Lora',Georgia,serif}
 .a-l{text-align:left}.a-c{text-align:center}.a-r{text-align:right}.bd{font-weight:700}
 .box{padding:14px}.bt{font-weight:700;font-size:20px;margin-bottom:12px}
+.ptbl-wrap{width:100%;max-width:100%;overflow-x:auto;padding:0 5px 5px 0}
+.ptbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:15px}
+.ptbl th,.ptbl td{padding:10px 14px;text-align:left;vertical-align:top;overflow-wrap:break-word;word-break:normal}
+.ptbl th{font-weight:700;border-bottom:3px solid var(--ln);background:var(--acc3)}
+.ptbl td{border-bottom:2px solid var(--ln);background:var(--card)}
+.ptbl{border:3px solid var(--ln);box-shadow:5px 5px 0 var(--ln);background:var(--card)}
+.ptbl tbody tr:last-child td{border-bottom:0}
+.ptbl th+th,.ptbl td+td{border-left:2px solid var(--ln)}
+[data-theme=default] .ptbl-wrap{padding:0}
+[data-theme=default] .ptbl{border:0;box-shadow:none;background:transparent}
+[data-theme=default] .ptbl th{background:#E1E7EE;color:#0D0D0D;border-top:1px solid #4F7A99;border-bottom:2px solid #0D0D0D;font-family:'Lora',Georgia,serif;font-weight:600}
+[data-theme=default] .ptbl td{background:transparent;border-bottom:1px solid #C8D4E0}
+[data-theme=default] .ptbl tbody tr:last-child td{border-bottom:1px solid #4F7A99}
+[data-theme=default] .ptbl tbody tr:nth-child(even) td{background:rgba(255,255,255,.55)}
+[data-theme=default] .ptbl th+th,[data-theme=default] .ptbl td+td{border-left:1px solid #D3DCE6}
+[data-theme=auditor] .ptbl-wrap{padding:0 0 3px 0}
+[data-theme=auditor] .ptbl{border:1px solid #d5dbe5;border-top:3px solid #14243d;box-shadow:0 1px 3px rgba(16,24,40,.08);background:#fff}
+[data-theme=auditor] .ptbl th{background:#14243d;color:#fff;border-bottom:2px solid #b08d3c;font-weight:600}
+[data-theme=auditor] .ptbl td{border-bottom:1px solid #e1e6ee}
+[data-theme=auditor] .ptbl tbody tr:last-child td{border-bottom:0}
+[data-theme=auditor] .ptbl th+th{border-left:1px solid rgba(255,255,255,.16)}
+[data-theme=auditor] .ptbl td+td{border-left:1px solid #e1e6ee}
+@media(max-width:639px){.ptbl{font-size:14px}.ptbl th,.ptbl td{padding:8px 10px}}
 .im{display:block;width:100%;height:auto;border-radius:6px}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:10px ${hasByok ? '84px' : '16px'} 12px 16px;background:var(--bg);border-top:3px solid var(--ln);z-index:15}
 [data-theme=default] nav{border-top:1px solid #4F7A99}
@@ -990,18 +1230,20 @@ const byok=JSON.parse(document.getElementById('byok-data').textContent||'[]');
 let idx=0,open=new Set(),pmId=null,aiOpen=false,aiBusy=false,msgs=[];
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>esc(s).replace(/\\[\\[\\[(.*?)\\]\\]\\]|\\[\\[(.+?)\\]\\]/g,(m,a,t)=>a!==undefined?'<button class="term mt" data-mt="'+esc(a.trim())+'">'+esc(a.trim()||'ⓘ')+'</button>':'<button class="term" data-ai="'+esc(t)+'">'+esc(t)+'</button>').replace(/\\*\\*(.+?)\\*\\*/g,'<strong>$1</strong>').replace(/\\n/g,'<br>');
+const stText=s=>String(s||'').replace(/\\[\\[\\[(.*?)\\]\\]\\]|\\[\\[(.+?)\\]\\]/g,(_,a,t)=>a!==undefined?a:t).replace(/\\*\\*(.+?)\\*\\*/g,'$1').replace(/\\{\\/?(s|m|l|xl)\\}/g,'').replace(/\\s*\\n+\\s*/g,' ').trim();
+const tblWidths=(hdrs,rows,bw)=>{const n=Math.max(1,hdrs.length);if(n===1)return[100];const ml=s=>String(s||'').split('\\n').reduce((m,ln)=>Math.max(m,stText(ln).length),0);const lens=hdrs.map((h,i)=>Math.max(ml(h),...(rows||[]).map(r=>ml((r||[])[i]))));const wf=Math.max(3,Math.min(12,bw||12))/12;const th=Math.max(10,Math.round(Math.max(24,Math.round(64*wf))/n));if(!lens.some(l=>l>th))return Array(n).fill(100/n);const rc=Math.max(36,84*wf),eq=100/n,mn=Math.max(7,Math.min(10.5,28/n));const w=Array(n).fill(0),sh=[],lg=[];lens.forEach((l,i)=>(l<=th?sh:lg).push(i));let us=0;sh.forEach(i=>{const f=Math.max(mn,Math.min(eq*.92,(Math.max(lens[i],2)+4)/rc*100));w[i]=f;us+=f});const mx=100-lg.length*mn;if(us>mx&&us>0){const sc=mx/us;us=0;sh.forEach(i=>{w[i]=Math.max(mn,w[i]*sc);us+=w[i]})}const rem=Math.max(lg.length*mn,100-us);const lw=lg.map(i=>Math.max(1,Math.pow(lens[i],.85)));const tw=lw.reduce((a,b)=>a+b,0)||1;lg.forEach((i,p)=>{w[i]=lw[p]/tw*rem});return w};
 const renderBlocks=(arr)=>{let n=0;return arr.map(b=>{
   let h='';
   if(b.t==='text')h='<div class="s-'+(b.size||'m')+' a-'+(b.align||'l')+(b.b?' bd':'')+'">'+fmt(b.text)+'</div>';
   else if(b.t==='img')h=b.src?'<img class="im" src="'+esc(b.src)+'" alt="'+esc(b.alt)+'">':'';
   else if(b.t==='dd'){n++;const o=open.has(b.id);const bd=(b.badge&&String(b.badge).trim())?b.badge:String(n);h='<div class="card'+(o?' open':'')+'"><button class="ch" data-card="'+b.id+'"><span class="n">'+esc(bd)+'</span><span>'+esc(b.text)+'</span></button><div class="cb">'+fmt(b.detail)+'</div></div>'}
   else if(b.t==='box')h='<div class="card box">'+(b.title?'<div class="bt">'+fmt(b.title)+'</div>':'')+'<div class="cv">'+renderBlocks(b.children||[])+'</div></div>';
+  else if(b.t==='table'){const hdrs=b.headers||['Kolom 1'],rows=b.rows||[],ws=tblWidths(hdrs,rows,b.w);h='<div class="ptbl-wrap"><table class="ptbl"><colgroup>'+ws.map(w=>'<col style="width:'+w.toFixed(2)+'%">').join('')+'</colgroup><thead><tr>'+hdrs.map(hd=>'<th>'+fmt(hd)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(rw=>'<tr>'+hdrs.map((_,ci)=>'<td>'+fmt((rw||[])[ci]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
   else{const o=open.has(b.id);h='<button class="btn" data-concl="'+b.id+'">'+(o?'Tutup kesimpulan':esc(b.label||'★ Kesimpulan'))+'</button>'+(o?'<div class="concl">'+fmt(b.text)+'</div>':'')}
   const style=b.y!=null?'left:'+Math.max(0,Math.min(100-b.w/12*100,b.x||0))+'%;top:'+b.y+'px;width:'+b.w/12*100+'%':'grid-column:span '+b.w;
   return '<div class="blk" style="'+style+'">'+h+'</div>';
 }).join('')};
-const stText=s=>String(s||'').replace(/\\[\\[\\[(.*?)\\]\\]\\]|\\[\\[(.+?)\\]\\]/g,(_,a,t)=>a!==undefined?a:t).replace(/\\*\\*(.+?)\\*\\*/g,'$1').replace(/\\{\\/?(s|m|l|xl)\\}/g,'').replace(/\\s*\\n+\\s*/g,' ').trim();
-const descBlocks=(arr,sc)=>{const out=[];arr.forEach(b=>{if(b.t==='text'){const t=stText(b.text);if(t)out.push((sc?'['+sc+'] ':'')+t)}else if(b.t==='box'){const bt=stText(b.title);const ns=bt?(sc?sc+' > ':'')+'Kartu "'+bt+'"':sc||'Kartu';if(bt)out.push('['+ns+']');out.push(...descBlocks(b.children||[],ns))}else if(b.t==='dd'){const t=stText(b.text),d=stText(b.detail);out.push((sc?'['+sc+'] ':'')+'Poin: '+t+(d?' — '+d:''))}else if(b.t==='concl'){const t=stText(b.text);if(t)out.push('['+(stText(b.label)||'Kesimpulan')+'] '+t)}else if(b.t==='img'&&b.alt){out.push('[Gambar: '+b.alt+']')}});return out};
+const descBlocks=(arr,sc)=>{const out=[];arr.forEach(b=>{if(b.t==='text'){const t=stText(b.text);if(t)out.push((sc?'['+sc+'] ':'')+t)}else if(b.t==='box'){const bt=stText(b.title);const ns=bt?(sc?sc+' > ':'')+'Kartu "'+bt+'"':sc||'Kartu';if(bt)out.push('['+ns+']');out.push(...descBlocks(b.children||[],ns))}else if(b.t==='dd'){const t=stText(b.text),d=stText(b.detail);out.push((sc?'['+sc+'] ':'')+'Poin: '+t+(d?' — '+d:''))}else if(b.t==='concl'){const t=stText(b.text);if(t)out.push('['+(stText(b.label)||'Kesimpulan')+'] '+t)}else if(b.t==='table'){const hs=(b.headers||[]).map(stText).filter(Boolean).join(' | ');const rs=(b.rows||[]).slice(0,8).map(r=>(r||[]).map(stText).join(' | ')).filter(Boolean).join(' ; ');if(hs||rs)out.push('['+(sc?sc+' > ':'')+'Tabel] '+(hs?'Header: '+hs+' ; ':'')+rs)}else if(b.t==='img'&&b.alt){out.push('[Gambar: '+b.alt+']')}});return out};
 const callAi=async(q,localCtx)=>{
   if(!byok.length||aiBusy)return;
   msgs.push({r:'u',t:q});aiBusy=true;aiOpen=true;render();

@@ -20,6 +20,7 @@ import type {
   WorkspaceMode,
 } from '@/lib/deck-types';
 import { MarkupText } from './MarkupText';
+import { TableBlockView } from './TableBlockView';
 
 export interface SlideCanvasHandle {
   nudgeAndShowGuides: (
@@ -704,6 +705,17 @@ export function SlideCanvas({
             <div className="text-sm italic opacity-55">(container kosong)</div>
           )}
         </div>
+      );
+    }
+
+    if (b.t === 'table') {
+      return (
+        <TableBlockView
+          block={b}
+          live={live}
+          onTermClick={onTermClick}
+          onModalClick={onModalClick}
+        />
       );
     }
 

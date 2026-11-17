@@ -6,6 +6,7 @@ import { ChevronRight, X } from 'lucide-react';
 import { stripMarkup } from '@/lib/deck-logic';
 import type { Block, SlideModal } from '@/lib/deck-types';
 import { MarkupText } from './MarkupText';
+import { TableBlockView } from './TableBlockView';
 
 interface PopupModalProps {
   modal: SlideModal | null;
@@ -124,6 +125,14 @@ function ModalBlockList({
                   </div>
                 )}
               </div>
+            )}
+            {b.t === 'table' && (
+              <TableBlockView
+                block={b}
+                live={true}
+                insideModal={true}
+                onTermClick={onTermClick}
+              />
             )}
           </div>
         );

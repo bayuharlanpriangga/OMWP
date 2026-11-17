@@ -15,13 +15,17 @@ import {
   FileJson,
   FolderOpen,
   ImagePlus,
+  Minus,
   Plus,
   RotateCcw,
   Sparkles,
   Trash2,
+  X,
 } from 'lucide-react';
 import {
   BLOCK_NAMES,
+  clamp,
+  computeTableColumnWidths,
   createBlock,
   getSlideTitle,
 } from '@/lib/deck-logic';
@@ -29,9 +33,11 @@ import type {
   Block,
   Deck,
   Slide,
+  TableBlock,
   TextAlign,
 } from '@/lib/deck-types';
 import { MarkupText } from './MarkupText';
+import { TableBlockView } from './TableBlockView';
 
 interface SlideEditorProps {
   deck: Deck;
@@ -271,6 +277,288 @@ function RichMarkupTextarea({
           ) : (
             <span className="italic opacity-55">(kosong)</span>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TableBlockEditor({
+  block,
+  onUpdate,
+}: {
+  block: TableBlock;
+  onUpdate: (updater: (prev: TableBlock) => TableBlock) => void;
+}) {
+  const [showPreview, setShowPreview] = React.useState(false);
+  const headers = block.headers.length > 0 ? block.headers : ['Kolom 1'];
+  const rows = block.rows.length > 0 ? block.rows : [headers.map(() => '')];
+  const layout = computeTableColumnWidths(headers, rows, block.w);
+
+  const setColumnCount = (targetCount: number) => {
+    const nextCols = clamp(Math.round(targetCount) || 1, 1, 12);
+    onUpdate((prev) => {
+      const curCols = prev.headers.length;
+      if (nextCols === curCols) return prev;
+      const nextHeaders = Array.from({ length: nextCols }, (_, i) =>
+        i < curCols ? prev.headers[i] : `Header ${i + 1}`
+      );
+      const nextRows = prev.rows.map((r) =>
+        Array.from({ length: nextCols }, (_, i) => r[i] ?? '')
+      );
+      return { ...prev, headers: nextHeaders, rows: nextRows };
+    });
+  };
+
+  const setRowCount = (targetCount: number) => {
+    const nextCount = clamp(Math.round(targetCount) || 1, 1, 50);
+    onUpdate((prev) => {
+      const colCount = Math.max(1, prev.headers.length);
+      if (nextCount === prev.rows.length) return prev;
+      const nextRows = Array.from({ length: nextCount }, (_, rIdx) => {
+        const existing = prev.rows[rIdx];
+        return existing
+          ? Array.from({ length: colCount }, (_, cIdx) => existing[cIdx] ?? '')
+          : Array.from({ length: colCount }, () => '');
+      });
+      return { ...prev, rows: nextRows };
+    });
+  };
+
+  const removeColumn = (colIdx: number) => {
+    onUpdate((prev) => {
+      if (prev.headers.length <= 1) return prev;
+      return {
+        ...prev,
+        headers: prev.headers.filter((_, i) => i !== colIdx),
+        rows: prev.rows.map((r) => r.filter((_, i) => i !== colIdx)),
+      };
+    });
+  };
+
+  const removeRow = (rowIdx: number) => {
+    onUpdate((prev) => {
+      if (prev.rows.length <= 1) return prev;
+      return {
+        ...prev,
+        rows: prev.rows.filter((_, i) => i !== rowIdx),
+      };
+    });
+  };
+
+  return (
+    <div className="mt-2 space-y-3">
+      {/* Dimension controls & adaptive sizing readout */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold opacity-80">Header:</span>
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={headers.length <= 1}
+              onClick={() => setColumnCount(headers.length - 1)}
+              aria-label="Kurangi jumlah header tabel"
+            >
+              <Minus className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={12}
+              className="pinput !w-14 !py-1 !px-1.5 text-center text-sm font-mono tabular-nums"
+              aria-label="Jumlah header tabel"
+              value={headers.length}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value, 10);
+                if (!Number.isNaN(parsed)) setColumnCount(parsed);
+              }}
+            />
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={headers.length >= 12}
+              onClick={() => setColumnCount(headers.length + 1)}
+              aria-label="Tambah header tabel"
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Kolom</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold opacity-80">Baris:</span>
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={rows.length <= 1}
+              onClick={() => setRowCount(rows.length - 1)}
+              aria-label="Kurangi jumlah baris tabel"
+            >
+              <Minus className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={50}
+              className="pinput !w-14 !py-1 !px-1.5 text-center text-sm font-mono tabular-nums"
+              aria-label="Jumlah baris tabel"
+              value={rows.length}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value, 10);
+                if (!Number.isNaN(parsed)) setRowCount(parsed);
+              }}
+            />
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={rows.length >= 50}
+              onClick={() => setRowCount(rows.length + 1)}
+              aria-label="Tambah baris tabel"
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Baris</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className="text-xs font-mono opacity-75"
+            data-testid="table-sizing-status"
+          >
+            {layout.mode === 'symmetric'
+              ? `Simetris (${layout.widths.map((w) => `${Math.round(w)}%`).join(' : ')})`
+              : `Fit teks (${layout.widths.map((w) => `${Math.round(w)}%`).join(' : ')})`}
+          </span>
+          <button
+            type="button"
+            className={`pbtn sm ${showPreview ? 'on' : ''}`}
+            onClick={() => setShowPreview((v) => !v)}
+            aria-pressed={showPreview}
+          >
+            <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Pratinjau</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Editable Grid */}
+      <div className="overflow-x-auto pb-1">
+        <table className="w-full border-collapse min-w-[420px]">
+          <colgroup>
+            {headers.map((_, colIdx) => {
+              const rawPct = layout.widths[colIdx] ?? 100 / headers.length;
+              // Keep editor inputs usable while giving long columns clearly wider space
+              const edPct =
+                headers.length <= 4 ? Math.max(16, rawPct) : rawPct;
+              return <col key={colIdx} style={{ width: `${edPct}%` }} />;
+            })}
+            {rows.length > 1 && <col style={{ width: '38px' }} />}
+          </colgroup>
+          <thead>
+            <tr>
+              {headers.map((headerText, colIdx) => (
+                <th key={colIdx} className="p-1 align-bottom text-left font-normal">
+                  <div className="flex items-center justify-between gap-1 mb-1 px-0.5">
+                    <span className="text-[11px] font-mono opacity-70">
+                      Header {colIdx + 1} · {Math.round(layout.widths[colIdx] ?? 0)}%
+                    </span>
+                    {headers.length > 1 && (
+                      <button
+                        type="button"
+                        className="pbtn sm !p-0 !w-6 !h-6"
+                        onClick={() => removeColumn(colIdx)}
+                        aria-label={`Hapus kolom ${colIdx + 1}`}
+                        title={`Hapus kolom ${colIdx + 1}`}
+                      >
+                        <X className="w-3 h-3" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    className="pinput !py-1.5 !px-2 text-sm font-semibold min-w-[96px]"
+                    placeholder={`Header ${colIdx + 1}`}
+                    aria-label={`Header kolom ${colIdx + 1}`}
+                    value={headerText}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onUpdate((prev) => ({
+                        ...prev,
+                        headers: prev.headers.map((h, i) =>
+                          i === colIdx ? val : h
+                        ),
+                      }));
+                    }}
+                  />
+                </th>
+              ))}
+              {rows.length > 1 && <th className="w-9 p-1" aria-label="Aksi baris" />}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, rowIdx) => (
+              <tr key={rowIdx}>
+                {headers.map((_, colIdx) => (
+                  <td key={colIdx} className="p-1 align-top">
+                    <textarea
+                      rows={3}
+                      className="ptarea !py-1.5 !px-2 text-sm leading-snug min-w-[96px]"
+                      placeholder={`Isi baris ${rowIdx + 1}`}
+                      aria-label={`Baris ${rowIdx + 1} Kolom ${colIdx + 1}`}
+                      value={row[colIdx] ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        onUpdate((prev) => ({
+                          ...prev,
+                          rows: prev.rows.map((r, rI) =>
+                            rI === rowIdx
+                              ? prev.headers.map((__, cI) =>
+                                  cI === colIdx ? val : r[cI] ?? ''
+                                )
+                              : r
+                          ),
+                        }));
+                      }}
+                    />
+                  </td>
+                ))}
+                {rows.length > 1 && (
+                  <td className="p-1 align-middle text-center">
+                    <button
+                      type="button"
+                      className="pbtn sm !p-0 !w-7 !h-7"
+                      onClick={() => removeRow(rowIdx)}
+                      aria-label={`Hapus baris ${rowIdx + 1}`}
+                      title={`Hapus baris ${rowIdx + 1}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="text-[11px] opacity-70 m-0">
+        Lebar kolom seimbang otomatis bila semua isi ringkas, dan menyesuaikan
+        teks terpanjang jika ada kolom yang berisi keterangan panjang. Mendukung{' '}
+        <code className="font-mono">**tebal**</code>,{' '}
+        <code className="font-mono">[[istilah]]</code>, dan{' '}
+        <code className="font-mono">[[[modal]]]</code>.
+      </p>
+
+      {showPreview && (
+        <div className="p-3 rounded-lg border border-current/20 bg-[var(--bg)]">
+          <div className="text-xs font-mono opacity-60 mb-2">Pratinjau tabel:</div>
+          <TableBlockView
+            block={block}
+            live={false}
+            onTermClick={() => {}}
+          />
         </div>
       )}
     </div>
@@ -531,8 +819,19 @@ export function SlideEditor({
             <div className="space-y-3 pl-2">
               {renderBlockList(b.children)}
             </div>
-            {renderAddButtons(b.id, ['text', 'img', 'dd', 'concl'])}
+            {renderAddButtons(b.id, ['text', 'img', 'dd', 'table', 'concl'])}
           </div>
+        )}
+
+        {b.t === 'table' && (
+          <TableBlockEditor
+            block={b}
+            onUpdate={(updater) =>
+              onUpdateBlock(b.id, (prev) =>
+                prev.t === 'table' ? updater(prev) : prev
+              )
+            }
+          />
         )}
 
         {b.t === 'concl' && (
@@ -689,8 +988,8 @@ export function SlideEditor({
         />
       </div>
 
-      {/* Add component buttons directly below presentation title & slide name */}
-      {renderAddButtons(undefined, ['text', 'img', 'dd', 'box', 'concl'], 'mt-0')}
+      {/* Add component buttons directly below presentation title */}
+      {renderAddButtons(undefined, ['text', 'img', 'dd', 'box', 'table', 'concl'], 'mt-0')}
 
       {/* Blocks */}
       <div className="pt-2">
@@ -735,7 +1034,7 @@ export function SlideEditor({
                     Modal masih kosong. Tambahkan komponen di bawah.
                   </p>
                 )}
-                {renderAddButtons(m.id, ['text', 'img', 'dd', 'concl'])}
+                {renderAddButtons(m.id, ['text', 'img', 'dd', 'table', 'concl'])}
               </div>
             ))}
           </div>

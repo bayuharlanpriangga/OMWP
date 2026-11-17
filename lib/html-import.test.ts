@@ -100,3 +100,24 @@ test('importDeckFromHtml splits plain heading-based HTML into slides and rejects
 
   assert.equal(importDeckFromHtml('<html><body><script>alert(1)</script></body></html>'), null);
 });
+
+test('importDeckFromHtml converts HTML tables into native editable TableBlock blocks', () => {
+  const html = `<html><body><section class="slide">
+    <h2>Perbandingan Komponen</h2>
+    <table>
+      <thead><tr><th>Nama</th><th>Keterangan</th></tr></thead>
+      <tbody>
+        <tr><td>Listrik</td><td>Tagihan utilitas pabrik bulanan</td></tr>
+        <tr><td>Sewa</td><td>Kontrak gedung gudang tahunan</td></tr>
+      </tbody>
+    </table>
+  </section></body></html>`;
+
+  const imported = importDeckFromHtml(html);
+  assert.ok(imported);
+  const tbl = imported.deck.slides[0].blocks.find((b) => b.t === 'table');
+  assert.ok(tbl && tbl.t === 'table');
+  assert.deepEqual(tbl.headers, ['Nama', 'Keterangan']);
+  assert.equal(tbl.rows.length, 2);
+  assert.deepEqual(tbl.rows[0], ['Listrik', 'Tagihan utilitas pabrik bulanan']);
+});

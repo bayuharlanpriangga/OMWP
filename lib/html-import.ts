@@ -457,25 +457,41 @@ function extractBlocksFromContainer(
     }
 
     if (tag === 'table') {
-      const rows = findAllByPredicate(node, (el) => el.tag === 'tr');
-      const lines = rows
-        .map((tr, rIdx) => {
-          const cells = tr.children.filter(
-            (c): c is HtmlElementNode =>
-              c.kind === 'element' && (c.tag === 'th' || c.tag === 'td')
-          );
-          const rowText = cells
-            .map((cell) => normalizeInlineWhitespace(getPlainText(cell)))
-            .join(' | ');
-          if (!rowText.replace(/\|/g, '').trim()) return '';
-          return rIdx === 0 && cells.some((c) => c.tag === 'th')
-            ? `**${rowText}**`
-            : rowText;
-        })
-        .filter(Boolean);
-      if (lines.length > 0) {
+      const trs = findAllByPredicate(node, (el) => el.tag === 'tr');
+      const matrix = trs
+        .map((tr) =>
+          tr.children
+            .filter(
+              (c): c is HtmlElementNode =>
+                c.kind === 'element' && (c.tag === 'th' || c.tag === 'td')
+            )
+            .map((cell) => ({
+              isTh: cell.tag === 'th',
+              text: normalizeInlineWhitespace(
+                cell.children.map(serializeInline).join('')
+              ),
+            }))
+        )
+        .filter((cells) => cells.length > 0 && cells.some((c) => c.text.length > 0));
+
+      if (matrix.length > 0) {
+        const colCount = Math.max(1, ...matrix.map((r) => r.length));
+        const firstIsHeader = matrix[0].some((c) => c.isTh) || matrix.length > 1;
+        const headers = firstIsHeader
+          ? Array.from({ length: colCount }, (_, ci) => matrix[0][ci]?.text ?? '')
+          : Array.from({ length: colCount }, (_, ci) => `Kolom ${ci + 1}`);
+        const dataSlice = firstIsHeader ? matrix.slice(1) : matrix;
+        const bodyRows =
+          dataSlice.length > 0
+            ? dataSlice.map((row) =>
+                Array.from({ length: colCount }, (_, ci) => row[ci]?.text ?? '')
+              )
+            : [Array.from({ length: colCount }, () => '')];
         blocks.push({
-          ...createTextBlock(lines.join('\n'), 's', 'l', false),
+          id: uid(),
+          t: 'table',
+          headers,
+          rows: bodyRows,
           w: defaultWidth,
         });
       }

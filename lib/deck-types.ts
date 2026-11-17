@@ -47,12 +47,19 @@ export interface ConclusionBlock extends BaseBlock {
   text: string;
 }
 
+export interface TableBlock extends BaseBlock {
+  t: 'table';
+  headers: string[];
+  rows: string[][];
+}
+
 export type Block =
   | TextBlock
   | DropdownBlock
   | ImageBlock
   | BoxBlock
-  | ConclusionBlock;
+  | ConclusionBlock
+  | TableBlock;
 
 export interface SlideModal {
   id: string;
