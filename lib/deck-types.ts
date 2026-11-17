@@ -100,6 +100,7 @@ export interface LegacyDeck {
 
 export interface PresenterPrefs {
   preferredProvider?: AiProviderId | null;
+  preferredModels?: Partial<Record<AiProviderId, string>>;
   includeKeysInExport?: boolean;
 }
 

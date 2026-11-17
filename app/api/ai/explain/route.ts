@@ -1,6 +1,6 @@
 import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
-import type { AiProviderId } from '@/lib/ai-providers';
+import { PROVIDER_META, type AiProviderId } from '@/lib/ai-providers';
 import type { SlideAiContext } from '@/lib/deck-types';
 
 let cachedDefaultAi: GoogleGenAI | null = null;
@@ -22,7 +22,7 @@ function getDefaultAi(): GoogleGenAI {
 interface ExplainRequestBody {
   messages?: Array<{ role: 'user' | 'assistant'; content: string }>;
   slideContext?: SlideAiContext;
-  byokKeys?: Array<{ provider: AiProviderId; key: string }>;
+  byokKeys?: Array<{ provider: AiProviderId; key: string; model?: string }>;
 }
 
 function buildSystemInstruction(ctx: SlideAiContext | undefined): string {
@@ -96,7 +96,8 @@ async function callGeminiWithKey(
   apiKey: string,
   systemInstruction: string,
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
-  isDefaultServerKey: boolean
+  isDefaultServerKey: boolean,
+  customModel?: string
 ): Promise<string> {
   const client = isDefaultServerKey
     ? getDefaultAi()
@@ -109,9 +110,12 @@ async function callGeminiWithKey(
         },
       });
 
+  const cleanCustom = customModel?.trim();
   const modelsToTry = isDefaultServerKey
     ? ['gemini-4-hydrogen']
-    : ['gemini-4-hydrogen', 'gemini-2.5-flash'];
+    : cleanCustom
+      ? [cleanCustom]
+      : [PROVIDER_META.gemini.defaultModel, 'gemini-2.5-flash'];
 
   let lastErr: unknown = null;
   for (const model of modelsToTry) {
@@ -134,7 +138,7 @@ async function callGeminiWithKey(
     } catch (err) {
       lastErr = err;
       const msg = err instanceof Error ? err.message : '';
-      if (!isDefaultServerKey && /404|NOT_FOUND/i.test(msg)) {
+      if (!isDefaultServerKey && !cleanCustom && /404|NOT_FOUND/i.test(msg)) {
         continue;
       }
       throw err;
@@ -182,6 +186,7 @@ async function callOpenAiCompatible(
 
 async function callAnthropic(
   apiKey: string,
+  model: string,
   systemInstruction: string,
   messages: Array<{ role: 'user' | 'assistant'; content: string }>
 ): Promise<string> {
@@ -193,7 +198,7 @@ async function callAnthropic(
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model,
       max_tokens: 800,
       system: systemInstruction,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
@@ -216,16 +221,24 @@ async function callByokProvider(
   provider: AiProviderId,
   apiKey: string,
   systemInstruction: string,
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+  customModel?: string
 ): Promise<string> {
+  const model = customModel?.trim() || PROVIDER_META[provider].defaultModel;
   switch (provider) {
     case 'gemini':
-      return callGeminiWithKey(apiKey, systemInstruction, messages, false);
+      return callGeminiWithKey(
+        apiKey,
+        systemInstruction,
+        messages,
+        false,
+        customModel
+      );
     case 'openai':
       return callOpenAiCompatible(
         'https://api.openai.com/v1/chat/completions',
         apiKey,
-        'gpt-4o-mini',
+        model,
         systemInstruction,
         messages
       );
@@ -233,7 +246,7 @@ async function callByokProvider(
       return callOpenAiCompatible(
         'https://api.groq.com/openai/v1/chat/completions',
         apiKey,
-        'llama-3.3-70b-versatile',
+        model,
         systemInstruction,
         messages
       );
@@ -241,7 +254,7 @@ async function callByokProvider(
       return callOpenAiCompatible(
         'https://openrouter.ai/api/v1/chat/completions',
         apiKey,
-        'openai/gpt-4o-mini',
+        model,
         systemInstruction,
         messages
       );
@@ -249,7 +262,7 @@ async function callByokProvider(
       return callOpenAiCompatible(
         'https://api.deepseek.com/chat/completions',
         apiKey,
-        'deepseek-chat',
+        model,
         systemInstruction,
         messages
       );
@@ -257,7 +270,7 @@ async function callByokProvider(
       return callOpenAiCompatible(
         'https://api.x.ai/v1/chat/completions',
         apiKey,
-        'grok-2-latest',
+        model,
         systemInstruction,
         messages
       );
@@ -265,12 +278,12 @@ async function callByokProvider(
       return callOpenAiCompatible(
         'https://api.mistral.ai/v1/chat/completions',
         apiKey,
-        'mistral-small-latest',
+        model,
         systemInstruction,
         messages
       );
     case 'claude':
-      return callAnthropic(apiKey, systemInstruction, messages);
+      return callAnthropic(apiKey, model, systemInstruction, messages);
   }
 }
 
@@ -322,7 +335,8 @@ export async function POST(req: NextRequest) {
           entry.provider,
           entry.key.trim(),
           systemInstruction,
-          cleanMessages
+          cleanMessages,
+          entry.model
         );
         if (reply) {
           return NextResponse.json({ reply, usedProvider: entry.provider });

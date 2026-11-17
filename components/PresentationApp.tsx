@@ -152,8 +152,20 @@ export function PresentationApp() {
         const rawPrefs = window.localStorage.getItem(PREFS_STORAGE_KEY);
         if (rawPrefs) {
           const parsedPrefs = JSON.parse(rawPrefs) as Partial<PresenterPrefs>;
+          const cleanModels: NonNullable<PresenterPrefs['preferredModels']> = {};
+          if (
+            parsedPrefs.preferredModels &&
+            typeof parsedPrefs.preferredModels === 'object'
+          ) {
+            for (const [k, v] of Object.entries(parsedPrefs.preferredModels)) {
+              if (typeof v === 'string' && v.trim()) {
+                cleanModels[k as keyof typeof cleanModels] = v.trim();
+              }
+            }
+          }
           setPrefs({
             preferredProvider: parsedPrefs.preferredProvider ?? null,
+            preferredModels: cleanModels,
             includeKeysInExport: Boolean(parsedPrefs.includeKeysInExport),
           });
         }
@@ -404,7 +416,8 @@ export function PresentationApp() {
 
       const activeByokKeys = orderByokKeysForRequest(
         byokKeys,
-        prefs.preferredProvider
+        prefs.preferredProvider,
+        prefs.preferredModels
       );
 
       try {
@@ -474,7 +487,14 @@ export function PresentationApp() {
         setAiBusy(false);
       }
     },
-    [deck, currentSlide, prefs.preferredProvider, byokKeys, chatMessages]
+    [
+      deck,
+      currentSlide,
+      prefs.preferredProvider,
+      prefs.preferredModels,
+      byokKeys,
+      chatMessages,
+    ]
   );
 
   const askTerm = React.useCallback(
@@ -776,7 +796,11 @@ export function PresentationApp() {
             }}
             onExportHtml={() => {
               const exportedKeys = prefs.includeKeysInExport
-                ? orderByokKeysForRequest(byokKeys, prefs.preferredProvider)
+                ? orderByokKeysForRequest(
+                    byokKeys,
+                    prefs.preferredProvider,
+                    prefs.preferredModels
+                  )
                 : undefined;
               triggerDownload(
                 `${slugifyTitle(deck.title)}.html`,
@@ -989,6 +1013,17 @@ export function PresentationApp() {
         }}
         onChangePreferredProvider={(provider) =>
           savePrefs((prev) => ({ ...prev, preferredProvider: provider }))
+        }
+        onChangePreferredModel={(provider, model) =>
+          savePrefs((prev) => {
+            const nextModels = { ...(prev.preferredModels || {}) };
+            if (model && model.trim()) {
+              nextModels[provider] = model.trim();
+            } else {
+              delete nextModels[provider];
+            }
+            return { ...prev, preferredModels: nextModels };
+          })
         }
         onClose={() => setPrefsModalOpen(false)}
       />

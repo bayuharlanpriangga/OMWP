@@ -2,14 +2,16 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Check, KeyRound, X } from 'lucide-react';
+import { Check, KeyRound, Star, X } from 'lucide-react';
 import {
+  getSelectedModelForProvider,
   groupDetectedKeys,
   type AiProviderId,
   type ByokKeyEntry,
 } from '@/lib/ai-providers';
 import type { PresenterPrefs, ThemeId } from '@/lib/deck-types';
 import { ProviderIcon } from './ProviderBadge';
+import { ProviderModelModal } from './ProviderModelModal';
 
 interface ThemeModalProps {
   open: boolean;
@@ -268,6 +270,7 @@ interface PreferencesModalProps {
   byokKeys: ByokKeyEntry[];
   onOpenApiKeys: () => void;
   onChangePreferredProvider: (provider: AiProviderId | null) => void;
+  onChangePreferredModel: (provider: AiProviderId, model: string | null) => void;
   onClose: () => void;
 }
 
@@ -277,8 +280,12 @@ export function PreferencesModal({
   byokKeys,
   onOpenApiKeys,
   onChangePreferredProvider,
+  onChangePreferredModel,
   onClose,
 }: PreferencesModalProps) {
+  const [modelModalProvider, setModelModalProvider] =
+    React.useState<AiProviderId | null>(null);
+
   const groupedKeys = React.useMemo(
     () => groupDetectedKeys(byokKeys),
     [byokKeys]
@@ -287,113 +294,159 @@ export function PreferencesModal({
   if (!open) return null;
 
   const preferredProvider = prefs.preferredProvider ?? null;
+  const activeGroup = modelModalProvider
+    ? groupedKeys.find((g) => g.provider === modelModalProvider) || null
+    : null;
+
+  const handleClosePrefs = () => {
+    setModelModalProvider(null);
+    onClose();
+  };
 
   return (
-    <div
-      className="modal-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <>
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Pengaturan Presentasi dan Orias AI"
-        className="modal-card max-w-[460px]"
+        className="modal-backdrop"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleClosePrefs();
+        }}
       >
-        <div className="flex items-center justify-between gap-2 mb-4">
-          <h2 className="text-xl font-bold m-0">Pengaturan Orias AI</h2>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              className="pbtn sm w-7 h-7 !p-0"
-              onClick={onOpenApiKeys}
-              aria-label="Kelola API Key"
-              title="Kelola API Key"
-            >
-              <KeyRound className="w-3.5 h-3.5" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="pbtn sm w-7 h-7 !p-0"
-              onClick={onClose}
-              aria-label="Tutup pengaturan"
-              title="Tutup"
-            >
-              <X className="w-3.5 h-3.5" aria-hidden="true" />
-            </button>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pengaturan Presentasi dan Orias AI"
+          className="modal-card max-w-[460px]"
+        >
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <h2 className="text-xl font-bold m-0">Pengaturan Orias AI</h2>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                className="pbtn sm w-7 h-7 !p-0"
+                onClick={onOpenApiKeys}
+                aria-label="Kelola API Key"
+                title="Kelola API Key"
+              >
+                <KeyRound className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="pbtn sm w-7 h-7 !p-0"
+                onClick={handleClosePrefs}
+                aria-label="Tutup pengaturan"
+                title="Tutup"
+              >
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          <div className="ec space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold uppercase tracking-wide opacity-80">
-                Ringkasan API Key Terdeteksi
-              </span>
-              {groupedKeys.length > 0 && (
-                <span className="text-[11px] opacity-70">
-                  Klik ikon untuk prioritas
+          <div className="space-y-4">
+            <div className="ec space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-bold uppercase tracking-wide opacity-80">
+                  Ringkasan API Key Terdeteksi
                 </span>
+                {groupedKeys.length > 0 && (
+                  <span className="text-[11px] opacity-70">
+                    Klik ikon untuk pilih model
+                  </span>
+                )}
+              </div>
+
+              {groupedKeys.length === 0 ? (
+                <p className="text-xs opacity-75 m-0">
+                  Belum ada API key terdeteksi. Klik ikon kunci di kanan atas
+                  untuk menambahkan API key.
+                </p>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  {groupedKeys.map((group) => {
+                    const isPreferred = preferredProvider === group.provider;
+                    const activeModel = getSelectedModelForProvider(
+                      group.provider,
+                      prefs.preferredModels
+                    );
+                    return (
+                      <button
+                        key={group.provider}
+                        type="button"
+                        onClick={() => setModelModalProvider(group.provider)}
+                        title={`${group.meta.name} (${activeModel}) — Klik untuk memilih model`}
+                        className={`inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-2 text-left transition-colors ${
+                          isPreferred
+                            ? 'border-[var(--acc)] bg-black/5'
+                            : 'border-current/15 hover:border-current/35'
+                        }`}
+                      >
+                        <ProviderIcon
+                          provider={group.provider}
+                          count={group.count}
+                        />
+                        <span className="min-w-0">
+                          <span className="flex items-center gap-1 text-xs font-semibold leading-tight">
+                            <span>{group.meta.name}</span>
+                            {isPreferred && (
+                              <Star
+                                className="w-3 h-3 fill-[var(--acc)] text-[var(--acc)] shrink-0"
+                                aria-label="Prioritas"
+                              />
+                            )}
+                          </span>
+                          <span className="block text-[10px] font-mono opacity-70 truncate max-w-[145px]">
+                            {activeModel}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
             </div>
 
-            {groupedKeys.length === 0 ? (
-              <p className="text-xs opacity-75 m-0">
-                Belum ada API key terdeteksi. Klik ikon kunci di kanan atas
-                untuk menambahkan API key.
+            <div className="pt-2 border-t border-current/15 text-xs opacity-75 space-y-1">
+              <p className="font-bold m-0">Pintasan Keyboard (Mode Tampil):</p>
+              <p className="m-0">
+                <kbd className="font-mono">←</kbd> /{' '}
+                <kbd className="font-mono">→</kbd> atau{' '}
+                <kbd className="font-mono">Spasi</kbd> : Pindah slide ·{' '}
+                <kbd className="font-mono">Esc</kbd> : Tutup modal/panel
               </p>
-            ) : (
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                {groupedKeys.map((group) => {
-                  const isPreferred = preferredProvider === group.provider;
-                  return (
-                    <button
-                      key={group.provider}
-                      type="button"
-                      onClick={() =>
-                        onChangePreferredProvider(
-                          isPreferred ? null : group.provider
-                        )
-                      }
-                      aria-pressed={isPreferred}
-                      title={`${group.meta.name}: ${group.count} API key aktif`}
-                      className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border-2 text-xs font-semibold transition-colors ${
-                        isPreferred
-                          ? 'border-[var(--acc)] bg-black/5'
-                          : 'border-transparent hover:border-current/25'
-                      }`}
-                    >
-                      <ProviderIcon
-                        provider={group.provider}
-                        count={group.count}
-                      />
-                      <span>{group.meta.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+            </div>
 
-          <div className="pt-2 border-t border-current/15 text-xs opacity-75 space-y-1">
-            <p className="font-bold m-0">Pintasan Keyboard (Mode Tampil):</p>
-            <p className="m-0">
-              <kbd className="font-mono">←</kbd> /{' '}
-              <kbd className="font-mono">→</kbd> atau{' '}
-              <kbd className="font-mono">Spasi</kbd> : Pindah slide ·{' '}
-              <kbd className="font-mono">Esc</kbd> : Tutup modal/panel
-            </p>
-          </div>
-
-          <div className="flex items-center justify-end pt-1">
-            <button type="button" className="pbtn sm on" onClick={onClose}>
-              Tutup
-            </button>
+            <div className="flex items-center justify-end pt-1">
+              <button
+                type="button"
+                className="pbtn sm on"
+                onClick={handleClosePrefs}
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {activeGroup && (
+        <ProviderModelModal
+          key={activeGroup.provider}
+          open={true}
+          provider={activeGroup.provider}
+          apiKey={activeGroup.entries[0]?.key ?? ''}
+          selectedModel={getSelectedModelForProvider(
+            activeGroup.provider,
+            prefs.preferredModels
+          )}
+          isPreferredProvider={preferredProvider === activeGroup.provider}
+          hasMultipleProviders={groupedKeys.length > 1}
+          onSelectModel={onChangePreferredModel}
+          onTogglePreferredProvider={(prov) =>
+            onChangePreferredProvider(preferredProvider === prov ? null : prov)
+          }
+          onClose={() => setModelModalProvider(null)}
+        />
+      )}
+    </>
   );
 }
 

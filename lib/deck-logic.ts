@@ -1267,15 +1267,16 @@ const callAi=async(q,localCtx)=>{
   for(const k of byok){
     try{
       if(k.provider==='gemini'){
-        const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(k.key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:hist.map(h=>({role:h.role==='assistant'?'model':'user',parts:[{text:h.content}]}))})});
+        const gm=k.model||'gemini-4-hydrogen';
+        const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(gm)+':generateContent?key='+encodeURIComponent(k.key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:hist.map(h=>({role:h.role==='assistant'?'model':'user',parts:[{text:h.content}]}))})});
         const j=await r.json();if(r.ok&&j.candidates?.[0]?.content?.parts?.[0]?.text){reply=j.candidates[0].content.parts[0].text;break}
       }else if(k.provider==='claude'){
-        const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:sys,messages:hist})});
+        const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:k.model||'claude-sonnet-5-5',max_tokens:800,system:sys,messages:hist})});
         const j=await r.json();if(r.ok&&j.content?.[0]?.text){reply=j.content[0].text;break}
       }else{
         const urls={openai:'https://api.openai.com/v1/chat/completions',groq:'https://api.groq.com/openai/v1/chat/completions',openrouter:'https://openrouter.ai/api/v1/chat/completions',deepseek:'https://api.deepseek.com/chat/completions',xai:'https://api.x.ai/v1/chat/completions',mistral:'https://api.mistral.ai/v1/chat/completions'};
-        const mods={openai:'gpt-4o-mini',groq:'llama-3.3-70b-versatile',openrouter:'openai/gpt-4o-mini',deepseek:'deepseek-chat',xai:'grok-2-latest',mistral:'mistral-small-latest'};
-        const r=await fetch(urls[k.provider]||urls.openai,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+k.key},body:JSON.stringify({model:mods[k.provider]||'gpt-4o-mini',messages:[{role:'system',content:sys},...hist]})});
+        const mods={openai:'gpt-6-luna',groq:'openai/gpt-oss-120b',openrouter:'openai/gpt-6-luna',deepseek:'deepseek-flash',xai:'grok-4.3',mistral:'mistral-small-latest'};
+        const r=await fetch(urls[k.provider]||urls.openai,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+k.key},body:JSON.stringify({model:k.model||mods[k.provider]||'gpt-6-luna',messages:[{role:'system',content:sys},...hist]})});
         const j=await r.json();if(r.ok&&j.choices?.[0]?.message?.content){reply=j.choices[0].message.content;break}
       }
     }catch{}
