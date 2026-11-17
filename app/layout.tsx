@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import {
   Bricolage_Grotesque,
+  IBM_Plex_Sans,
+  Lora,
   Plus_Jakarta_Sans,
   Source_Serif_4,
   Space_Mono,
@@ -11,6 +13,20 @@ const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
   weight: ['400', '600', '700'],
   variable: '--font-brutal',
+  display: 'swap',
+});
+
+const ibmPlexSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-orias-sans',
+  display: 'swap',
+});
+
+const lora = Lora({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-orias-serif',
   display: 'swap',
 });
 
@@ -38,18 +54,18 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: 'Presentasi Interaktif',
   description:
-    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
+    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
   openGraph: {
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis & Auditor, ekspor HTML mandiri, dan Asisten AI.',
   },
 };
 
@@ -57,8 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="id"
-      data-theme="brutal"
-      className={`${bricolage.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
+      data-theme="default"
+      className={`${bricolage.variable} ${ibmPlexSans.variable} ${lora.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
       suppressHydrationWarning
     >
       <body suppressHydrationWarning>{children}</body>

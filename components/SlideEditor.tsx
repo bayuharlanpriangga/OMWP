@@ -11,6 +11,7 @@ import {
   Copy,
   Download,
   Eye,
+  FileCode2,
   FileJson,
   FolderOpen,
   ImagePlus,
@@ -41,13 +42,13 @@ interface SlideEditorProps {
   onDeleteSlide: () => void;
   onMoveSlide: (delta: -1 | 1) => void;
   onDeckTitleChange: (title: string) => void;
-  onSlideNameChange: (name: string) => void;
   onUpdateBlock: (blockId: string, updater: (b: Block) => Block) => void;
   onAddBlock: (block: Block, targetOwnerId?: string) => void;
   onDeleteBlock: (blockId: string, hasChildren: boolean) => void;
   onExportHtml: () => void;
   onExportJson: () => void;
   onImportJson: (file: File) => void;
+  onImportHtml: (htmlText: string) => boolean;
   onResetDeck: () => void;
   onToast: (message: string) => void;
 }
@@ -285,19 +286,22 @@ export function SlideEditor({
   onDeleteSlide,
   onMoveSlide,
   onDeckTitleChange,
-  onSlideNameChange,
   onUpdateBlock,
   onAddBlock,
   onDeleteBlock,
   onExportHtml,
   onExportJson,
   onImportJson,
+  onImportHtml,
   onResetDeck,
   onToast,
 }: SlideEditorProps) {
   const slide: Slide = deck.slides[slideIndex];
   const jsonInputRef = React.useRef<HTMLInputElement>(null);
+  const htmlInputRef = React.useRef<HTMLInputElement>(null);
   const imgInputRef = React.useRef<HTMLInputElement>(null);
+  const [showHtmlImport, setShowHtmlImport] = React.useState(false);
+  const [pastedHtml, setPastedHtml] = React.useState('');
   const pendingImgTargetRef = React.useRef<{
     kind: 'add' | 'replace';
     id?: string;
@@ -589,6 +593,23 @@ export function SlideEditor({
           e.target.value = '';
         }}
       />
+      <input
+        ref={htmlInputRef}
+        type="file"
+        accept=".html,.htm,text/html"
+        className="hidden"
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (f) {
+            const text = await f.text();
+            if (onImportHtml(text)) {
+              setShowHtmlImport(false);
+              setPastedHtml('');
+            }
+          }
+          e.target.value = '';
+        }}
+      />
 
       {/* Slide switcher strip */}
       <div className="flex flex-wrap items-center gap-2">
@@ -650,40 +671,22 @@ export function SlideEditor({
         </button>
       </div>
 
-      {/* Metadata fields */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label
-            htmlFor="deck-title-input"
-            className="block text-sm font-bold mb-1"
-          >
-            Judul presentasi
-          </label>
-          <input
-            id="deck-title-input"
-            type="text"
-            className="pinput"
-            placeholder="Judul presentasi"
-            value={deck.title}
-            onChange={(e) => onDeckTitleChange(e.target.value)}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="slide-name-input"
-            className="block text-sm font-bold mb-1"
-          >
-            Nama slide (untuk daftar & konteks AI)
-          </label>
-          <input
-            id="slide-name-input"
-            type="text"
-            className="pinput"
-            placeholder="Nama slide"
-            value={slide.name}
-            onChange={(e) => onSlideNameChange(e.target.value)}
-          />
-        </div>
+      {/* Deck title */}
+      <div>
+        <label
+          htmlFor="deck-title-input"
+          className="block text-sm font-bold mb-1"
+        >
+          Judul presentasi
+        </label>
+        <input
+          id="deck-title-input"
+          type="text"
+          className="pinput"
+          placeholder="Judul presentasi"
+          value={deck.title}
+          onChange={(e) => onDeckTitleChange(e.target.value)}
+        />
       </div>
 
       {/* Add component buttons directly below presentation title & slide name */}
@@ -766,11 +769,75 @@ export function SlideEditor({
             <FolderOpen className="w-4 h-4" aria-hidden="true" />
             <span>Buka JSON</span>
           </button>
+          <button
+            type="button"
+            className={`pbtn ${showHtmlImport ? 'on' : ''}`}
+            aria-expanded={showHtmlImport}
+            onClick={() => setShowHtmlImport((v) => !v)}
+          >
+            <FileCode2 className="w-4 h-4" aria-hidden="true" />
+            <span>Import HTML</span>
+          </button>
           <button type="button" className="pbtn" onClick={onResetDeck}>
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
             <span>Kosongkan</span>
           </button>
         </div>
+
+        {showHtmlImport && (
+          <div className="ec space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <strong className="text-sm">Impor Presentasi dari HTML</strong>
+              <button
+                type="button"
+                className="pbtn sm"
+                onClick={() => htmlInputRef.current?.click()}
+              >
+                <FolderOpen className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Pilih file .html</span>
+              </button>
+            </div>
+            <p className="text-xs opacity-75 m-0">
+              Mendukung file HTML hasil ekspor aplikasi ini maupun file HTML presentasi umum (elemen{' '}
+              <code className="font-mono">&lt;section&gt;</code>,{' '}
+              <code className="font-mono">.slide</code>, heading, kartu, daftar, dan{' '}
+              <code className="font-mono">&lt;details&gt;</code>) agar langsung bisa diedit per blok.
+            </p>
+            <textarea
+              rows={5}
+              className="ptarea font-mono text-xs leading-relaxed"
+              placeholder="Atau tempel kode HTML slide presentasi di sini…"
+              aria-label="Tempel kode HTML presentasi"
+              value={pastedHtml}
+              onChange={(e) => setPastedHtml(e.target.value)}
+            />
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                className="pbtn sm"
+                onClick={() => {
+                  setShowHtmlImport(false);
+                  setPastedHtml('');
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="pbtn sm on"
+                disabled={!pastedHtml.trim()}
+                onClick={() => {
+                  if (onImportHtml(pastedHtml)) {
+                    setShowHtmlImport(false);
+                    setPastedHtml('');
+                  }
+                }}
+              >
+                Impor HTML ke editor
+              </button>
+            </div>
+          </div>
+        )}
 
         <p className="text-xs opacity-70 m-0">
           Export HTML menghasilkan satu file presentasi mandiri tanpa editor,

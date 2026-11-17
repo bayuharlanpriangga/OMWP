@@ -168,3 +168,185 @@ export function maskApiKey(rawKey: string): string {
   if (k.length <= 10) return '••••••••';
   return `${k.slice(0, 6)}••••${k.slice(-4)}`;
 }
+
+export async function verifyKeyDirectClient(
+  rawKey: string,
+  signal?: AbortSignal
+): Promise<{ valid: boolean; provider?: AiProviderId; error?: string }> {
+  const apiKey = rawKey.trim();
+  const candidates = inferCandidateProviders(apiKey);
+  for (const provider of candidates) {
+    try {
+      let res: Response;
+      switch (provider) {
+        case 'gemini':
+          res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models?pageSize=1&key=${encodeURIComponent(
+              apiKey
+            )}`,
+            { method: 'GET', signal }
+          );
+          break;
+        case 'openai':
+          res = await fetch('https://api.openai.com/v1/models', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal,
+          });
+          break;
+        case 'claude':
+          res = await fetch('https://api.anthropic.com/v1/models', {
+            method: 'GET',
+            headers: {
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01',
+              'anthropic-dangerous-direct-browser-access': 'true',
+            },
+            signal,
+          });
+          break;
+        case 'groq':
+          res = await fetch('https://api.groq.com/openai/v1/models', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal,
+          });
+          break;
+        case 'openrouter':
+          res = await fetch('https://openrouter.ai/api/v1/auth/key', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal,
+          });
+          break;
+        case 'deepseek':
+          res = await fetch('https://api.deepseek.com/models', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal,
+          });
+          break;
+        case 'xai':
+          res = await fetch('https://api.x.ai/v1/models', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal,
+          });
+          break;
+        case 'mistral':
+          res = await fetch('https://api.mistral.ai/v1/models', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal,
+          });
+          break;
+      }
+      if (res.ok) return { valid: true, provider };
+    } catch (err) {
+      if ((err as { name?: string })?.name === 'AbortError') throw err;
+    }
+  }
+  return {
+    valid: false,
+    error: 'API key tidak valid atau ditolak oleh provider.',
+  };
+}
+
+export async function explainWithByokClient(
+  byokKeys: Array<{ provider: AiProviderId; key: string }>,
+  systemInstruction: string,
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>
+): Promise<string> {
+  const openAiUrls: Record<string, string> = {
+    openai: 'https://api.openai.com/v1/chat/completions',
+    groq: 'https://api.groq.com/openai/v1/chat/completions',
+    openrouter: 'https://openrouter.ai/api/v1/chat/completions',
+    deepseek: 'https://api.deepseek.com/chat/completions',
+    xai: 'https://api.x.ai/v1/chat/completions',
+    mistral: 'https://api.mistral.ai/v1/chat/completions',
+  };
+  const openAiModels: Record<string, string> = {
+    openai: 'gpt-4o-mini',
+    groq: 'llama-3.3-70b-versatile',
+    openrouter: 'openai/gpt-4o-mini',
+    deepseek: 'deepseek-chat',
+    xai: 'grok-2-latest',
+    mistral: 'mistral-small-latest',
+  };
+
+  for (const entry of byokKeys) {
+    try {
+      if (entry.provider === 'gemini') {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
+            entry.key
+          )}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemInstruction }] },
+              contents: messages.map((m) => ({
+                role: m.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: m.content }],
+              })),
+            }),
+          }
+        );
+        const data = (await res.json()) as {
+          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        };
+        const txt = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (res.ok && txt) return txt;
+      } else if (entry.provider === 'claude') {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': entry.key,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 800,
+            system: systemInstruction,
+            messages,
+          }),
+        });
+        const data = (await res.json()) as {
+          content?: Array<{ type?: string; text?: string }>;
+        };
+        const txt = data.content?.find((c) => c.type === 'text')?.text?.trim();
+        if (res.ok && txt) return txt;
+      } else {
+        const res = await fetch(
+          openAiUrls[entry.provider] || openAiUrls.openai,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${entry.key}`,
+            },
+            body: JSON.stringify({
+              model: openAiModels[entry.provider] || 'gpt-4o-mini',
+              messages: [
+                { role: 'system', content: systemInstruction },
+                ...messages,
+              ],
+            }),
+          }
+        );
+        const data = (await res.json()) as {
+          choices?: Array<{ message?: { content?: string } }>;
+        };
+        const txt = data.choices?.[0]?.message?.content?.trim();
+        if (res.ok && txt) return txt;
+      }
+    } catch {
+      // Try next configured key
+    }
+  }
+  throw new Error('Gagal menghubungi provider AI menggunakan API key Anda.');
+}
+

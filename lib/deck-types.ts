@@ -1,6 +1,6 @@
 import type { AiProviderId } from './ai-providers';
 
-export type ThemeId = 'brutal' | 'auditor';
+export type ThemeId = 'default' | 'brutal' | 'auditor';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';
 export type TextAlign = 'l' | 'c' | 'r';
@@ -107,8 +107,14 @@ export interface ChatMessage {
 export interface SlideAiContext {
   deckTitle: string;
   slideTitle: string;
+  slideNumber?: number;
+  totalSlides?: number;
   slideText: string;
   pointsText: string;
+  slideContentOutline?: string;
+  deckOverview?: string;
+  clickedTerm?: string;
+  surroundingContext?: string;
 }
 
 export type InlineToken =

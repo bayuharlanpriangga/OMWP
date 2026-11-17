@@ -20,6 +20,7 @@ import {
   uid,
   updateBlockInSlide,
 } from '@/lib/deck-logic';
+import { importDeckFromHtml } from '@/lib/html-import';
 import type {
   Block,
   ChatMessage,
@@ -32,6 +33,7 @@ import type {
   WorkspaceMode,
 } from '@/lib/deck-types';
 import {
+  explainWithByokClient,
   orderByokKeysForRequest,
   type ByokKeyEntry,
 } from '@/lib/ai-providers';
@@ -195,7 +197,7 @@ export function PresentationApp() {
 
   // Persist deck to localStorage & sync document theme/title
   React.useEffect(() => {
-    document.documentElement.dataset.theme = deck.theme || 'brutal';
+    document.documentElement.dataset.theme = deck.theme || 'default';
     document.title = deck.title || 'Presentasi Interaktif';
     if (!hydrated) return;
     try {
@@ -238,7 +240,7 @@ export function PresentationApp() {
         y = rect.top + rect.height / 2;
       }
 
-      const theme = document.documentElement.dataset.theme || 'brutal';
+      const theme = document.documentElement.dataset.theme || 'default';
       const fx = document.createElement('span');
       fx.className = `fx fx-${theme}`;
       fx.style.left = `${x}px`;
@@ -371,8 +373,8 @@ export function PresentationApp() {
   // AI Query Handler
   const sendAiQuestion = React.useCallback(
     async (question: string, cacheTerm?: string) => {
-      const slideContext = buildSlideAiContext(deck, currentSlide);
-      const cacheKey = `${slideContext.slideTitle}|${cacheTerm || ''}`;
+      const slideContext = buildSlideAiContext(deck, currentSlide, cacheTerm);
+      const cacheKey = `${currentSlide.id}|${slideContext.slideText.slice(0, 140)}|${cacheTerm || ''}`;
       const userMsg: ChatMessage = { id: uid(), role: 'user', text: question };
 
       if (cacheTerm && aiCacheRef.current.has(cacheKey)) {
@@ -414,16 +416,51 @@ export function PresentationApp() {
             byokKeys: activeByokKeys,
           }),
         });
-        const data = (await res.json()) as { reply?: string; error?: string };
-        if (!res.ok || !data.reply) {
-          throw new Error(data.error || `HTTP ${res.status}`);
+        const contentType = res.headers.get('content-type') || '';
+        let replyText = '';
+        if (
+          res.status === 404 ||
+          res.status === 405 ||
+          !contentType.includes('application/json')
+        ) {
+          if (activeByokKeys.length === 0) {
+            throw new Error(
+              'Pada mode statis (GitHub Pages), tambahkan API key di Pengaturan AI (ikon kunci) untuk memakai Asisten AI.'
+            );
+          }
+          const sys = [
+            `Kamu asisten dalam presentasi "${slideContext.deckTitle}" (Slide ${slideContext.slideNumber || 1} dari ${slideContext.totalSlides || 1}).`,
+            slideContext.deckOverview
+              ? `Alur presentasi:\n${slideContext.deckOverview}`
+              : '',
+            slideContext.slideContentOutline
+              ? `Materi lengkap slide aktif:\n${slideContext.slideContentOutline}`
+              : slideContext.slideText,
+            slideContext.surroundingContext
+              ? `Konteks spesifik:\n${slideContext.surroundingContext}`
+              : '',
+            'Pahami topik yang sedang dibahas secara menyeluruh. Jika istilah singkat atau implisit, tafsirkan sesuai konteks di atas. Jawab dalam bahasa Indonesia yang jelas (~100-150 kata).',
+          ]
+            .filter(Boolean)
+            .join('\n\n');
+          replyText = await explainWithByokClient(
+            activeByokKeys,
+            sys,
+            historySnapshot
+          );
+        } else {
+          const data = (await res.json()) as { reply?: string; error?: string };
+          if (!res.ok || !data.reply) {
+            throw new Error(data.error || `HTTP ${res.status}`);
+          }
+          replyText = data.reply;
         }
         if (cacheTerm) {
-          aiCacheRef.current.set(cacheKey, data.reply);
+          aiCacheRef.current.set(cacheKey, replyText);
         }
         setChatMessages((prev) => [
           ...prev,
-          { id: uid(), role: 'assistant', text: data.reply!, animate: true },
+          { id: uid(), role: 'assistant', text: replyText, animate: true },
         ]);
       } catch (err) {
         const errText =
@@ -576,6 +613,13 @@ export function PresentationApp() {
         }
       }}
     >
+      <div className="theme-backdrop" aria-hidden="true">
+        <span className="tb-a" />
+        <span className="tb-b" />
+        <span className="tb-c" />
+        <span className="tb-d" />
+      </div>
+
       <TopBar
         title={deck.title}
         mode={mode}
@@ -618,7 +662,7 @@ export function PresentationApp() {
               onClick={() => {
                 const newSlide: Slide = {
                   id: uid(),
-                  name: `Slide ${deck.slides.length + 1}`,
+                  name: '',
                   bg: '',
                   vc: false,
                   blocks: [],
@@ -646,7 +690,7 @@ export function PresentationApp() {
             onAddSlide={() => {
               const newSlide: Slide = {
                 id: uid(),
-                name: `Slide ${deck.slides.length + 1}`,
+                name: '',
                 bg: '',
                 vc: false,
                 blocks: [],
@@ -699,9 +743,6 @@ export function PresentationApp() {
             }}
             onDeckTitleChange={(title) =>
               setDeck((prev) => ({ ...prev, title }))
-            }
-            onSlideNameChange={(name) =>
-              updateCurrentSlide((s) => ({ ...s, name }))
             }
             onUpdateBlock={(blockId, updater) =>
               updateCurrentSlide((s) => updateBlockInSlide(s, blockId, updater))
@@ -764,6 +805,23 @@ export function PresentationApp() {
               } catch {
                 showToast('File JSON tidak valid.');
               }
+            }}
+            onImportHtml={(htmlText) => {
+              const result = importDeckFromHtml(htmlText);
+              if (!result) {
+                showToast(
+                  'HTML tidak berisi slide atau konten yang dapat diimpor.'
+                );
+                return false;
+              }
+              setDeck(result.deck);
+              setSlideIndex(0);
+              setSelectedBlockId(null);
+              setOpenBlockIds(new Set());
+              showToast(
+                `Presentasi HTML berhasil dimuat (${result.slideCount} slide, ${result.blockCount} blok).`
+              );
+              return true;
             }}
             onResetDeck={() => {
               setConfirmState({

@@ -756,7 +756,7 @@ export function SlideCanvas({
       }
       animate={{ opacity: 1, x: 0 }}
       transition={{
-        duration: theme === 'auditor' ? 0.35 : 0.25,
+        duration: theme === 'auditor' ? 0.35 : theme === 'default' ? 0.22 : 0.25,
         ease: [0.22, 1, 0.36, 1],
       }}
       className={`slide ${slide.vc && !isFree ? 'vc' : ''}`}

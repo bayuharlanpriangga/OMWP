@@ -66,10 +66,10 @@ export function AiAssistant({
   React.useEffect(() => {
     if (prefersReduced || !animatingId || !animatingText) return;
 
-    const intervalMs = theme === 'auditor' ? 16 : 24;
+    const intervalMs = theme === 'brutal' ? 24 : 18;
     const total = animatingText.length;
     const stepSize = Math.max(
-      theme === 'auditor' ? 3 : 4,
+      theme === 'brutal' ? 4 : 3,
       Math.ceil(total / 110)
     );
 

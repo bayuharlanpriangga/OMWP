@@ -25,6 +25,10 @@ const THEME_SWATCHES: Record<
     colors: string[];
   }
 > = {
+  default: {
+    name: 'Default',
+    colors: ['#EEF1F4', '#FFFFFF', '#A9C6DC', '#D4A72C', '#0D0D0D'],
+  },
   brutal: {
     name: 'Brutalis',
     colors: ['#fff4d6', '#ffd23f', '#ff6b35', '#2ec4b6', '#111111'],
@@ -53,7 +57,7 @@ export function ThemeModal({
 
   if (!open) return null;
 
-  const themes: ThemeId[] = ['brutal', 'auditor'];
+  const themes: ThemeId[] = ['default', 'brutal', 'auditor'];
 
   const handleChoose = (id: ThemeId) => {
     setClickedTheme(id);
@@ -96,6 +100,7 @@ export function ThemeModal({
             const active = currentTheme === id;
             const isEngaged = hoveredTheme === id || clickedTheme === id;
             const isBrutal = id === 'brutal';
+            const isDefault = id === 'default';
 
             return (
               <button
@@ -113,13 +118,48 @@ export function ThemeModal({
                 }
                 onClick={() => handleChoose(id)}
                 className={`w-full flex items-center justify-between gap-4 px-4 py-3.5 text-left transition-colors ${
-                  isBrutal
-                    ? 'bg-[#fff4d6] text-[#111111] border-[3px] border-[#111111] rounded-[10px] shadow-[4px_4px_0_#111111]'
-                    : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                  isDefault
+                    ? `bg-[#EEF1F4] text-[#0D0D0D] border rounded-[2px] ${
+                        active
+                          ? 'border-[#0D0D0D] ring-1 ring-[#0D0D0D]'
+                          : 'border-[#4F7A99] hover:border-[#0D0D0D]'
+                      }`
+                    : isBrutal
+                      ? 'bg-[#fff4d6] text-[#111111] border-[3px] border-[#111111] rounded-[10px] shadow-[4px_4px_0_#111111]'
+                      : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  {isBrutal ? (
+                  {isDefault ? (
+                    <span className="inline-flex items-center gap-2.5">
+                      <motion.span
+                        aria-hidden="true"
+                        className="w-3.5 h-3.5 shrink-0"
+                        style={{
+                          backgroundColor: active || isEngaged ? '#0D0D0D' : '#4F7A99',
+                          clipPath:
+                            'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                        }}
+                        animate={
+                          clickedTheme === id
+                            ? { rotate: 90, scale: 1.15 }
+                            : isEngaged
+                              ? { rotate: 45, scale: 1.08 }
+                              : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                      <span
+                        className="inline-block text-xl font-semibold tracking-tight"
+                        style={{
+                          fontFamily:
+                            'var(--font-orias-serif), Georgia, serif',
+                        }}
+                      >
+                        {visual.name}
+                      </span>
+                    </span>
+                  ) : isBrutal ? (
                     <motion.span
                       className="inline-block text-xl font-bold tracking-tight"
                       style={{
@@ -175,10 +215,12 @@ export function ThemeModal({
 
                   {active && (
                     <span
-                      className={`inline-flex items-center justify-center w-5 h-5 rounded-full shrink-0 ${
-                        isBrutal
-                          ? 'bg-[#ff6b35] text-[#111111] border-2 border-[#111111]'
-                          : 'bg-[#14243d] text-[#ffffff]'
+                      className={`inline-flex items-center justify-center w-5 h-5 shrink-0 ${
+                        isDefault
+                          ? 'bg-[#D4A72C] text-[#0D0D0D] border border-[#0D0D0D] rounded-[2px]'
+                          : isBrutal
+                            ? 'bg-[#ff6b35] text-[#111111] border-2 border-[#111111] rounded-full'
+                            : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -195,9 +237,11 @@ export function ThemeModal({
                     <span
                       key={hex}
                       className={`w-5 h-5 block ${
-                        isBrutal
-                          ? 'rounded-[4px] border-2 border-[#111111]'
-                          : 'rounded-[3px] border border-[#c5ccd8]'
+                        isDefault
+                          ? 'rounded-[2px] border border-[#4F7A99]'
+                          : isBrutal
+                            ? 'rounded-[4px] border-2 border-[#111111]'
+                            : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />

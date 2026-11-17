@@ -15,6 +15,27 @@
   --font-code: var(--font-mono), ui-monospace, monospace;
 }
 
+:root[data-theme="default"] {
+  --tinta: #0D0D0D;
+  --perak: #EEF1F4;
+  --es: #A9C6DC;
+  --es-tua: #4F7A99;
+  --emas: #D4A72C;
+  --emas-teks: #7A5C00;
+  --bg: #EEF1F4;
+  --fg: #0D0D0D;
+  --card: #FFFFFF;
+  --ln: #4F7A99;
+  --acc: #D4A72C;
+  --acc2: #A9C6DC;
+  --acc3: #EEF1F4;
+  --mut: #4A5663;
+  --r: 2px;
+  --font-display: var(--font-orias-serif), Georgia, serif;
+  --font-body: var(--font-orias-sans), system-ui, sans-serif;
+  --font-code: var(--font-mono), ui-monospace, monospace;
+}
+
 :root[data-theme="auditor"] {
   --bg: #f4f6f9;
   --fg: #1b2430;
@@ -198,6 +219,8 @@ select:focus-visible {
 
 /* Main container */
 .pres-main {
+  position: relative;
+  z-index: 1;
   flex: 1;
   padding: 20px 16px 116px;
   max-width: 1020px;
@@ -265,6 +288,270 @@ select:focus-visible {
 
 .slide.vc {
   justify-content: center;
+}
+
+/* Full-viewport fixed backdrop unified per theme (never scrolls, never boxes slides) */
+.theme-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.theme-backdrop > span {
+  position: absolute;
+  display: block;
+}
+
+/* Brutalis full-page backdrop: pure cream ground with bold Bauhaus corner geometry */
+.theme-backdrop .tb-a {
+  top: 76px;
+  right: 26px;
+  width: 58px;
+  height: 58px;
+  background: var(--acc3);
+  border: 3px solid var(--ln);
+  box-shadow: 5px 5px 0 var(--ln);
+  opacity: 0.78;
+}
+
+.theme-backdrop .tb-b {
+  top: 120px;
+  right: 70px;
+  width: 24px;
+  height: 24px;
+  background: var(--acc2);
+  border: 3px solid var(--ln);
+  opacity: 0.85;
+}
+
+.theme-backdrop .tb-c {
+  bottom: 84px;
+  left: 28px;
+  width: 36px;
+  height: 36px;
+  background: var(--acc);
+  border: 3px solid var(--ln);
+  transform: rotate(45deg);
+  opacity: 0.78;
+}
+
+.theme-backdrop .tb-d {
+  bottom: 86px;
+  right: 28px;
+  width: 68px;
+  height: 10px;
+  background: var(--ln);
+  opacity: 0.14;
+}
+
+/* Default (Orias) full-page backdrop: seamless Perak surface with fixed crystal facets & single Emas prism */
+[data-theme="default"] .theme-backdrop .tb-a {
+  top: 0;
+  right: 0;
+  width: clamp(190px, 24vw, 370px);
+  height: clamp(190px, 24vw, 370px);
+  background: #E1E7EE;
+  border: 0;
+  box-shadow: none;
+  opacity: 1;
+  clip-path: polygon(100% 0, 10% 0, 100% 90%);
+}
+
+[data-theme="default"] .theme-backdrop .tb-b {
+  top: 0;
+  right: 0;
+  width: clamp(120px, 15vw, 235px);
+  height: clamp(120px, 15vw, 235px);
+  background: #A9C6DC;
+  border: 0;
+  opacity: 0.36;
+  clip-path: polygon(100% 0, 28% 0, 100% 72%);
+}
+
+[data-theme="default"] .theme-backdrop .tb-c {
+  top: 76px;
+  right: 26px;
+  bottom: auto;
+  left: auto;
+  width: 16px;
+  height: 16px;
+  background: #D4A72C;
+  border: 0;
+  transform: none;
+  opacity: 0.92;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+[data-theme="default"] .theme-backdrop .tb-d {
+  bottom: 0;
+  left: 0;
+  right: auto;
+  width: clamp(160px, 20vw, 310px);
+  height: clamp(160px, 20vw, 310px);
+  background: #DFE6EE;
+  opacity: 0.9;
+  clip-path: polygon(0 100%, 0 16%, 84% 100%);
+}
+
+/* Auditor full-page backdrop: seamless cool slate with fixed navy & gold architectural bevels */
+[data-theme="auditor"] .theme-backdrop .tb-a {
+  top: 0;
+  right: 0;
+  width: clamp(190px, 24vw, 360px);
+  height: clamp(190px, 24vw, 360px);
+  background: rgba(20, 36, 61, 0.045);
+  border: 0;
+  box-shadow: none;
+  opacity: 1;
+  clip-path: polygon(100% 0, 14% 0, 100% 86%);
+}
+
+[data-theme="auditor"] .theme-backdrop .tb-b {
+  top: 0;
+  right: 0;
+  width: clamp(115px, 14.5vw, 220px);
+  height: clamp(115px, 14.5vw, 220px);
+  background: rgba(176, 141, 60, 0.085);
+  border: 0;
+  opacity: 1;
+  clip-path: polygon(100% 0, 36% 0, 100% 64%);
+}
+
+[data-theme="auditor"] .theme-backdrop .tb-c {
+  top: 78px;
+  left: 26px;
+  bottom: auto;
+  right: auto;
+  width: 38px;
+  height: 38px;
+  background: transparent;
+  border: 0;
+  border-top: 2px solid #b08d3c;
+  border-left: 2px solid #b08d3c;
+  transform: none;
+  opacity: 0.55;
+}
+
+[data-theme="auditor"] .theme-backdrop .tb-d {
+  bottom: 0;
+  left: 0;
+  right: auto;
+  width: clamp(150px, 20vw, 300px);
+  height: clamp(150px, 20vw, 300px);
+  background: rgba(20, 36, 61, 0.038);
+  opacity: 1;
+  clip-path: polygon(0 100%, 0 18%, 82% 100%);
+}
+
+@media (max-width: 1180px) {
+  .theme-backdrop .tb-a,
+  .theme-backdrop .tb-b,
+  .theme-backdrop .tb-c,
+  .theme-backdrop .tb-d {
+    opacity: 0.42;
+  }
+  [data-theme="default"] .theme-backdrop .tb-a,
+  [data-theme="default"] .theme-backdrop .tb-d,
+  [data-theme="auditor"] .theme-backdrop .tb-a,
+  [data-theme="auditor"] .theme-backdrop .tb-b,
+  [data-theme="auditor"] .theme-backdrop .tb-d {
+    opacity: 0.82;
+  }
+}
+
+@media (max-width: 639px) {
+  .theme-backdrop .tb-a {
+    top: 108px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    box-shadow: 3px 3px 0 var(--ln);
+    opacity: 0.38;
+  }
+  .theme-backdrop .tb-b {
+    top: 128px;
+    right: 12px;
+    width: 14px;
+    height: 14px;
+    opacity: 0.42;
+  }
+  .theme-backdrop .tb-c {
+    bottom: 72px;
+    left: -10px;
+    width: 24px;
+    height: 24px;
+    opacity: 0.36;
+  }
+  .theme-backdrop .tb-d {
+    bottom: 74px;
+    right: 14px;
+    width: 36px;
+    height: 6px;
+    opacity: 0.14;
+  }
+  [data-theme="default"] .theme-backdrop .tb-a {
+    top: 0;
+    right: 0;
+    width: 148px;
+    height: 148px;
+    box-shadow: none;
+    opacity: 0.92;
+  }
+  [data-theme="default"] .theme-backdrop .tb-b {
+    top: 0;
+    right: 0;
+    width: 96px;
+    height: 96px;
+    opacity: 0.34;
+  }
+  [data-theme="default"] .theme-backdrop .tb-c {
+    top: 106px;
+    right: 10px;
+    bottom: auto;
+    left: auto;
+    width: 11px;
+    height: 11px;
+    opacity: 0.85;
+  }
+  [data-theme="default"] .theme-backdrop .tb-d {
+    bottom: 0;
+    left: 0;
+    width: 112px;
+    height: 112px;
+    opacity: 0.85;
+  }
+  [data-theme="auditor"] .theme-backdrop .tb-a {
+    top: 0;
+    right: 0;
+    width: 140px;
+    height: 140px;
+    box-shadow: none;
+    opacity: 1;
+  }
+  [data-theme="auditor"] .theme-backdrop .tb-b {
+    top: 0;
+    right: 0;
+    width: 88px;
+    height: 88px;
+    opacity: 1;
+  }
+  [data-theme="auditor"] .theme-backdrop .tb-c {
+    top: 106px;
+    left: 10px;
+    bottom: auto;
+    width: 22px;
+    height: 22px;
+    opacity: 0.42;
+  }
+  [data-theme="auditor"] .theme-backdrop .tb-d {
+    bottom: 0;
+    left: 0;
+    width: 108px;
+    height: 108px;
+    opacity: 1;
+  }
 }
 
 /* Cards & blocks */
@@ -1048,6 +1335,350 @@ select:focus-visible {
 @keyframes cura {
   50% {
     opacity: 0.15;
+  }
+}
+
+/* ==========================================================================
+   Default Theme — Identitas Orias (Perak–Emas, Facet Crystal Geometry)
+   ========================================================================== */
+
+[data-theme="default"] body {
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme="default"] button:focus-visible {
+  outline: 2px solid #0D0D0D;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px #D4A72C;
+}
+
+[data-theme="default"] .pres-top {
+  background: #EEF1F4;
+  color: #0D0D0D;
+  border-bottom: 1px solid #4F7A99;
+}
+
+[data-theme="default"] .pres-brand {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+[data-theme="default"] .pbtn {
+  border: 1px solid #4F7A99;
+  border-radius: 2px;
+  background: #FFFFFF;
+  color: #0D0D0D;
+  box-shadow: none;
+  font-weight: 500;
+}
+
+[data-theme="default"] .pbtn:hover:not(:disabled) {
+  background: #E2E9F0;
+  border-color: #0D0D0D;
+}
+
+[data-theme="default"] .pbtn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+  background: #A9C6DC;
+}
+
+[data-theme="default"] .pbtn.on {
+  background: #D4A72C;
+  color: #0D0D0D;
+  border-color: #0D0D0D;
+  font-weight: 600;
+}
+
+[data-theme="default"] .pbtn.on:hover:not(:disabled) {
+  background: #C49720;
+  border-color: #0D0D0D;
+}
+
+[data-theme="default"] .pres-top .pbtn {
+  background: #FFFFFF;
+  color: #0D0D0D;
+  border-color: #4F7A99;
+  box-shadow: none;
+}
+
+[data-theme="default"] .pres-top .pbtn:hover:not(:disabled) {
+  background: #E2E9F0;
+  border-color: #0D0D0D;
+}
+
+[data-theme="default"] .pres-top .pbtn.on {
+  background: #D4A72C;
+  border-color: #0D0D0D;
+  color: #0D0D0D;
+  font-weight: 600;
+}
+
+[data-theme="default"] .card {
+  position: relative;
+  border: 1px solid #4F7A99;
+  border-radius: 2px;
+  background: #FFFFFF;
+  box-shadow: none;
+}
+
+[data-theme="default"] .card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #A9C6DC;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  pointer-events: none;
+  transition: background-color 0.2s ease;
+}
+
+[data-theme="default"] .card.open {
+  border-color: #0D0D0D;
+  box-shadow: 0 0 0 1px #0D0D0D;
+}
+
+[data-theme="default"] .card.open::after {
+  background: #D4A72C;
+}
+
+[data-theme="default"] .ch {
+  font-weight: 600;
+}
+
+[data-theme="default"] .ch .n {
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 25%, 100% 75%, 75% 100%, 25% 100%, 0% 75%, 0% 25%);
+  background: #A9C6DC;
+  color: #0D0D0D;
+  font-family: var(--font-code);
+  font-weight: 700;
+}
+
+[data-theme="default"] .card.open .n {
+  background: #D4A72C;
+  color: #0D0D0D;
+}
+
+[data-theme="default"] .cb {
+  border-top: 1px solid #A9C6DC;
+}
+
+[data-theme="default"] .bt {
+  color: #0D0D0D;
+  font-weight: 600;
+  border-bottom: 1px solid #A9C6DC;
+  padding-bottom: 8px;
+}
+
+[data-theme="default"] .term {
+  background: #EEF1F4;
+  color: #7A5C00;
+  border-bottom: 1.5px solid #7A5C00;
+  border-radius: 2px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+[data-theme="default"] .term.mt {
+  background: #A9C6DC;
+  color: #0D0D0D;
+  border-bottom: 1.5px solid #0D0D0D;
+}
+
+[data-theme="default"] .concl {
+  background: #FFFFFF;
+  color: #0D0D0D;
+  border: 1px solid #4F7A99;
+  border-top: 2px solid #0D0D0D;
+  border-radius: 2px;
+  box-shadow: none;
+  font-weight: 500;
+}
+
+[data-theme="default"] .pres-nav {
+  background: #EEF1F4;
+  border-top: 1px solid #4F7A99;
+}
+
+[data-theme="default"] .prog {
+  height: 6px;
+  border: 1px solid #4F7A99;
+  border-radius: 0;
+  background: #FFFFFF;
+}
+
+[data-theme="default"] .prog-bar {
+  background: #D4A72C;
+}
+
+[data-theme="default"] .pres-fab {
+  background: #D4A72C;
+  color: #0D0D0D;
+  border: 1.5px solid #0D0D0D;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+[data-theme="default"] .pres-fab:hover {
+  transform: translateY(-2px);
+  background: #C49720;
+}
+
+[data-theme="default"] .ai-bubble {
+  border: 1px solid #0D0D0D;
+  border-radius: 2px;
+  box-shadow: none;
+  background: #FFFFFF;
+}
+
+[data-theme="default"] .ai-bh {
+  background: #0D0D0D;
+  color: #EEF1F4;
+  border-bottom: 2px solid #D4A72C;
+}
+
+[data-theme="default"] .ai-mini-bubble {
+  border: 1px solid #0D0D0D;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+[data-theme="default"] .ai-mini-bubble::after {
+  border-right: 1px solid #0D0D0D;
+  border-bottom: 1px solid #0D0D0D;
+}
+
+[data-theme="default"] .ai-msg {
+  border: 1px solid #4F7A99;
+  border-radius: 2px;
+}
+
+[data-theme="default"] .ai-msg.user {
+  background: #0D0D0D;
+  color: #EEF1F4;
+  border-color: #0D0D0D;
+}
+
+[data-theme="default"] .ai-msg.ai {
+  background: #EEF1F4;
+  color: #0D0D0D;
+  border-color: #A9C6DC;
+}
+
+[data-theme="default"] .ai-msg.err {
+  background: #FDF2F2;
+  color: #A93226;
+  border-color: #A93226;
+}
+
+[data-theme="default"] .pinput,
+[data-theme="default"] .ptarea,
+[data-theme="default"] .pselect {
+  border: 1px solid #4F7A99;
+  border-radius: 2px;
+  background: #FFFFFF;
+  color: #0D0D0D;
+}
+
+[data-theme="default"] .pinput:focus,
+[data-theme="default"] .pinput:focus-visible,
+[data-theme="default"] .ptarea:focus,
+[data-theme="default"] .ptarea:focus-visible,
+[data-theme="default"] .pselect:focus,
+[data-theme="default"] .pselect:focus-visible {
+  outline: none;
+  border-color: #0D0D0D;
+  box-shadow: 0 0 0 1px #0D0D0D;
+}
+
+[data-theme="default"] .ec {
+  border: 1px dashed #4F7A99;
+  border-radius: 2px;
+  background: #FFFFFF;
+}
+
+[data-theme="default"] .mv,
+[data-theme="default"] .rz,
+[data-theme="default"] .wb {
+  border: 1px solid #EEF1F4;
+  background: #0D0D0D;
+  color: #EEF1F4;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+[data-theme="default"] .rz {
+  background: #D4A72C;
+  color: #0D0D0D;
+  border-color: #0D0D0D;
+}
+
+[data-theme="default"] .pres-insp {
+  background: #FFFFFF;
+  border-top: 1px solid #4F7A99;
+}
+
+[data-theme="default"] .modal-backdrop {
+  background: rgba(13, 13, 13, 0.52);
+}
+
+[data-theme="default"] .modal-card {
+  border: 1.5px solid #0D0D0D;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.fx-default::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: -16px;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid #4F7A99;
+  background: rgba(169, 198, 220, 0.22);
+  animation: fxd 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fxd {
+  from {
+    transform: rotate(45deg) scale(0.35);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(45deg) scale(1.15);
+    opacity: 0;
+  }
+}
+
+[data-theme="default"] .ai-cur {
+  width: 2px;
+  border: 0;
+  background: #0D0D0D;
+  animation: cura 1s ease-in-out infinite;
+}
+
+@media (max-width: 480px) {
+  [data-theme="default"] .pres-main {
+    padding: 14px 12px 104px;
+  }
+  [data-theme="default"] .s-xl {
+    font-size: clamp(24px, 6vw, 32px);
+  }
+  [data-theme="default"] .s-xxl {
+    font-size: clamp(26px, 7vw, 32px);
+  }
+  [data-theme="default"] .s-l {
+    font-size: clamp(20px, 5vw, 24px);
+  }
+  [data-theme="default"] .pinput,
+  [data-theme="default"] .ptarea,
+  [data-theme="default"] .pselect {
+    font-size: 16px;
   }
 }
 

@@ -17,6 +17,11 @@ import type {
 } from './deck-types';
 
 export const THEME_META: Record<ThemeId, { name: string; description: string }> = {
+  default: {
+    name: 'Default',
+    description:
+      'Identitas Orias (Perak–Emas): latar perak tenang, tinta kontras tinggi, geometri facet presisi, dan satu aksen emas datar.',
+  },
   brutal: {
     name: 'Brutalis',
     description: 'Tebal, warna cerah, garis hitam, bayangan keras, animasi membal.',
@@ -316,7 +321,7 @@ export function migrateLegacyDeck(raw: LegacyDeck | Deck, includeCover = false):
   return {
     v: 2,
     title,
-    theme: legacy.theme && THEME_META[legacy.theme] ? legacy.theme : 'brutal',
+    theme: legacy.theme && THEME_META[legacy.theme] ? legacy.theme : 'default',
     slides,
   };
 }
@@ -331,7 +336,7 @@ export function loadAndNormalizeDeck(
     return null;
   }
   const migrated = migrateLegacyDeck(candidate, includeCover);
-  const theme: ThemeId = THEME_META[migrated.theme] ? migrated.theme : 'brutal';
+  const theme: ThemeId = THEME_META[migrated.theme] ? migrated.theme : 'default';
   const slides = migrated.slides.map((s) => {
     const normalized: Slide = {
       ...s,
@@ -371,7 +376,7 @@ export function createDefaultDeck(): Deck {
   return {
     v: 2,
     title: '',
-    theme: 'brutal',
+    theme: 'default',
     slides: [
       {
         id: 'slide-1',
@@ -385,32 +390,207 @@ export function createDefaultDeck(): Deck {
   };
 }
 
-export function getSlideTitle(slide: Slide): string {
-  if (slide.name) return slide.name;
-  const firstText = flattenBlocks(slide.blocks).find(
-    (b): b is TextBlock => b.t === 'text' && b.text.trim().length > 0
-  );
-  return firstText ? stripMarkup(firstText.text).split('\n')[0] : 'Slide';
+function describeBlockLines(blocks: Block[], scope?: string): string[] {
+  const lines: string[] = [];
+  let ddIndex = 0;
+  for (const b of blocks) {
+    if (b.t === 'text') {
+      const clean = stripMarkup(b.text).replace(/\s*\n+\s*/g, ' ').trim();
+      if (clean) lines.push(scope ? `[${scope}] ${clean}` : clean);
+    } else if (b.t === 'box') {
+      const boxTitle = stripMarkup(b.title).trim();
+      const nextScope = boxTitle
+        ? scope
+          ? `${scope} > Kartu "${boxTitle}"`
+          : `Kartu "${boxTitle}"`
+        : scope || 'Kartu';
+      if (boxTitle) lines.push(`[${nextScope}]`);
+      lines.push(...describeBlockLines(b.children, nextScope));
+    } else if (b.t === 'dd') {
+      ddIndex++;
+      const label = b.badge?.trim() || String(ddIndex);
+      const title = stripMarkup(b.text).trim();
+      const detail = stripMarkup(b.detail).replace(/\s*\n+\s*/g, ' ').trim();
+      const entry = [
+        `Poin ${label}${title ? `: ${title}` : ''}`,
+        detail ? `— ${detail}` : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
+      if (entry) lines.push(scope ? `[${scope}] ${entry}` : entry);
+    } else if (b.t === 'concl') {
+      const label = stripMarkup(b.label || 'Kesimpulan').trim();
+      const text = stripMarkup(b.text).replace(/\s*\n+\s*/g, ' ').trim();
+      if (text) {
+        lines.push(scope ? `[${scope} > ${label}] ${text}` : `[${label}] ${text}`);
+      }
+    } else if (b.t === 'img') {
+      const alt = b.alt?.trim();
+      if (alt) lines.push(`[Gambar: ${alt}]`);
+    }
+  }
+  return lines;
 }
 
-export function buildSlideAiContext(deck: Deck, slide: Slide): SlideAiContext {
+function findSurroundingContextForTerm(slide: Slide, term: string): string {
+  const needle = stripMarkup(term).trim().toLowerCase();
+  if (!needle) return '';
+
+  const matches = (raw: string): boolean => {
+    const clean = stripMarkup(raw).toLowerCase();
+    return clean.includes(needle);
+  };
+
+  const scanBlocks = (blocks: Block[], containerLabel?: string): string => {
+    for (const b of blocks) {
+      if (b.t === 'text' && matches(b.text)) {
+        const clean = stripMarkup(b.text).replace(/\s*\n+\s*/g, ' ').trim();
+        return containerLabel ? `${containerLabel}: "${clean}"` : `"${clean}"`;
+      }
+      if (b.t === 'dd' && (matches(b.text) || matches(b.detail))) {
+        const title = stripMarkup(b.text).trim();
+        const detail = stripMarkup(b.detail).replace(/\s*\n+\s*/g, ' ').trim();
+        const prefix = containerLabel
+          ? `${containerLabel} > Poin "${title}"`
+          : `Poin "${title}"`;
+        return detail ? `${prefix}: "${detail}"` : prefix;
+      }
+      if (b.t === 'concl' && (matches(b.label) || matches(b.text))) {
+        const label = stripMarkup(b.label || 'Kesimpulan').trim();
+        const text = stripMarkup(b.text).replace(/\s*\n+\s*/g, ' ').trim();
+        return `${label}: "${text}"`;
+      }
+      if (b.t === 'img' && b.alt && matches(b.alt)) {
+        return `Keterangan gambar: "${b.alt.trim()}"`;
+      }
+      if (b.t === 'box') {
+        const boxTitle = stripMarkup(b.title).trim();
+        const nextLabel = boxTitle
+          ? containerLabel
+            ? `${containerLabel} > Kartu "${boxTitle}"`
+            : `Kartu "${boxTitle}"`
+          : containerLabel;
+        const childHit = scanBlocks(b.children, nextLabel);
+        if (childHit) return childHit;
+        if (boxTitle && matches(b.title)) {
+          const preview = describeBlockLines(b.children).slice(0, 3).join(' | ');
+          return preview
+            ? `Kartu "${boxTitle}": ${preview}`
+            : `Judul kartu: "${boxTitle}"`;
+        }
+      }
+    }
+    return '';
+  };
+
+  const direct = scanBlocks(slide.blocks);
+  if (direct) return direct;
+
+  for (const m of slide.modals || []) {
+    const modalLabel = `Popup Modal "${stripMarkup(m.title).trim()}"`;
+    const inModal = scanBlocks(m.children, modalLabel);
+    if (inModal) return inModal;
+    if (matches(m.title)) {
+      const preview = describeBlockLines(m.children).slice(0, 3).join(' | ');
+      return preview ? `${modalLabel}: ${preview}` : modalLabel;
+    }
+  }
+
+  return '';
+}
+
+export function getSlideTitle(slide: Slide): string {
+  const trimmedName = (slide.name || '').trim();
+  const isGenericName = /^Slide\s+\d+$/i.test(trimmedName);
+  if (trimmedName && !isGenericName) return trimmedName;
+
+  const flat = flattenBlocks(slide.blocks);
+  const firstText = flat.find(
+    (b): b is TextBlock => b.t === 'text' && stripMarkup(b.text).trim().length > 0
+  );
+  if (firstText) {
+    return stripMarkup(firstText.text).split('\n')[0].trim().slice(0, 80);
+  }
+  const firstBox = flat.find(
+    (b): b is BoxBlock => b.t === 'box' && stripMarkup(b.title).trim().length > 0
+  );
+  if (firstBox) return stripMarkup(firstBox.title).trim().slice(0, 80);
+
+  const firstDd = flat.find(
+    (b): b is DropdownBlock => b.t === 'dd' && stripMarkup(b.text).trim().length > 0
+  );
+  if (firstDd) return stripMarkup(firstDd.text).trim().slice(0, 80);
+
+  const firstConcl = flat.find(
+    (b): b is ConclusionBlock => b.t === 'concl' && stripMarkup(b.text).trim().length > 0
+  );
+  if (firstConcl) return stripMarkup(firstConcl.text).split('\n')[0].trim().slice(0, 80);
+
+  return trimmedName || 'Slide';
+}
+
+export function buildSlideAiContext(
+  deck: Deck,
+  slide: Slide,
+  clickedTerm?: string
+): SlideAiContext {
   const flat = flattenBlocks(slide.blocks);
   const pointsText = flat
     .filter((b): b is DropdownBlock => b.t === 'dd')
-    .map((b) => stripMarkup(b.text))
+    .map((b) => {
+      const title = stripMarkup(b.text).trim();
+      const detail = stripMarkup(b.detail).replace(/\s*\n+\s*/g, ' ').trim();
+      return detail ? `${title}: ${detail}` : title;
+    })
     .filter(Boolean)
-    .join('; ');
-  const slideText = flat
-    .filter((b): b is TextBlock => b.t === 'text')
-    .map((b) => stripMarkup(b.text))
-    .filter(Boolean)
-    .join(' / ')
-    .slice(0, 700);
+    .join('; ')
+    .slice(0, 1200);
+
+  const outlineLines = describeBlockLines(slide.blocks);
+  for (const m of slide.modals || []) {
+    const mTitle = stripMarkup(m.title).trim();
+    const mLines = describeBlockLines(m.children, `Modal "${mTitle || 'Detail'}"`);
+    if (mLines.length > 0) {
+      outlineLines.push(...mLines);
+    } else if (mTitle) {
+      outlineLines.push(`[Modal "${mTitle}"]`);
+    }
+  }
+
+  const slideContentOutline = outlineLines.join('\n').slice(0, 2600);
+  const slideText = outlineLines.join(' / ').slice(0, 2200);
+
+  const activeIndex = deck.slides.findIndex((s) => s.id === slide.id);
+  const deckOverview = deck.slides
+    .map((s, idx) => {
+      const title = getSlideTitle(s);
+      const snippet = describeBlockLines(s.blocks)
+        .join(' • ')
+        .slice(0, 180);
+      const marker = idx === activeIndex ? ' [AKTIF]' : '';
+      return snippet && snippet !== title
+        ? `Slide ${idx + 1}${marker}: ${title} — ${snippet}`
+        : `Slide ${idx + 1}${marker}: ${title}`;
+    })
+    .join('\n')
+    .slice(0, 1800);
+
+  const cleanClickedTerm = clickedTerm ? stripMarkup(clickedTerm).trim() : '';
+  const surroundingContext = cleanClickedTerm
+    ? findSurroundingContextForTerm(slide, cleanClickedTerm).slice(0, 600)
+    : '';
+
   return {
     deckTitle: deck.title || 'Presentasi',
     slideTitle: getSlideTitle(slide),
+    slideNumber: activeIndex >= 0 ? activeIndex + 1 : 1,
+    totalSlides: deck.slides.length,
     slideText,
     pointsText,
+    slideContentOutline,
+    deckOverview,
+    clickedTerm: cleanClickedTerm || undefined,
+    surroundingContext: surroundingContext || undefined,
   };
 }
 
@@ -707,7 +887,12 @@ export function buildStandaloneHtml(
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  const theme = deck.theme === 'auditor' ? 'auditor' : 'brutal';
+  const theme: ThemeId =
+    deck.theme === 'auditor'
+      ? 'auditor'
+      : deck.theme === 'brutal'
+        ? 'brutal'
+        : 'default';
 
   return `<!doctype html>
 <html lang="id" data-theme="${theme}">
@@ -716,44 +901,82 @@ export function buildStandaloneHtml(
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${safeTitle}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#fff4d6;--fg:#111;--card:#fff;--ln:#111;--acc:#ff6b35;--acc2:#2ec4b6;--acc3:#ffd23f;--mut:#555;--r:10px}
+:root[data-theme=default]{--bg:#EEF1F4;--fg:#0D0D0D;--card:#fff;--ln:#4F7A99;--acc:#D4A72C;--acc2:#A9C6DC;--acc3:#EEF1F4;--mut:#4A5663;--r:2px}
 :root[data-theme=auditor]{--bg:#f4f6f9;--fg:#1b2430;--card:#fff;--ln:#14243d;--acc:#b08d3c;--acc2:#14243d;--acc3:#14243d;--mut:#5b6677;--r:6px}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--fg);font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:16px;line-height:1.5}
+[data-theme=default] body{font-family:'IBM Plex Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums}
 [data-theme=auditor] body{font-family:'Plus Jakarta Sans',system-ui,sans-serif}
 #app{min-height:100vh;display:flex;flex-direction:column}
 header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:3px solid var(--ln);background:var(--acc3);color:#111;position:sticky;top:0;z-index:20}
+[data-theme=default] header{background:#EEF1F4;color:#0D0D0D;border-bottom:1px solid #4F7A99}
 [data-theme=auditor] header{background:#14243d;color:#fff;border-bottom:3px solid #b08d3c}
 .brand{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-theme=default] .brand{font-family:'Lora',Georgia,serif;font-weight:600}
 .btn{border:3px solid var(--ln);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:var(--r);box-shadow:3px 3px 0 var(--ln);font-weight:600;cursor:pointer}
+[data-theme=default] .btn{border:1px solid #4F7A99;border-radius:2px;box-shadow:none;font-weight:500}
 [data-theme=auditor] .btn{border:1px solid #c5ccd8;border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.08)}
-main{flex:1;padding:20px 16px 100px;max-width:1000px;width:100%;margin:0 auto}
+main{position:relative;z-index:1;flex:1;padding:20px 16px 100px;max-width:1000px;width:100%;margin:0 auto}
+.slide{min-height:calc(100vh - 200px);display:flex;flex-direction:column;position:relative}
+.theme-backdrop{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.theme-backdrop span{position:absolute;display:block}
+.theme-backdrop .tb-a{top:76px;right:26px;width:58px;height:58px;background:var(--acc3);border:3px solid var(--ln);box-shadow:5px 5px 0 var(--ln);opacity:.78}
+.theme-backdrop .tb-b{top:120px;right:70px;width:24px;height:24px;background:var(--acc2);border:3px solid var(--ln);opacity:.85}
+.theme-backdrop .tb-c{bottom:84px;left:28px;width:36px;height:36px;background:var(--acc);border:3px solid var(--ln);transform:rotate(45deg);opacity:.78}
+.theme-backdrop .tb-d{bottom:86px;right:28px;width:68px;height:10px;background:var(--ln);opacity:.14}
+[data-theme=default] .theme-backdrop .tb-a{top:0;right:0;width:clamp(190px,24vw,370px);height:clamp(190px,24vw,370px);background:#E1E7EE;border:0;box-shadow:none;opacity:1;clip-path:polygon(100% 0,10% 0,100% 90%)}
+[data-theme=default] .theme-backdrop .tb-b{top:0;right:0;width:clamp(120px,15vw,235px);height:clamp(120px,15vw,235px);background:#A9C6DC;border:0;opacity:.36;clip-path:polygon(100% 0,28% 0,100% 72%)}
+[data-theme=default] .theme-backdrop .tb-c{top:76px;right:26px;bottom:auto;left:auto;width:16px;height:16px;background:#D4A72C;border:0;transform:none;opacity:.92;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)}
+[data-theme=default] .theme-backdrop .tb-d{bottom:0;left:0;right:auto;width:clamp(160px,20vw,310px);height:clamp(160px,20vw,310px);background:#DFE6EE;opacity:.9;clip-path:polygon(0 100%,0 16%,84% 100%)}
+[data-theme=auditor] .theme-backdrop .tb-a{top:0;right:0;width:clamp(190px,24vw,360px);height:clamp(190px,24vw,360px);background:rgba(20,36,61,.045);border:0;box-shadow:none;opacity:1;clip-path:polygon(100% 0,14% 0,100% 86%)}
+[data-theme=auditor] .theme-backdrop .tb-b{top:0;right:0;width:clamp(115px,14.5vw,220px);height:clamp(115px,14.5vw,220px);background:rgba(176,141,60,.085);border:0;opacity:1;clip-path:polygon(100% 0,36% 0,100% 64%)}
+[data-theme=auditor] .theme-backdrop .tb-c{top:78px;left:26px;bottom:auto;right:auto;width:38px;height:38px;background:transparent;border:0;border-top:2px solid #b08d3c;border-left:2px solid #b08d3c;transform:none;opacity:.55}
+[data-theme=auditor] .theme-backdrop .tb-d{bottom:0;left:0;right:auto;width:clamp(150px,20vw,300px);height:clamp(150px,20vw,300px);background:rgba(20,36,61,.038);opacity:1;clip-path:polygon(0 100%,0 18%,82% 100%)}
+@media(max-width:639px){.theme-backdrop .tb-a{top:96px;right:-10px;width:30px;height:30px;opacity:.38}.theme-backdrop .tb-b{top:116px;right:12px;width:14px;height:14px;opacity:.42}.theme-backdrop .tb-c{bottom:72px;left:-10px;width:24px;height:24px;opacity:.36}[data-theme=default] .theme-backdrop .tb-a{top:0;right:0;width:148px;height:148px;opacity:.92}[data-theme=default] .theme-backdrop .tb-b{top:0;right:0;width:96px;height:96px;opacity:.34}[data-theme=default] .theme-backdrop .tb-c{top:96px;right:10px;width:11px;height:11px;opacity:.85}[data-theme=default] .theme-backdrop .tb-d{bottom:0;left:0;width:112px;height:112px;opacity:.85}[data-theme=auditor] .theme-backdrop .tb-a{top:0;right:0;width:140px;height:140px;opacity:1}[data-theme=auditor] .theme-backdrop .tb-b{top:0;right:0;width:88px;height:88px;opacity:1}[data-theme=auditor] .theme-backdrop .tb-c{top:96px;left:10px;width:22px;height:22px;opacity:.42}[data-theme=auditor] .theme-backdrop .tb-d{bottom:0;left:0;width:108px;height:108px;opacity:1}}
 .cv{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px;align-items:start}
 .cv.free{display:block;position:relative}.cv.free>.blk{position:absolute;transition:top .24s ease}
 .card{border:3px solid var(--ln);background:var(--card);border-radius:var(--r);box-shadow:5px 5px 0 var(--ln)}
+[data-theme=default] .card{border:1px solid #4F7A99;border-radius:2px;box-shadow:none}
+[data-theme=default] .card.open{border-color:#0D0D0D;box-shadow:0 0 0 1px #0D0D0D}
 [data-theme=auditor] .card{border:1px solid #d5dbe5;border-top:3px solid #14243d;box-shadow:0 1px 3px rgba(16,24,40,.08)}
 .ch{display:flex;width:100%;gap:10px;align-items:center;text-align:left;background:none;border:0;padding:14px;font-weight:700;font-size:17px;cursor:pointer}
 .ch .n{flex:none;min-width:30px;height:30px;padding:0 6px;border:3px solid var(--ln);border-radius:999px;display:grid;place-items:center;background:var(--acc2);font-size:14px}
+[data-theme=default] .ch{font-family:'Lora',Georgia,serif;font-weight:600}
+[data-theme=default] .ch .n{border:0;border-radius:0;clip-path:polygon(25% 0%,75% 0%,100% 25%,100% 75%,75% 100%,25% 100%,0% 75%,0% 25%);background:#A9C6DC;color:#0D0D0D;font-family:'Space Mono',monospace}
+[data-theme=default] .card.open .n{background:#D4A72C;color:#0D0D0D}
 .cb{display:none;margin:0 14px 14px;padding-top:12px;border-top:3px dashed var(--ln)}.card.open .cb{display:block}
+[data-theme=default] .cb{border-top:1px solid #A9C6DC}
 .concl{margin-top:12px;border:3px solid var(--ln);background:var(--acc2);padding:16px;border-radius:var(--r);box-shadow:5px 5px 0 var(--ln);font-weight:600}
+[data-theme=default] .concl{background:#fff;color:#0D0D0D;border:1px solid #4F7A99;border-top:2px solid #0D0D0D;box-shadow:none;font-weight:500}
 .term{border:0;border-bottom:3px solid var(--acc);background:var(--acc3);padding:0 4px;font:inherit;font-weight:600;border-radius:3px;cursor:pointer}
+[data-theme=default] .term{background:#EEF1F4;color:#7A5C00;border-bottom:1.5px solid #7A5C00;border-radius:2px}
 .term.mt{background:var(--acc2);border-bottom-color:var(--ln);cursor:pointer}
+[data-theme=default] .term.mt{background:#A9C6DC;color:#0D0D0D;border-bottom-color:#0D0D0D}
 .s-s{font-size:14px}.s-m{font-size:18px}.s-l{font-size:28px;line-height:1.25}.s-xl{font-size:clamp(28px,6vw,46px);line-height:1.1}.s-xxl{font-size:clamp(38px,9vw,84px);line-height:1.05}
+[data-theme=default] .s-l,[data-theme=default] .s-xl,[data-theme=default] .s-xxl{font-family:'Lora',Georgia,serif}
 .a-l{text-align:left}.a-c{text-align:center}.a-r{text-align:right}.bd{font-weight:700}
 .box{padding:14px}.bt{font-weight:700;font-size:20px;margin-bottom:12px}
 .im{display:block;width:100%;height:auto;border-radius:6px}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:10px ${hasByok ? '84px' : '16px'} 12px 16px;background:var(--bg);border-top:3px solid var(--ln);z-index:15}
+[data-theme=default] nav{border-top:1px solid #4F7A99}
 .prog{flex:1;height:14px;border:3px solid var(--ln);border-radius:99px;background:var(--card);overflow:hidden}.prog i{display:block;height:100%;background:var(--acc)}
+[data-theme=default] .prog{height:6px;border:1px solid #4F7A99;border-radius:0}
 .cnt{font-family:'Space Mono',monospace;font-size:13px;min-width:42px;text-align:center}
 #pm{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:30;padding:16px}#pm[hidden]{display:none}
 .pmc{background:var(--card);border:3px solid var(--ln);border-radius:14px;padding:18px;width:min(620px,100%);max-height:86vh;overflow:auto}
+[data-theme=default] .pmc{border:1.5px solid #0D0D0D;border-radius:2px}
 .fab{position:fixed;right:16px;bottom:12px;width:54px;height:54px;border-radius:50%;border:3px solid var(--ln);background:var(--acc);color:#111;box-shadow:4px 4px 0 var(--ln);z-index:35;font-size:20px;display:grid;place-items:center;cursor:pointer}
+[data-theme=default] .fab{border:1.5px solid #0D0D0D;border-radius:2px;background:#D4A72C;color:#0D0D0D;box-shadow:none}
 .bub{position:fixed;right:16px;bottom:78px;width:min(380px,calc(100vw - 24px));max-height:60vh;display:flex;flex-direction:column;border:3px solid var(--ln);background:var(--card);border-radius:14px;box-shadow:6px 6px 0 var(--ln);z-index:35;overflow:hidden}
+[data-theme=default] .bub{border:1px solid #0D0D0D;border-radius:2px;box-shadow:none}
 .bubh{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--acc3);border-bottom:3px solid var(--ln);font-weight:700}
+[data-theme=default] .bubh{background:#0D0D0D;color:#EEF1F4;border-bottom:2px solid #D4A72C}
 .bubm{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:14px}
 .bmsg{padding:8px 10px;border:2px solid var(--ln);border-radius:10px;max-width:92%}.bmsg.u{align-self:flex-end;background:var(--acc2)}.bmsg.a{align-self:flex-start}
+[data-theme=default] .bmsg{border:1px solid #4F7A99;border-radius:2px}[data-theme=default] .bmsg.u{background:#0D0D0D;color:#EEF1F4;border-color:#0D0D0D}[data-theme=default] .bmsg.a{background:#EEF1F4;border-color:#A9C6DC}
 </style>
 </head>
 <body data-locked="1">
@@ -777,10 +1000,16 @@ const renderBlocks=(arr)=>{let n=0;return arr.map(b=>{
   const style=b.y!=null?'left:'+Math.max(0,Math.min(100-b.w/12*100,b.x||0))+'%;top:'+b.y+'px;width:'+b.w/12*100+'%':'grid-column:span '+b.w;
   return '<div class="blk" style="'+style+'">'+h+'</div>';
 }).join('')};
-const callAi=async(q)=>{
+const stText=s=>String(s||'').replace(/\\[\\[\\[(.*?)\\]\\]\\]|\\[\\[(.+?)\\]\\]/g,(_,a,t)=>a!==undefined?a:t).replace(/\\*\\*(.+?)\\*\\*/g,'$1').replace(/\\{\\/?(s|m|l|xl)\\}/g,'').replace(/\\s*\\n+\\s*/g,' ').trim();
+const descBlocks=(arr,sc)=>{const out=[];arr.forEach(b=>{if(b.t==='text'){const t=stText(b.text);if(t)out.push((sc?'['+sc+'] ':'')+t)}else if(b.t==='box'){const bt=stText(b.title);const ns=bt?(sc?sc+' > ':'')+'Kartu "'+bt+'"':sc||'Kartu';if(bt)out.push('['+ns+']');out.push(...descBlocks(b.children||[],ns))}else if(b.t==='dd'){const t=stText(b.text),d=stText(b.detail);out.push((sc?'['+sc+'] ':'')+'Poin: '+t+(d?' — '+d:''))}else if(b.t==='concl'){const t=stText(b.text);if(t)out.push('['+(stText(b.label)||'Kesimpulan')+'] '+t)}else if(b.t==='img'&&b.alt){out.push('[Gambar: '+b.alt+']')}});return out};
+const callAi=async(q,localCtx)=>{
   if(!byok.length||aiBusy)return;
   msgs.push({r:'u',t:q});aiBusy=true;aiOpen=true;render();
-  const sys='Kamu asisten presentasi "'+deck.title+'". Jawab dalam bahasa Indonesia secara ringkas dan jelas.';
+  const sl=deck.slides[idx];
+  const slideLines=descBlocks(sl.blocks);
+  (sl.modals||[]).forEach(m=>{const ml=descBlocks(m.children||[],'Modal "'+stText(m.title)+'"');if(ml.length)slideLines.push(...ml)});
+  const overview=deck.slides.map((s,i)=>'Slide '+(i+1)+(i===idx?' [AKTIF]':'')+': '+descBlocks(s.blocks).slice(0,2).join(' — ').slice(0,160)).join('\\n');
+  const sys='Kamu asisten dalam presentasi "'+deck.title+'" (Slide '+(idx+1)+' dari '+deck.slides.length+').\\nAlur presentasi:\\n'+overview+'\\nMateri lengkap slide aktif:\\n'+slideLines.join('\\n').slice(0,2400)+(localCtx?'\\nKonteks spesifik istilah: '+localCtx:'')+'\\nPahami topik yang sebenarnya sedang dibahas secara menyeluruh. Jika istilah/pertanyaan singkat atau implisit, tafsirkan maknanya sesuai konteks materi di atas. Jawab dalam bahasa Indonesia secara ringkas dan jelas (~100-150 kata).';
   const hist=msgs.filter(m=>m.r!=='e').slice(-8).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t}));
   let reply='';
   for(const k of byok){
@@ -805,7 +1034,7 @@ const callAi=async(q)=>{
 const render=()=>{
   const sl=deck.slides[idx],free=sl.blocks.some(b=>b.y!=null);
   const aiHtml=byok.length?('<button class="fab" id="fab">✦</button>'+(aiOpen?'<div class="bub"><div class="bubh"><span>Asisten AI</span><button class="btn" id="cbub" style="padding:2px 8px">✕</button></div><div class="bubm">'+(msgs.length?msgs.map(m=>'<div class="bmsg '+m.r+'">'+fmt(m.t)+'</div>').join(''):'<div class="bmsg a">Klik istilah bertanda kuning untuk penjelasan.</div>')+(aiBusy?'<div class="bmsg a">Sedang berpikir…</div>':'')+'</div></div>':'')):'';
-  document.getElementById('app').innerHTML='<header><div class="brand">'+esc(deck.title)+'</div><button class="btn" id="fs">▶</button></header><main><div class="cv'+(free?' free':'')+'">'+renderBlocks(sl.blocks)+'</div></main><nav><button class="btn" id="pv"'+(idx<=0?' disabled':'')+'>◀</button><div class="prog"><i style="width:'+((idx+1)/deck.slides.length*100)+'%"></i></div><span class="cnt">'+(idx+1)+'/'+deck.slides.length+'</span><button class="btn" id="nx"'+(idx>=deck.slides.length-1?' disabled':'')+'>▶</button></nav>'+aiHtml+'<div id="pm"'+(pmId?'':' hidden')+'>'+(pmId?(() => {const m=(sl.modals||[]).find(x=>x.id===pmId);return m?'<div class="pmc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>'+esc(m.title)+'</h2><button class="btn" id="cpm">✕</button></div><div class="cv">'+renderBlocks(m.children||[])+'</div></div>':'';})():'')+'</div>';
+  document.getElementById('app').innerHTML='<div class="theme-backdrop" aria-hidden="true"><span class="tb-a"></span><span class="tb-b"></span><span class="tb-c"></span><span class="tb-d"></span></div><header><div class="brand">'+esc(deck.title)+'</div><button class="btn" id="fs">▶</button></header><main><div class="slide"><div class="cv'+(free?' free':'')+'">'+renderBlocks(sl.blocks)+'</div></div></main><nav><button class="btn" id="pv"'+(idx<=0?' disabled':'')+'>◀</button><div class="prog"><i style="width:'+((idx+1)/deck.slides.length*100)+'%"></i></div><span class="cnt">'+(idx+1)+'/'+deck.slides.length+'</span><button class="btn" id="nx"'+(idx>=deck.slides.length-1?' disabled':'')+'>▶</button></nav>'+aiHtml+'<div id="pm"'+(pmId?'':' hidden')+'>'+(pmId?(() => {const m=(sl.modals||[]).find(x=>x.id===pmId);return m?'<div class="pmc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>'+esc(m.title)+'</h2><button class="btn" id="cpm">✕</button></div><div class="cv">'+renderBlocks(m.children||[])+'</div></div>':'';})():'')+'</div>';
   if(free){const r=document.querySelector('.cv.free');let b=0;[...r.children].forEach(e=>{b=Math.max(b,e.offsetTop+e.offsetHeight)});r.style.height=(b+40)+'px'}
 };
 document.addEventListener('click',e=>{
@@ -815,7 +1044,7 @@ document.addEventListener('click',e=>{
   else if(t.closest('#fs')){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
   else if(t.closest('#fab')){aiOpen=!aiOpen;render()}
   else if(t.closest('#cbub')){aiOpen=false;render()}
-  else if(t.closest('[data-ai]')){callAi('Jelaskan istilah atau poin ini: "'+t.closest('[data-ai]').dataset.ai+'"')}
+  else if(t.closest('[data-ai]')){const btn=t.closest('[data-ai]');const blk=btn.closest('.card,.concl,.blk');callAi('Jelaskan istilah atau poin ini: "'+btn.dataset.ai+'"',blk?blk.innerText.replace(/\\s+/g,' ').trim().slice(0,400):'')}
   else if(t.closest('[data-card]')){const id=t.closest('[data-card]').dataset.card;open.has(id)?open.delete(id):open.add(id);render()}
   else if(t.closest('[data-concl]')){const id=t.closest('[data-concl]').dataset.concl;open.has(id)?open.delete(id):open.add(id);render()}
   else if(t.closest('[data-mt]')){const title=t.closest('[data-mt]').dataset.mt;const m=(deck.slides[idx].modals||[]).find(x=>x.title===title);if(m){pmId=m.id;render()}}

@@ -23,7 +23,7 @@ test('createDefaultDeck initializes an empty blank presentation without dummy da
   const deck = createDefaultDeck();
   assert.equal(deck.v, 2);
   assert.equal(deck.title, '');
-  assert.equal(deck.theme, 'brutal');
+  assert.equal(deck.theme, 'default');
   assert.equal(deck.slides.length, 1);
   assert.equal(deck.slides[0].name, '');
   assert.equal(deck.slides[0].blocks.length, 0);
@@ -172,6 +172,8 @@ test('duplicateSlide assigns fresh IDs and buildStandaloneHtml embeds deck JSON 
 
   const html = buildStandaloneHtml(deck);
   assert.ok(html.includes('data-locked="1"'));
+  assert.ok(html.includes('data-theme="default"'));
+  assert.ok(html.includes('#EEF1F4'));
   assert.ok(html.includes('Presentasi Uji'));
   assert.ok(html.includes('<script id="byok-data" type="application/json">[]</script>'));
 
@@ -206,5 +208,80 @@ test('custom dropdown badge is preserved on normalize and embedded in standalone
     html.includes('b.badge&&String(b.badge).trim()?b.badge:String(n)') ||
       html.includes('(b.badge&&String(b.badge).trim())?b.badge:String(n)')
   );
+});
+
+test('buildSlideAiContext derives slide title automatically and captures full slide, modal, deck overview, and implicit term context', () => {
+  const deck = createDefaultDeck();
+  deck.title = 'Transformasi Infrastruktur Cloud';
+  deck.slides[0].name = 'Slide 1';
+  deck.slides[0].blocks.push({
+    id: 't1',
+    t: 'text',
+    w: 12,
+    text: 'Arsitektur Pemulihan Bencana',
+    size: 'xl',
+    align: 'l',
+    b: true,
+  });
+  deck.slides[0].blocks.push({
+    id: 'b1',
+    t: 'box',
+    w: 6,
+    title: 'Target Layanan Kritis',
+    children: [
+      {
+        id: 'dd1',
+        t: 'dd',
+        w: 12,
+        text: 'Strategi [[Failover]] Aktif-Pasif',
+        detail: 'Pemulihan node database harus selesai di bawah target [[RTO]] 15 menit tanpa kehilangan transaksi.',
+      },
+    ],
+  });
+  deck.slides[0].modals = [
+    {
+      id: 'm1',
+      title: 'Checklist Verifikasi',
+      children: [
+        {
+          id: 'mt1',
+          t: 'text',
+          w: 12,
+          text: 'Simulasi replikasi lintas zona dilakukan tiap kuartal.',
+          size: 'm',
+          align: 'l',
+        },
+      ],
+    },
+  ];
+  deck.slides.push({
+    id: 's2',
+    name: '',
+    vc: false,
+    blocks: [
+      {
+        id: 't2',
+        t: 'text',
+        w: 12,
+        text: 'Estimasi Biaya & Jadwal Migrasi Q3',
+        size: 'l',
+        align: 'l',
+        b: true,
+      },
+    ],
+    modals: [],
+  });
+
+  const ctx = buildSlideAiContext(deck, deck.slides[0], 'RTO');
+  assert.equal(ctx.slideTitle, 'Arsitektur Pemulihan Bencana');
+  assert.equal(ctx.slideNumber, 1);
+  assert.equal(ctx.totalSlides, 2);
+  assert.ok(ctx.slideContentOutline?.includes('Target Layanan Kritis'));
+  assert.ok(ctx.slideContentOutline?.includes('Pemulihan node database'));
+  assert.ok(ctx.slideContentOutline?.includes('Checklist Verifikasi'));
+  assert.ok(ctx.deckOverview?.includes('Estimasi Biaya & Jadwal Migrasi Q3'));
+  assert.equal(ctx.clickedTerm, 'RTO');
+  assert.ok(ctx.surroundingContext?.includes('Target Layanan Kritis'));
+  assert.ok(ctx.surroundingContext?.includes('RTO 15 menit'));
 });
 

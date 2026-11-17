@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import {
   PROVIDER_META,
+  verifyKeyDirectClient,
   type AiProviderId,
   type ByokKeyEntry,
 } from '@/lib/ai-providers';
@@ -120,11 +121,17 @@ export function ApiKeysModal({
           body: JSON.stringify({ apiKey: trimmed }),
           signal: controller.signal,
         });
-        const data = (await res.json()) as {
-          valid?: boolean;
-          provider?: AiProviderId;
-          error?: string;
-        };
+        const contentType = res.headers.get('content-type') || '';
+        const data =
+          res.status === 404 ||
+          res.status === 405 ||
+          !contentType.includes('application/json')
+            ? await verifyKeyDirectClient(trimmed, controller.signal)
+            : ((await res.json()) as {
+                valid?: boolean;
+                provider?: AiProviderId;
+                error?: string;
+              });
 
         onChangeEntries((prev) =>
           prev.map((e) => {

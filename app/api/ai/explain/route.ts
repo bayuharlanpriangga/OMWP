@@ -3,14 +3,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { AiProviderId } from '@/lib/ai-providers';
 import type { SlideAiContext } from '@/lib/deck-types';
 
-const defaultAi = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    },
-  },
-});
+let cachedDefaultAi: GoogleGenAI | null = null;
+
+function getDefaultAi(): GoogleGenAI {
+  if (!cachedDefaultAi) {
+    cachedDefaultAi = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
+  }
+  return cachedDefaultAi;
+}
 
 interface ExplainRequestBody {
   messages?: Array<{ role: 'user' | 'assistant'; content: string }>;
@@ -20,20 +27,41 @@ interface ExplainRequestBody {
 
 function buildSystemInstruction(ctx: SlideAiContext | undefined): string {
   const deckTitle = ctx?.deckTitle || 'Presentasi';
+  const slidePos =
+    ctx?.slideNumber && ctx?.totalSlides
+      ? ` (Slide ${ctx.slideNumber} dari ${ctx.totalSlides})`
+      : '';
   const slideTitle = ctx?.slideTitle || 'Slide';
-  const slideText = ctx?.slideText || '';
-  const pointsText = ctx?.pointsText || '';
+  const outline = ctx?.slideContentOutline?.trim() || '';
+  const slideText = ctx?.slideText?.trim() || '';
+  const pointsText = ctx?.pointsText?.trim() || '';
+  const deckOverview = ctx?.deckOverview?.trim() || '';
+  const clickedTerm = ctx?.clickedTerm?.trim() || '';
+  const surrounding = ctx?.surroundingContext?.trim() || '';
 
   return [
-    `Kamu asisten dalam presentasi interaktif berjudul "${deckTitle}".`,
-    `Slide yang sedang dibuka: "${slideTitle}".`,
-    slideText ? `Teks di slide: ${slideText}.` : '',
-    pointsText ? `Poin di slide ini: ${pointsText}.` : '',
-    'Jawab dalam bahasa Indonesia yang jelas, natural, dan ringkas (~100-140 kata), sertakan contoh singkat bila membantu.',
+    `Kamu asisten dalam presentasi interaktif berjudul "${deckTitle}"${slidePos}.`,
+    `Topik/bagian slide aktif: "${slideTitle}".`,
+    deckOverview ? `Ringkasan alur seluruh presentasi:\n${deckOverview}` : '',
+    outline
+      ? `Materi lengkap pada slide yang sedang dibuka:\n${outline}`
+      : [
+          slideText ? `Teks di slide: ${slideText}.` : '',
+          pointsText ? `Poin di slide ini: ${pointsText}.` : '',
+        ]
+          .filter(Boolean)
+          .join('\n'),
+    clickedTerm && surrounding
+      ? `Konteks spesifik tempat "${clickedTerm}" muncul:\n${surrounding}`
+      : surrounding
+        ? `Konteks lokal relevan:\n${surrounding}`
+        : '',
+    'Tugasmu: pahami apa yang sebenarnya sedang dibahas pada slide dan presentasi ini secara menyeluruh. Jika pertanyaan atau potongan teks/istilah bersifat singkat, implisit, atau ambigu (misalnya singkatan atau frasa tanpa keterangan lengkap), tafsirkan dan jelaskan maknanya sesuai konteks pembahasan materi di atas, bukan di luar topik presentasi.',
+    'Jawab dalam bahasa Indonesia yang jelas, natural, dan ringkas (~100-150 kata), sertakan contoh singkat yang relevan dengan topik presentasi bila membantu.',
     'Boleh pakai **tebal** untuk istilah penting dan poin daftar (-) bila perlu.',
   ]
     .filter(Boolean)
-    .join(' ');
+    .join('\n\n');
 }
 
 function formatErrorMessage(err: unknown): string {
@@ -71,7 +99,7 @@ async function callGeminiWithKey(
   isDefaultServerKey: boolean
 ): Promise<string> {
   const client = isDefaultServerKey
-    ? defaultAi
+    ? getDefaultAi()
     : new GoogleGenAI({
         apiKey,
         httpOptions: {
