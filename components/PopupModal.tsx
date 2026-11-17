@@ -53,6 +53,16 @@ function ModalBlockList({
                 />
               </div>
             )}
+            {b.t === 'title' && b.text.trim() && (
+              <div className={`bt bt-sub ${b.align ? `a-${b.align}` : ''}`}>
+                <MarkupText
+                  text={b.text}
+                  live={true}
+                  insideModal={true}
+                  onTermClick={onTermClick}
+                />
+              </div>
+            )}
             {b.t === 'img' &&
               (b.src ? (
                 <button

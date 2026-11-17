@@ -581,6 +581,23 @@ export function SlideCanvas({
       );
     }
 
+    if (b.t === 'title') {
+      return (
+        <div className={`bt bt-sub ${b.align ? `a-${b.align}` : ''}`}>
+          {b.text ? (
+            <MarkupText
+              text={b.text}
+              live={live}
+              onTermClick={onTermClick}
+              onModalClick={onModalClick}
+            />
+          ) : lay ? (
+            <span className="text-sm italic opacity-55">(judul kosong)</span>
+          ) : null}
+        </div>
+      );
+    }
+
     if (b.t === 'img') {
       if (!b.src) {
         return <div className="text-sm italic opacity-55">(gambar kosong)</div>;
@@ -687,6 +704,9 @@ export function SlideCanvas({
           )}
           <div className="cv">
             {b.children.map((child) => {
+              if (live && child.t === 'title' && !child.text.trim()) {
+                return null;
+              }
               const num = child.t === 'dd' ? ++childDd : 0;
               const isSel = lay && selectedBlockId === child.id;
               return (

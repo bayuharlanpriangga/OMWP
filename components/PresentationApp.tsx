@@ -13,6 +13,8 @@ import {
   deleteBlockInSlide,
   duplicateSlide,
   findBlockInSlide,
+  getDeckDisplayTitle,
+  getSlideHeaderTitle,
   getSlideTitle,
   loadAndNormalizeDeck,
   moveBlockInParent,
@@ -218,7 +220,7 @@ export function PresentationApp() {
   // Persist deck to localStorage & sync document theme/title
   React.useEffect(() => {
     document.documentElement.dataset.theme = deck.theme || 'default';
-    document.title = deck.title || 'Presentasi Interaktif';
+    document.title = getDeckDisplayTitle(deck) || 'Presentasi Interaktif';
     if (!hydrated) return;
     try {
       window.localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(deck));
@@ -611,11 +613,20 @@ export function PresentationApp() {
   const handleSetSelectedTextProp = (
     patch: { size?: TextSize; b?: boolean; align?: TextAlign }
   ) => {
-    if (!selectedInfo || selectedInfo.block.t !== 'text') return;
+    if (
+      !selectedInfo ||
+      (selectedInfo.block.t !== 'text' && selectedInfo.block.t !== 'title')
+    ) {
+      return;
+    }
     updateCurrentSlide((s) =>
-      updateBlockInSlide(s, selectedInfo.block.id, (prev) =>
-        prev.t === 'text' ? { ...prev, ...patch } : prev
-      )
+      updateBlockInSlide(s, selectedInfo.block.id, (prev) => {
+        if (prev.t === 'text') return { ...prev, ...patch };
+        if (prev.t === 'title' && patch.align) {
+          return { ...prev, align: patch.align };
+        }
+        return prev;
+      })
     );
   };
 
@@ -665,7 +676,7 @@ export function PresentationApp() {
       </div>
 
       <TopBar
-        title={deck.title}
+        title={getSlideHeaderTitle(deck, currentSlide)}
         mode={mode}
         isFullscreen={isFullscreen}
         onModeChange={(nextMode) => {
@@ -712,6 +723,7 @@ export function PresentationApp() {
                 const newSlide: Slide = {
                   id: uid(),
                   name: '',
+                  headerTitle: '',
                   bg: '',
                   vc: false,
                   blocks: [],
@@ -740,6 +752,7 @@ export function PresentationApp() {
               const newSlide: Slide = {
                 id: uid(),
                 name: '',
+                headerTitle: '',
                 bg: '',
                 vc: false,
                 blocks: [],
@@ -790,8 +803,8 @@ export function PresentationApp() {
               });
               setSlideIndex(target);
             }}
-            onDeckTitleChange={(title) =>
-              setDeck((prev) => ({ ...prev, title }))
+            onSlideHeaderTitleChange={(headerTitle) =>
+              updateCurrentSlide((s) => ({ ...s, headerTitle }))
             }
             onUpdateBlock={(blockId, updater) =>
               updateCurrentSlide((s) => updateBlockInSlide(s, blockId, updater))
@@ -826,7 +839,7 @@ export function PresentationApp() {
                   )
                 : undefined;
               triggerDownload(
-                `${slugifyTitle(deck.title)}.html`,
+                `${slugifyTitle(getDeckDisplayTitle(deck))}.html`,
                 buildStandaloneHtml(deck, exportedKeys),
                 'text/html'
               );
@@ -838,7 +851,7 @@ export function PresentationApp() {
             }}
             onExportJson={() => {
               triggerDownload(
-                `${slugifyTitle(deck.title)}.json`,
+                `${slugifyTitle(getDeckDisplayTitle(deck))}.json`,
                 JSON.stringify(deck, null, 2),
                 'application/json'
               );

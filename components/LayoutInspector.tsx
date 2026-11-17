@@ -171,6 +171,21 @@ export function LayoutInspector({
           ))}
         </div>
       )}
+
+      {block.t === 'title' && (
+        <div className="flex flex-wrap items-center gap-2 mt-2.5">
+          {ALIGNS.map((al) => (
+            <button
+              key={al.value}
+              type="button"
+              className={`pbtn sm ${(block.align || 'l') === al.value ? 'on' : ''}`}
+              onClick={() => onSetAlign(al.value)}
+            >
+              {al.label}
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

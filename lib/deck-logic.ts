@@ -15,6 +15,7 @@ import type {
   TextBlock,
   TextSize,
   ThemeId,
+  TitleBlock,
 } from './deck-types';
 
 export const THEME_META: Record<ThemeId, { name: string; description: string }> = {
@@ -65,6 +66,7 @@ export const THEME_META: Record<ThemeId, { name: string; description: string }> 
 };
 
 export const BLOCK_NAMES: Record<Block['t'], string> = {
+  title: 'Judul',
   text: 'Teks',
   img: 'Gambar',
   dd: 'Dropdown',
@@ -102,6 +104,8 @@ export function createBlock(type: Block['t']): Block {
       return { id: uid(), t: 'img', src: '', alt: '', w: 6 };
     case 'text':
       return createTextBlock('', 'm', 'l', false);
+    case 'title':
+      return { id: uid(), t: 'title', text: '', w: 12 };
     case 'dd':
       return { id: uid(), t: 'dd', text: '', detail: '', w: 4 };
     case 'box':
@@ -158,6 +162,17 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
         ...coords,
       };
       return tb;
+    }
+    if (raw.t === 'title') {
+      const ttl: TitleBlock = {
+        id,
+        t: 'title',
+        text: raw.text ?? '',
+        w,
+        ...(raw.align ? { align: raw.align } : {}),
+        ...coords,
+      };
+      return ttl;
     }
     if (raw.t === 'dd') {
       const db: DropdownBlock = {
@@ -374,7 +389,7 @@ export function scanModalTitles(slide: Slide): string[] {
     });
   };
   walkBlocks(slide.blocks, (b) => {
-    if (b.t === 'text' || b.t === 'concl') {
+    if (b.t === 'text' || b.t === 'concl' || b.t === 'title') {
       collectFromString(b.text);
     } else if (b.t === 'dd') {
       collectFromString(b.detail);
@@ -544,6 +559,7 @@ export function loadAndNormalizeDeck(
       ...s,
       id: s.id || uid(),
       name: s.name || '',
+      ...(typeof s.headerTitle === 'string' ? { headerTitle: s.headerTitle } : {}),
       blocks: normalizeBlocks(Array.isArray(s.blocks) ? s.blocks : []),
       modals: (Array.isArray(s.modals) ? s.modals : []).map((m) => ({
         id: m.id || uid(),
@@ -574,6 +590,23 @@ export function loadAndNormalizeDeck(
   };
 }
 
+export function getSlideHeaderTitle(deck: Deck, slide: Slide): string {
+  if (typeof slide.headerTitle === 'string') {
+    return slide.headerTitle;
+  }
+  return deck.title || '';
+}
+
+export function getDeckDisplayTitle(deck: Deck): string {
+  const direct = (deck.title || '').trim();
+  if (direct) return direct;
+  for (const s of deck.slides) {
+    const h = (s.headerTitle || '').trim();
+    if (h) return h;
+  }
+  return '';
+}
+
 export function createDefaultDeck(): Deck {
   return {
     v: 2,
@@ -583,6 +616,7 @@ export function createDefaultDeck(): Deck {
       {
         id: 'slide-1',
         name: '',
+        headerTitle: '',
         bg: '',
         vc: false,
         blocks: [],
@@ -599,6 +633,9 @@ function describeBlockLines(blocks: Block[], scope?: string): string[] {
     if (b.t === 'text') {
       const clean = stripMarkup(b.text).replace(/\s*\n+\s*/g, ' ').trim();
       if (clean) lines.push(scope ? `[${scope}] ${clean}` : clean);
+    } else if (b.t === 'title') {
+      const clean = stripMarkup(b.text).replace(/\s*\n+\s*/g, ' ').trim();
+      if (clean) lines.push(scope ? `[${scope} > Judul] ${clean}` : `[Judul] ${clean}`);
     } else if (b.t === 'box') {
       const boxTitle = stripMarkup(b.title).trim();
       const nextScope = boxTitle
@@ -669,6 +706,10 @@ function findSurroundingContextForTerm(slide: Slide, term: string): string {
       if (b.t === 'text' && matches(b.text)) {
         const clean = stripMarkup(b.text).replace(/\s*\n+\s*/g, ' ').trim();
         return containerLabel ? `${containerLabel}: "${clean}"` : `"${clean}"`;
+      }
+      if (b.t === 'title' && matches(b.text)) {
+        const clean = stripMarkup(b.text).replace(/\s*\n+\s*/g, ' ').trim();
+        return containerLabel ? `${containerLabel} > Judul: "${clean}"` : `Judul: "${clean}"`;
       }
       if (b.t === 'dd' && (matches(b.text) || matches(b.detail))) {
         const title = stripMarkup(b.text).trim();
@@ -752,6 +793,11 @@ export function getSlideTitle(slide: Slide): string {
   );
   if (firstBox) return stripMarkup(firstBox.title).trim().slice(0, 80);
 
+  const firstTitle = flat.find(
+    (b): b is TitleBlock => b.t === 'title' && stripMarkup(b.text).trim().length > 0
+  );
+  if (firstTitle) return stripMarkup(firstTitle.text).trim().slice(0, 80);
+
   const firstDd = flat.find(
     (b): b is DropdownBlock => b.t === 'dd' && stripMarkup(b.text).trim().length > 0
   );
@@ -772,6 +818,9 @@ export function getSlideTitle(slide: Slide): string {
       .join(' · ')
       .slice(0, 80);
   }
+
+  const headerFallback = (slide.headerTitle || '').trim();
+  if (headerFallback) return headerFallback.slice(0, 80);
 
   return trimmedName || 'Slide';
 }
@@ -811,13 +860,15 @@ export function buildSlideAiContext(
   const deckOverview = deck.slides
     .map((s, idx) => {
       const title = getSlideTitle(s);
+      const hdr = getSlideHeaderTitle(deck, s).trim();
       const snippet = describeBlockLines(s.blocks)
         .join(' • ')
         .slice(0, 180);
       const marker = idx === activeIndex ? ' [AKTIF]' : '';
+      const hdrNote = hdr && hdr !== (deck.title || '').trim() && hdr !== title ? ` (${hdr})` : '';
       return snippet && snippet !== title
-        ? `Slide ${idx + 1}${marker}: ${title} — ${snippet}`
-        : `Slide ${idx + 1}${marker}: ${title}`;
+        ? `Slide ${idx + 1}${marker}${hdrNote}: ${title} — ${snippet}`
+        : `Slide ${idx + 1}${marker}${hdrNote}: ${title}`;
     })
     .join('\n')
     .slice(0, 1800);
@@ -827,8 +878,13 @@ export function buildSlideAiContext(
     ? findSurroundingContextForTerm(slide, cleanClickedTerm).slice(0, 600)
     : '';
 
+  const effectiveHeader =
+    getSlideHeaderTitle(deck, slide).trim() ||
+    getDeckDisplayTitle(deck) ||
+    'Presentasi';
+
   return {
-    deckTitle: deck.title || 'Presentasi',
+    deckTitle: effectiveHeader,
     slideTitle: getSlideTitle(slide),
     slideNumber: activeIndex >= 0 ? activeIndex + 1 : 1,
     totalSlides: deck.slides.length,
@@ -1130,7 +1186,7 @@ export function buildStandaloneHtml(
   const keysList = Array.isArray(exportedKeys) ? exportedKeys : [];
   const safeKeysJson = JSON.stringify(keysList).replace(/</g, '\\u003c');
   const hasByok = keysList.length > 0;
-  const safeTitle = (deck.title || 'Presentasi')
+  const safeTitle = (getDeckDisplayTitle(deck) || 'Presentasi')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
@@ -1328,6 +1384,8 @@ main{position:relative;z-index:1;flex:1 0 auto;display:flex;flex-direction:colum
 .a-l{text-align:left}.a-c{text-align:center}.a-r{text-align:right}.bd{font-weight:700}
 .box{padding:16px}[data-theme=default] .box{padding:18px}[data-theme=auditor] .box{padding:16px 18px 18px 18px}[data-theme=cyberpunk] .box,[data-theme=hacker] .box,[data-theme=astronomi] .box,[data-theme=ghost] .box,[data-theme=halloween] .box,[data-theme=aquarium] .box{padding:17px 18px 18px 18px}
 .bt{font-weight:600;font-size:20px;line-height:1.4;margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid rgba(17,17,17,.14)}
+.cv .bt.bt-sub{margin-top:6px;margin-bottom:0}
+.cv>.blk:first-child>.bt.bt-sub{margin-top:0}
 [data-theme=default] .bt{color:#0D0D0D;border-bottom:1px solid #A9C6DC;padding-bottom:8px}
 [data-theme=auditor] .bt{color:#14243d;border-bottom:1px solid #e1e6ee;padding-bottom:8px}
 [data-theme=cyberpunk] .bt{color:#d8b4fe;border-bottom:1px solid rgba(168,85,247,.32);padding-bottom:8px}
@@ -1479,8 +1537,10 @@ const fmt=s=>esc(s).replace(/\\[\\[\\[(.*?)\\]\\]\\]|\\[\\[(.+?)\\]\\]/g,(m,a,t)
 const stText=s=>String(s||'').replace(/\\[\\[\\[(.*?)\\]\\]\\]|\\[\\[(.+?)\\]\\]/g,(_,a,t)=>a!==undefined?a:t).replace(/\\*\\*(.+?)\\*\\*/g,'$1').replace(/\\{\\/?(s|m|l|xl)\\}/g,'').replace(/\\s*\\n+\\s*/g,' ').trim();
 const tblWidths=(hdrs,rows,bw)=>{const n=Math.max(1,hdrs.length);if(n===1)return[100];const ml=s=>String(s||'').split('\\n').reduce((m,ln)=>Math.max(m,stText(ln).length),0);const lens=hdrs.map((h,i)=>Math.max(ml(h),...(rows||[]).map(r=>ml((r||[])[i]))));const wf=Math.max(3,Math.min(12,bw||12))/12;const th=Math.max(10,Math.round(Math.max(24,Math.round(64*wf))/n));if(!lens.some(l=>l>th))return Array(n).fill(100/n);const rc=Math.max(36,84*wf),eq=100/n,mn=Math.max(7,Math.min(10.5,28/n));const w=Array(n).fill(0),sh=[],lg=[];lens.forEach((l,i)=>(l<=th?sh:lg).push(i));let us=0;sh.forEach(i=>{const f=Math.max(mn,Math.min(eq*.92,(Math.max(lens[i],2)+4)/rc*100));w[i]=f;us+=f});const mx=100-lg.length*mn;if(us>mx&&us>0){const sc=mx/us;us=0;sh.forEach(i=>{w[i]=Math.max(mn,w[i]*sc);us+=w[i]})}const rem=Math.max(lg.length*mn,100-us);const lw=lg.map(i=>Math.max(1,Math.pow(lens[i],.85)));const tw=lw.reduce((a,b)=>a+b,0)||1;lg.forEach((i,p)=>{w[i]=lw[p]/tw*rem});return w};
 const renderBlocks=(arr)=>{let n=0;return arr.map(b=>{
+  if(b.t==='title'&&!String(b.text||'').trim())return '';
   let h='';
   if(b.t==='text')h='<div class="s-'+(b.size||'m')+' a-'+(b.align||'l')+(b.b?' bd':'')+'">'+fmt(b.text)+'</div>';
+  else if(b.t==='title')h='<div class="bt bt-sub'+(b.align?' a-'+b.align:'')+'">'+fmt(b.text)+'</div>';
   else if(b.t==='img')h=b.src?'<img class="im" src="'+esc(b.src)+'" alt="'+esc(b.alt)+'">':'';
   else if(b.t==='dd'){n++;const o=open.has(b.id);const bd=(b.badge&&String(b.badge).trim())?b.badge:String(n);h='<div class="card'+(o?' open':'')+'"><button class="ch" data-card="'+b.id+'"><span class="n">'+esc(bd)+'</span><span>'+esc(b.text)+'</span></button><div class="cb">'+fmt(b.detail)+'</div></div>'}
   else if(b.t==='box')h='<div class="card box">'+(b.title?'<div class="bt">'+fmt(b.title)+'</div>':'')+'<div class="cv">'+renderBlocks(b.children||[])+'</div></div>';
@@ -1489,7 +1549,7 @@ const renderBlocks=(arr)=>{let n=0;return arr.map(b=>{
   const style=b.y!=null?'left:'+Math.max(0,Math.min(100-b.w/12*100,b.x||0))+'%;top:'+b.y+'px;width:'+b.w/12*100+'%':'grid-column:span '+b.w;
   return '<div class="blk" style="'+style+'">'+h+'</div>';
 }).join('')};
-const descBlocks=(arr,sc)=>{const out=[];arr.forEach(b=>{if(b.t==='text'){const t=stText(b.text);if(t)out.push((sc?'['+sc+'] ':'')+t)}else if(b.t==='box'){const bt=stText(b.title);const ns=bt?(sc?sc+' > ':'')+'Kartu "'+bt+'"':sc||'Kartu';if(bt)out.push('['+ns+']');out.push(...descBlocks(b.children||[],ns))}else if(b.t==='dd'){const t=stText(b.text),d=stText(b.detail);out.push((sc?'['+sc+'] ':'')+'Poin: '+t+(d?' — '+d:''))}else if(b.t==='concl'){const t=stText(b.text);if(t)out.push('['+(stText(b.label)||'Kesimpulan')+'] '+t)}else if(b.t==='table'){const hs=(b.headers||[]).map(stText).filter(Boolean).join(' | ');const rs=(b.rows||[]).slice(0,8).map(r=>(r||[]).map(stText).join(' | ')).filter(Boolean).join(' ; ');if(hs||rs)out.push('['+(sc?sc+' > ':'')+'Tabel] '+(hs?'Header: '+hs+' ; ':'')+rs)}else if(b.t==='img'&&b.alt){out.push('[Gambar: '+b.alt+']')}});return out};
+const descBlocks=(arr,sc)=>{const out=[];arr.forEach(b=>{if(b.t==='text'){const t=stText(b.text);if(t)out.push((sc?'['+sc+'] ':'')+t)}else if(b.t==='title'){const t=stText(b.text);if(t)out.push((sc?'['+sc+' > Judul] ':'[Judul] ')+t)}else if(b.t==='box'){const bt=stText(b.title);const ns=bt?(sc?sc+' > ':'')+'Kartu "'+bt+'"':sc||'Kartu';if(bt)out.push('['+ns+']');out.push(...descBlocks(b.children||[],ns))}else if(b.t==='dd'){const t=stText(b.text),d=stText(b.detail);out.push((sc?'['+sc+'] ':'')+'Poin: '+t+(d?' — '+d:''))}else if(b.t==='concl'){const t=stText(b.text);if(t)out.push('['+(stText(b.label)||'Kesimpulan')+'] '+t)}else if(b.t==='table'){const hs=(b.headers||[]).map(stText).filter(Boolean).join(' | ');const rs=(b.rows||[]).slice(0,8).map(r=>(r||[]).map(stText).join(' | ')).filter(Boolean).join(' ; ');if(hs||rs)out.push('['+(sc?sc+' > ':'')+'Tabel] '+(hs?'Header: '+hs+' ; ':'')+rs)}else if(b.t==='img'&&b.alt){out.push('[Gambar: '+b.alt+']')}});return out};
 const callAi=async(q,localCtx)=>{
   if(!byok.length||aiBusy)return;
   msgs.push({r:'u',t:q});aiBusy=true;aiOpen=true;render();
@@ -1497,7 +1557,8 @@ const callAi=async(q,localCtx)=>{
   const slideLines=descBlocks(sl.blocks);
   (sl.modals||[]).forEach(m=>{const ml=descBlocks(m.children||[],'Modal "'+stText(m.title)+'"');if(ml.length)slideLines.push(...ml)});
   const overview=deck.slides.map((s,i)=>'Slide '+(i+1)+(i===idx?' [AKTIF]':'')+': '+descBlocks(s.blocks).slice(0,2).join(' — ').slice(0,160)).join('\\n');
-  const sys='Kamu adalah Orias AI, asisten dalam presentasi "'+deck.title+'" (Slide '+(idx+1)+' dari '+deck.slides.length+').\\nAlur presentasi:\\n'+overview+'\\nMateri lengkap slide aktif:\\n'+slideLines.join('\\n').slice(0,2400)+(localCtx?'\\nKonteks spesifik istilah: '+localCtx:'')+'\\nPahami topik yang sebenarnya sedang dibahas secara menyeluruh. Jika istilah/pertanyaan singkat atau implisit, tafsirkan maknanya sesuai konteks materi di atas. Jawab dalam bahasa Indonesia secara ringkas dan jelas (~100-150 kata).';
+  const curHdr=(typeof sl.headerTitle==='string'?sl.headerTitle:deck.title)||deck.title||'Presentasi';
+  const sys='Kamu adalah Orias AI, asisten dalam presentasi "'+curHdr+'" (Slide '+(idx+1)+' dari '+deck.slides.length+').\\nAlur presentasi:\\n'+overview+'\\nMateri lengkap slide aktif:\\n'+slideLines.join('\\n').slice(0,2400)+(localCtx?'\\nKonteks spesifik istilah: '+localCtx:'')+'\\nPahami topik yang sebenarnya sedang dibahas secara menyeluruh. Jika istilah/pertanyaan singkat atau implisit, tafsirkan maknanya sesuai konteks materi di atas. Jawab dalam bahasa Indonesia secara ringkas dan jelas (~100-150 kata).';
   const hist=msgs.filter(m=>m.r!=='e').slice(-8).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t}));
   let reply='';
   for(const k of byok){
@@ -1522,8 +1583,9 @@ const callAi=async(q,localCtx)=>{
 };
 const render=()=>{
   const sl=deck.slides[idx],free=sl.blocks.some(b=>b.y!=null);
+  const hdrTitle=(typeof sl.headerTitle==='string'?sl.headerTitle:deck.title)||'Presentasi';
   const aiHtml=byok.length?('<button class="fab" id="fab">✦</button>'+(aiOpen?'<div class="bub"><div class="bubh"><span>Orias AI</span><button class="btn" id="cbub" style="padding:2px 8px">✕</button></div><div class="bubm">'+(msgs.length?msgs.map(m=>'<div class="bmsg '+m.r+'">'+fmt(m.t)+'</div>').join(''):'<div class="bmsg a">Klik istilah bertanda kuning untuk penjelasan.</div>')+(aiBusy?'<div class="bmsg a">Sedang berpikir…</div>':'')+'</div></div>':'')):'';
-  document.getElementById('app').innerHTML='<div class="theme-backdrop" aria-hidden="true"><span class="tb-a"></span><span class="tb-b"></span><span class="tb-c"></span><span class="tb-d"></span></div><header><div class="brand">'+esc(deck.title)+'</div><button class="btn" id="fs">▶</button></header><div class="scroll-area"><main><div class="slide"><div class="cv'+(free?' free':'')+'">'+renderBlocks(sl.blocks)+'</div></div></main></div><nav><button class="btn" id="pv"'+(idx<=0?' disabled':'')+'>◀</button><div class="prog"><i style="width:'+((idx+1)/deck.slides.length*100)+'%"></i></div><span class="cnt">'+(idx+1)+'/'+deck.slides.length+'</span><button class="btn" id="nx"'+(idx>=deck.slides.length-1?' disabled':'')+'>▶</button></nav>'+aiHtml+'<div id="pm"'+(pmId?'':' hidden')+'>'+(pmId?(() => {const m=(sl.modals||[]).find(x=>x.id===pmId);return m?'<div class="pmc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>'+esc(m.title)+'</h2><button class="btn" id="cpm">✕</button></div><div class="cv">'+renderBlocks(m.children||[])+'</div></div>':'';})():'')+'</div>';
+  document.getElementById('app').innerHTML='<div class="theme-backdrop" aria-hidden="true"><span class="tb-a"></span><span class="tb-b"></span><span class="tb-c"></span><span class="tb-d"></span></div><header><div class="brand">'+esc(hdrTitle)+'</div><button class="btn" id="fs">▶</button></header><div class="scroll-area"><main><div class="slide"><div class="cv'+(free?' free':'')+'">'+renderBlocks(sl.blocks)+'</div></div></main></div><nav><button class="btn" id="pv"'+(idx<=0?' disabled':'')+'>◀</button><div class="prog"><i style="width:'+((idx+1)/deck.slides.length*100)+'%"></i></div><span class="cnt">'+(idx+1)+'/'+deck.slides.length+'</span><button class="btn" id="nx"'+(idx>=deck.slides.length-1?' disabled':'')+'>▶</button></nav>'+aiHtml+'<div id="pm"'+(pmId?'':' hidden')+'>'+(pmId?(() => {const m=(sl.modals||[]).find(x=>x.id===pmId);return m?'<div class="pmc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>'+esc(m.title)+'</h2><button class="btn" id="cpm">✕</button></div><div class="cv">'+renderBlocks(m.children||[])+'</div></div>':'';})():'')+'</div>';
   if(free){const r=document.querySelector('.cv.free');let b=0;[...r.children].forEach(e=>{b=Math.max(b,e.offsetTop+e.offsetHeight)});r.style.height=(b+40)+'px'}
 };
 document.addEventListener('click',e=>{

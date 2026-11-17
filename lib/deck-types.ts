@@ -62,8 +62,14 @@ export interface TableBlock extends BaseBlock {
   rows: string[][];
 }
 
+export interface TitleBlock extends BaseBlock {
+  t: 'title';
+  text: string;
+}
+
 export type Block =
   | TextBlock
+  | TitleBlock
   | DropdownBlock
   | ImageBlock
   | BoxBlock
@@ -79,6 +85,7 @@ export interface SlideModal {
 export interface Slide {
   id: string;
   name: string;
+  headerTitle?: string;
   bg?: string;
   vc?: boolean;
   blocks: Block[];

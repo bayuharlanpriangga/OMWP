@@ -47,7 +47,7 @@ interface SlideEditorProps {
   onDuplicateSlide: () => void;
   onDeleteSlide: () => void;
   onMoveSlide: (delta: -1 | 1) => void;
-  onDeckTitleChange: (title: string) => void;
+  onSlideHeaderTitleChange: (title: string) => void;
   onUpdateBlock: (blockId: string, updater: (b: Block) => Block) => void;
   onAddBlock: (block: Block, targetOwnerId?: string) => void;
   onDeleteBlock: (blockId: string, hasChildren: boolean) => void;
@@ -573,7 +573,7 @@ export function SlideEditor({
   onDuplicateSlide,
   onDeleteSlide,
   onMoveSlide,
-  onDeckTitleChange,
+  onSlideHeaderTitleChange,
   onUpdateBlock,
   onAddBlock,
   onDeleteBlock,
@@ -655,12 +655,21 @@ export function SlideEditor({
 
   const renderBlockList = (list: Block[]): React.ReactNode => {
     let ddCount = 0;
+    let titleCount = 0;
     return list.map((item) =>
-      renderBlockEditor(item, item.t === 'dd' ? ++ddCount : 0)
+      renderBlockEditor(
+        item,
+        item.t === 'dd' ? ++ddCount : 0,
+        item.t === 'title' ? ++titleCount : 0
+      )
     );
   };
 
-  const renderBlockEditor = (b: Block, ddNumber = 1): React.ReactNode => {
+  const renderBlockEditor = (
+    b: Block,
+    ddNumber = 1,
+    titleNumber = 1
+  ): React.ReactNode => {
     return (
       <div key={b.id} className="ec space-y-2">
         <div className="flex items-center justify-between gap-2">
@@ -710,6 +719,22 @@ export function SlideEditor({
                 prev.t === 'text' ? { ...prev, size: sz } : prev
               )
             }
+          />
+        )}
+
+        {b.t === 'title' && (
+          <input
+            type="text"
+            className="pinput font-semibold"
+            placeholder="Judul container (opsional)"
+            aria-label={`Judul tambahan container ${titleNumber}`}
+            value={b.text}
+            onChange={(e) => {
+              const val = e.target.value;
+              onUpdateBlock(b.id, (prev) =>
+                prev.t === 'title' ? { ...prev, text: val } : prev
+              );
+            }}
           />
         )}
 
@@ -819,7 +844,7 @@ export function SlideEditor({
             <div className="space-y-3 pl-2">
               {renderBlockList(b.children)}
             </div>
-            {renderAddButtons(b.id, ['text', 'img', 'dd', 'table', 'concl'])}
+            {renderAddButtons(b.id, ['title', 'text', 'img', 'dd', 'table', 'concl'])}
           </div>
         )}
 
@@ -970,22 +995,29 @@ export function SlideEditor({
         </button>
       </div>
 
-      {/* Deck title */}
+      {/* Per-slide Header Title */}
       <div>
         <label
-          htmlFor="deck-title-input"
+          htmlFor="slide-header-title-input"
           className="block text-sm font-bold mb-1"
         >
-          Judul presentasi
+          Judul presentasi di header (Halaman {slideIndex + 1})
         </label>
         <input
-          id="deck-title-input"
+          id="slide-header-title-input"
           type="text"
           className="pinput"
-          placeholder="Judul presentasi"
-          value={deck.title}
-          onChange={(e) => onDeckTitleChange(e.target.value)}
+          placeholder="Judul header untuk halaman ini (opsional)"
+          value={
+            typeof slide.headerTitle === 'string'
+              ? slide.headerTitle
+              : deck.title
+          }
+          onChange={(e) => onSlideHeaderTitleChange(e.target.value)}
         />
+        <p className="text-xs opacity-70 mt-1 mb-0">
+          Setiap halaman memiliki judul header sendiri sebagai konteks atau informasi tambahan.
+        </p>
       </div>
 
       {/* Add component buttons directly below presentation title */}
@@ -1034,7 +1066,7 @@ export function SlideEditor({
                     Modal masih kosong. Tambahkan komponen di bawah.
                   </p>
                 )}
-                {renderAddButtons(m.id, ['text', 'img', 'dd', 'table', 'concl'])}
+                {renderAddButtons(m.id, ['title', 'text', 'img', 'dd', 'table', 'concl'])}
               </div>
             ))}
           </div>

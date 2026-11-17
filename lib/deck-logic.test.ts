@@ -10,6 +10,8 @@ import {
   createDefaultDeck,
   deleteBlockInSlide,
   duplicateSlide,
+  getDeckDisplayTitle,
+  getSlideHeaderTitle,
   loadAndNormalizeDeck,
   migrateLegacyDeck,
   moveBlockInParent,
@@ -492,4 +494,75 @@ test('standalone HTML unifies slide canvas font metrics and borderless header/fo
   );
   assert.ok(html.includes('header{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;border-bottom:0;background:transparent'));
   assert.ok(html.includes('border-top:0;z-index:15'));
+});
+
+test('multiple TitleBlock headings inside a Container normalize, sync modals, feed AI context, and export cleanly', () => {
+  const deck = createDefaultDeck();
+  const box = createBlock('box');
+  if (box.t !== 'box') throw new Error('Expected box');
+  box.title = 'Bagian Pertama';
+
+  const subTitle = createBlock('title');
+  if (subTitle.t !== 'title') throw new Error('Expected title');
+  subTitle.text = 'Bagian Kedua [[[Detail Tambahan]]]';
+
+  const textInside = createBlock('text');
+  if (textInside.t !== 'text') throw new Error('Expected text');
+  textInside.text = 'Uraian [[variabel]] lanjutan.';
+
+  box.children.push(subTitle, textInside);
+  deck.slides[0].blocks.push(box);
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  const normBox = normalized.slides[0].blocks[0];
+  assert.equal(normBox.t, 'box');
+  if (normBox.t === 'box') {
+    assert.equal(normBox.children.length, 2);
+    assert.equal(normBox.children[0].t, 'title');
+    if (normBox.children[0].t === 'title') {
+      assert.equal(normBox.children[0].text, 'Bagian Kedua [[[Detail Tambahan]]]');
+    }
+  }
+  assert.equal(normalized.slides[0].modals?.[0].title, 'Detail Tambahan');
+
+  const ctx = buildSlideAiContext(normalized, normalized.slides[0], 'Bagian Kedua');
+  assert.ok(ctx.slideContentOutline?.includes('Bagian Kedua'));
+  assert.ok(ctx.surroundingContext?.includes('Bagian Kedua'));
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('.cv .bt.bt-sub'));
+  assert.ok(html.includes("else if(b.t==='title')"));
+});
+
+test('each slide maintains an independent headerTitle while legacy decks fall back to deck.title', () => {
+  const deck = createDefaultDeck();
+  deck.slides[0].headerTitle = 'Konteks Slide 1 — Pendahuluan';
+  deck.slides.push({
+    id: 'slide-2',
+    name: '',
+    headerTitle: 'Konteks Slide 2 — Analisis Data',
+    blocks: [],
+  });
+  deck.slides.push({
+    id: 'slide-3',
+    name: 'Legacy Slide',
+    blocks: [],
+  });
+  deck.title = 'Judul Bawaan';
+
+  assert.equal(getSlideHeaderTitle(deck, deck.slides[0]), 'Konteks Slide 1 — Pendahuluan');
+  assert.equal(getSlideHeaderTitle(deck, deck.slides[1]), 'Konteks Slide 2 — Analisis Data');
+  assert.equal(getSlideHeaderTitle(deck, deck.slides[2]), 'Judul Bawaan');
+
+  deck.title = '';
+  assert.equal(getDeckDisplayTitle(deck), 'Konteks Slide 1 — Pendahuluan');
+
+  const html = buildStandaloneHtml(deck);
+  assert.ok(html.includes('Konteks Slide 1 — Pendahuluan'));
+  assert.ok(html.includes('Konteks Slide 2 — Analisis Data'));
+  assert.ok(html.includes("const hdrTitle=(typeof sl.headerTitle==='string'?sl.headerTitle:deck.title)||'Presentasi'"));
+
+  const ctx2 = buildSlideAiContext(deck, deck.slides[1]);
+  assert.equal(ctx2.deckTitle, 'Konteks Slide 2 — Analisis Data');
 });

@@ -241,3 +241,36 @@ test('importDeckFromHtml preserves aquarium theme attribute on standalone round-
   assert.ok(generic);
   assert.equal(generic.deck.theme, 'aquarium');
 });
+
+test('importDeckFromHtml preserves multiple container titles and per-slide headerTitle on round-trip', () => {
+  const deck = createDefaultDeck();
+  deck.slides[0].headerTitle = 'Header Halaman 1 — Pengantar';
+  const box = createBlock('box');
+  if (box.t !== 'box') throw new Error('Expected box');
+  box.title = 'Judul Awal Container';
+  const extraTitle = createBlock('title');
+  if (extraTitle.t !== 'title') throw new Error('Expected title');
+  extraTitle.text = 'Judul Tambahan Container';
+  box.children.push(extraTitle);
+  deck.slides[0].blocks.push(box);
+  deck.slides.push({
+    id: 's2',
+    name: '',
+    headerTitle: 'Header Halaman 2 — Detail',
+    blocks: [createBlock('text')],
+  });
+
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.slides[0].headerTitle, 'Header Halaman 1 — Pengantar');
+  assert.equal(reimported.deck.slides[1].headerTitle, 'Header Halaman 2 — Detail');
+  const importedBox = reimported.deck.slides[0].blocks[0];
+  assert.equal(importedBox.t, 'box');
+  if (importedBox.t === 'box') {
+    assert.equal(importedBox.children[0].t, 'title');
+    if (importedBox.children[0].t === 'title') {
+      assert.equal(importedBox.children[0].text, 'Judul Tambahan Container');
+    }
+  }
+});

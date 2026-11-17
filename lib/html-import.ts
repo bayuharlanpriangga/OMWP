@@ -531,6 +531,20 @@ function extractBlocksFromContainer(
       continue;
     }
 
+    if (hasClass(node, 'bt-sub')) {
+      const text = normalizeInlineWhitespace(node.children.map(serializeInline).join(''));
+      if (text) {
+        blocks.push({
+          id: uid(),
+          t: 'title',
+          text,
+          w: defaultWidth,
+          align: detectAlign(node),
+        });
+      }
+      continue;
+    }
+
     // Dropdown card format (.card with .ch + .cb)
     if (hasClass(node, 'card')) {
       const ch = findFirstByTag(node, 'button') ||
@@ -753,10 +767,14 @@ export function importDeckFromHtml(rawHtml: string): HtmlImportResult | null {
       const blocks = extractBlocksFromContainer(slideEl.children);
       if (blocks.length === 0) return;
       const name = inferSlideName(slideEl, blocks, idx);
+      const headerTitleAttr = slideEl.attrs['data-header-title'];
       slides.push(
         syncSlideModals({
           id: uid(),
           name,
+          ...(typeof headerTitleAttr === 'string'
+            ? { headerTitle: headerTitleAttr.trim() }
+            : {}),
           bg: '',
           vc: blocks.length <= 2 && blocks.every((b) => b.t === 'text'),
           blocks,

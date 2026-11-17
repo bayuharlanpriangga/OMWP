@@ -836,6 +836,15 @@
   border-bottom: 2px solid rgba(17, 17, 17, 0.14);
 }
 
+.cv .bt.bt-sub {
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.cv > .blk:first-child > .bt.bt-sub {
+  margin-top: 0;
+}
+
 [data-theme="auditor"] .bt {
   color: #14243d;
   font-weight: 600;
