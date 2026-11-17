@@ -708,7 +708,11 @@ export function importDeckFromHtml(rawHtml: string): HtmlImportResult | null {
 
   const themeAttr = htmlEl?.attrs['data-theme'];
   const theme: ThemeId =
-    themeAttr === 'brutal' || themeAttr === 'auditor' || themeAttr === 'default'
+    themeAttr === 'brutal' ||
+    themeAttr === 'auditor' ||
+    themeAttr === 'default' ||
+    themeAttr === 'cyberpunk' ||
+    themeAttr === 'hacker'
       ? themeAttr
       : 'default';
 

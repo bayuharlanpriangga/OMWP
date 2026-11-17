@@ -363,4 +363,36 @@ test('TableBlock normalizes custom rows/columns, feeds modal scan & AI context, 
   assert.ok(html.includes('tblWidths'));
 });
 
+test('cyberpunk theme normalizes cleanly and exports self-contained cityscape styles', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'cyberpunk';
+  deck.title = 'Metropolis Malam';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'cyberpunk');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="cyberpunk"'));
+  assert.ok(html.includes('[data-theme=cyberpunk]'));
+  assert.ok(html.includes('#070a14'));
+  assert.ok(html.includes('data:image/svg+xml'));
+});
+
+test('hacker theme normalizes cleanly and exports neon green styles with matrix rain', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'hacker';
+  deck.title = 'Sistem Keamanan Jaringan';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'hacker');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="hacker"'));
+  assert.ok(html.includes('[data-theme=hacker]'));
+  assert.ok(html.includes('#00ff66'));
+  assert.ok(html.includes('matrix-bg'));
+  assert.ok(html.includes('JetBrains Mono'));
+});
 

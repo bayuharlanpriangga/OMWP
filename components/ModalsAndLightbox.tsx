@@ -39,6 +39,14 @@ const THEME_SWATCHES: Record<
     name: 'Auditor',
     colors: ['#f4f6f9', '#ffffff', '#14243d', '#b08d3c', '#1b2430'],
   },
+  cyberpunk: {
+    name: 'Cyberpunk',
+    colors: ['#070a14', '#0b1224', '#00e5ff', '#ff2a85', '#fcee0a'],
+  },
+  hacker: {
+    name: 'Hacker',
+    colors: ['#030804', '#06150b', '#00ff66', '#16a34a', '#d9ffe5'],
+  },
 };
 
 export function ThemeModal({
@@ -59,7 +67,13 @@ export function ThemeModal({
 
   if (!open) return null;
 
-  const themes: ThemeId[] = ['default', 'brutal', 'auditor'];
+  const themes: ThemeId[] = [
+    'default',
+    'brutal',
+    'auditor',
+    'cyberpunk',
+    'hacker',
+  ];
 
   const handleChoose = (id: ThemeId) => {
     setClickedTheme(id);
@@ -103,6 +117,8 @@ export function ThemeModal({
             const isEngaged = hoveredTheme === id || clickedTheme === id;
             const isBrutal = id === 'brutal';
             const isDefault = id === 'default';
+            const isCyberpunk = id === 'cyberpunk';
+            const isHacker = id === 'hacker';
 
             return (
               <button
@@ -128,7 +144,19 @@ export function ThemeModal({
                       }`
                     : isBrutal
                       ? 'bg-[#fff4d6] text-[#111111] border-[3px] border-[#111111] rounded-[10px] shadow-[4px_4px_0_#111111]'
-                      : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                      : isCyberpunk
+                        ? `bg-[#070a14] text-[#e6f1ff] border rounded-[4px] ${
+                            active
+                              ? 'border-[#00e5ff] shadow-[0_0_16px_rgba(0,229,255,0.35)]'
+                              : 'border-[#00e5ff]/55 hover:border-[#00e5ff]'
+                          }`
+                        : isHacker
+                          ? `bg-[#030804] text-[#d9ffe5] border rounded-[4px] ${
+                              active
+                                ? 'border-[#00ff66] shadow-[0_0_16px_rgba(0,255,102,0.32)]'
+                                : 'border-[#00ff66]/55 hover:border-[#00ff66]'
+                            }`
+                          : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -183,6 +211,76 @@ export function ThemeModal({
                     >
                       {visual.name}
                     </motion.span>
+                  ) : isCyberpunk ? (
+                    <motion.span
+                      className="relative inline-block text-xl font-bold tracking-wider"
+                      style={{
+                        fontFamily:
+                          'var(--font-cyber-display), system-ui, sans-serif',
+                        textShadow: isEngaged || active
+                          ? '0 0 10px rgba(0, 229, 255, 0.7)'
+                          : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { x: [0, -2, 2, 0], scale: 1.04 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1 }
+                      }
+                      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {visual.name}
+                      <motion.span
+                        aria-hidden="true"
+                        className="block h-[2px] origin-left mt-0.5"
+                        style={{
+                          background:
+                            'linear-gradient(90deg, #00e5ff 0%, #ff2a85 100%)',
+                        }}
+                        initial={false}
+                        animate={{ scaleX: isEngaged || active ? 1 : 0 }}
+                        transition={{
+                          duration: 0.26,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                      />
+                    </motion.span>
+                  ) : isHacker ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-1.5 text-xl font-bold tracking-tight"
+                      style={{
+                        fontFamily:
+                          'var(--font-hacker), var(--font-mono), ui-monospace, monospace',
+                        color: '#00ff66',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 10px rgba(0, 255, 102, 0.65)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { x: [0, 3, 0], scale: 1.04 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1 }
+                      }
+                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <span>{visual.name}</span>
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-2 h-4 bg-[#00ff66]"
+                        animate={{
+                          opacity: isEngaged || active ? [1, 0.2, 1] : 0.4,
+                        }}
+                        transition={{
+                          duration: 0.9,
+                          repeat: isEngaged || active ? Infinity : 0,
+                          ease: 'linear',
+                        }}
+                      />
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -222,7 +320,11 @@ export function ThemeModal({
                           ? 'bg-[#D4A72C] text-[#0D0D0D] border border-[#0D0D0D] rounded-[2px]'
                           : isBrutal
                             ? 'bg-[#ff6b35] text-[#111111] border-2 border-[#111111] rounded-full'
-                            : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                            : isCyberpunk
+                              ? 'bg-[#00e5ff] text-[#070a14] rounded-[3px]'
+                              : isHacker
+                                ? 'bg-[#00ff66] text-[#030804] rounded-[3px]'
+                                : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -243,7 +345,11 @@ export function ThemeModal({
                           ? 'rounded-[2px] border border-[#4F7A99]'
                           : isBrutal
                             ? 'rounded-[4px] border-2 border-[#111111]'
-                            : 'rounded-[3px] border border-[#c5ccd8]'
+                            : isCyberpunk
+                              ? 'rounded-[2px] border border-[#00e5ff]/60'
+                              : isHacker
+                                ? 'rounded-[2px] border border-[#00ff66]/60'
+                                : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />
@@ -342,76 +448,57 @@ export function PreferencesModal({
           </div>
 
           <div className="space-y-4">
-            <div className="ec space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-bold uppercase tracking-wide opacity-80">
-                  Ringkasan API Key Terdeteksi
-                </span>
-                {groupedKeys.length > 0 && (
-                  <span className="text-[11px] opacity-70">
-                    Klik ikon untuk pilih model
-                  </span>
-                )}
-              </div>
-
+            <div className="space-y-2.5">
               {groupedKeys.length === 0 ? (
-                <p className="text-xs opacity-75 m-0">
-                  Belum ada API key terdeteksi. Klik ikon kunci di kanan atas
-                  untuk menambahkan API key.
-                </p>
+                <p className="text-sm opacity-75 m-0">Tidak ada api key</p>
               ) : (
-                <div className="flex flex-wrap items-center gap-2.5 pt-1">
-                  {groupedKeys.map((group) => {
-                    const isPreferred = preferredProvider === group.provider;
-                    const activeModel = getSelectedModelForProvider(
-                      group.provider,
-                      prefs.preferredModels
-                    );
-                    return (
-                      <button
-                        key={group.provider}
-                        type="button"
-                        onClick={() => setModelModalProvider(group.provider)}
-                        title={`${group.meta.name} (${activeModel}) — Klik untuk memilih model`}
-                        className={`inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-2 text-left transition-colors ${
-                          isPreferred
-                            ? 'border-[var(--acc)] bg-black/5'
-                            : 'border-current/15 hover:border-current/35'
-                        }`}
-                      >
-                        <ProviderIcon
-                          provider={group.provider}
-                          count={group.count}
-                        />
-                        <span className="min-w-0">
-                          <span className="flex items-center gap-1 text-xs font-semibold leading-tight">
-                            <span>{group.meta.name}</span>
-                            {isPreferred && (
-                              <Star
-                                className="w-3 h-3 fill-[var(--acc)] text-[var(--acc)] shrink-0"
-                                aria-label="Prioritas"
-                              />
-                            )}
+                <>
+                  <div className="text-xs font-bold uppercase tracking-wide opacity-80">
+                    Api Key
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {groupedKeys.map((group) => {
+                      const isPreferred = preferredProvider === group.provider;
+                      const activeModel = getSelectedModelForProvider(
+                        group.provider,
+                        prefs.preferredModels
+                      );
+                      return (
+                        <button
+                          key={group.provider}
+                          type="button"
+                          onClick={() => setModelModalProvider(group.provider)}
+                          title={`${group.meta.name} (${activeModel}) — Klik untuk memilih model`}
+                          className={`inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border-2 text-left transition-colors ${
+                            isPreferred
+                              ? 'border-[var(--acc)] bg-black/5'
+                              : 'border-current/15 hover:border-current/35'
+                          }`}
+                        >
+                          <ProviderIcon
+                            provider={group.provider}
+                            count={group.count}
+                          />
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-1 text-xs font-semibold leading-tight">
+                              <span>{group.meta.name}</span>
+                              {isPreferred && (
+                                <Star
+                                  className="w-3 h-3 fill-[var(--acc)] text-[var(--acc)] shrink-0"
+                                  aria-label="Prioritas"
+                                />
+                              )}
+                            </span>
+                            <span className="block text-[10px] font-mono opacity-70 truncate max-w-[145px]">
+                              {activeModel}
+                            </span>
                           </span>
-                          <span className="block text-[10px] font-mono opacity-70 truncate max-w-[145px]">
-                            {activeModel}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
               )}
-            </div>
-
-            <div className="pt-2 border-t border-current/15 text-xs opacity-75 space-y-1">
-              <p className="font-bold m-0">Pintasan Keyboard (Mode Tampil):</p>
-              <p className="m-0">
-                <kbd className="font-mono">←</kbd> /{' '}
-                <kbd className="font-mono">→</kbd> atau{' '}
-                <kbd className="font-mono">Spasi</kbd> : Pindah slide ·{' '}
-                <kbd className="font-mono">Esc</kbd> : Tutup modal/panel
-              </p>
             </div>
 
             <div className="flex items-center justify-end pt-1">

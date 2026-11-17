@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import cyberpunkCityBg from '@/public/assets/cyberpunk-night-city.jpg';
 import {
   addBlockToSlide,
   buildSlideAiContext,
@@ -40,6 +42,7 @@ import {
 import { ApiKeysModal } from './ApiKeysModal';
 import { AiAssistant } from './AiAssistant';
 import { LayoutInspector } from './LayoutInspector';
+import { MatrixRainBackdrop } from './MatrixRainBackdrop';
 import {
   ImageLightbox,
   PreferencesModal,
@@ -635,6 +638,18 @@ export function PresentationApp() {
       }}
     >
       <div className="theme-backdrop" aria-hidden="true">
+        {deck.theme === 'cyberpunk' && (
+          <Image
+            src={cyberpunkCityBg}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            referrerPolicy="no-referrer"
+            className="tb-city-img object-cover object-bottom"
+          />
+        )}
+        {deck.theme === 'hacker' && <MatrixRainBackdrop />}
         <span className="tb-a" />
         <span className="tb-b" />
         <span className="tb-c" />

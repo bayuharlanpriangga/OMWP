@@ -1,6 +1,6 @@
 import type { AiProviderId } from './ai-providers';
 
-export type ThemeId = 'default' | 'brutal' | 'auditor';
+export type ThemeId = 'default' | 'brutal' | 'auditor' | 'cyberpunk' | 'hacker';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';
 export type TextAlign = 'l' | 'c' | 'r';

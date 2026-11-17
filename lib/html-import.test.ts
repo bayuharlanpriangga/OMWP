@@ -121,3 +121,43 @@ test('importDeckFromHtml converts HTML tables into native editable TableBlock bl
   assert.equal(tbl.rows.length, 2);
   assert.deepEqual(tbl.rows[0], ['Listrik', 'Tagihan utilitas pabrik bulanan']);
 });
+
+test('importDeckFromHtml preserves cyberpunk theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'cyberpunk';
+  deck.title = 'Cyber Night';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Neon Skyline';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'cyberpunk');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="cyberpunk"><head><title>Neon Deck</title></head><body><section class="slide"><h1>Kota Malam</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'cyberpunk');
+});
+
+test('importDeckFromHtml preserves hacker theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'hacker';
+  deck.title = 'Protokol Terminal';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Enkripsi Data';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'hacker');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="hacker"><head><title>Matrix Deck</title></head><body><section class="slide"><h1>Kode Hijau</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'hacker');
+});
