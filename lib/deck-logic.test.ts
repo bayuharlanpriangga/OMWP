@@ -414,3 +414,15 @@ test('astronomi theme normalizes cleanly and exports deep-space styles with anim
   assert.ok(html.includes('Chakra Petch'));
 });
 
+test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'hacker';
+  deck.title = 'Konsistensi Tata Letak';
+  const html = buildStandaloneHtml(deck);
+
+  assert.ok(
+    html.includes(".cv,.cv .s-s,.cv .s-m,.cv .s-l,.cv .s-xl,.cv .s-xxl,.cv .bt,.cv .ch,.cv .cb,.cv .concl,.cv .btn,.cv .ptbl,.cv .ptbl th,.cv .ptbl td{font-family:'IBM Plex Sans',system-ui,sans-serif;letter-spacing:0}")
+  );
+  assert.ok(html.includes('header{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;border-bottom:0;background:transparent'));
+  assert.ok(html.includes('border-top:0;z-index:15'));
+});

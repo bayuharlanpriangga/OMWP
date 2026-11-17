@@ -107,7 +107,7 @@
   --sb-radius: 2px;
   --font-display: var(--font-hacker), var(--font-mono), ui-monospace, monospace;
   --font-body: var(--font-hacker), var(--font-orias-sans), system-ui, monospace;
-  --font-code: var(--font-hacker), var(--font-mono), ui-monospace, monospace;
+  --font-code: var(--font-mono), ui-monospace, monospace;
 }
 
 :root[data-theme="astronomi"] {
@@ -697,8 +697,9 @@
   border: 0;
   padding: 14px;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 17px;
+  line-height: 1.4;
   min-height: 52px;
 }
 
@@ -724,6 +725,8 @@
 }
 
 [data-theme="auditor"] .ch {
+  padding: 14px 16px 16px 16px;
+  min-height: 54px;
   font-weight: 600;
 }
 
@@ -747,6 +750,8 @@
 }
 
 [data-theme="auditor"] .cb {
+  margin: 0 16px 16px;
+  padding-top: 14px;
   border-top: 1px solid #e1e6ee;
 }
 
@@ -754,11 +759,18 @@
   padding: 16px;
 }
 
+[data-theme="auditor"] .box {
+  padding: 16px 18px 18px 18px;
+}
+
 .bt {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 20px;
+  line-height: 1.4;
   margin-bottom: 12px;
+  padding-bottom: 7px;
+  border-bottom: 2px solid rgba(17, 17, 17, 0.14);
 }
 
 [data-theme="auditor"] .bt {
@@ -773,7 +785,7 @@
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
-  padding: 0 5px 5px 0;
+  padding: 0 0 5px 0;
 }
 
 .ptbl {
@@ -800,7 +812,7 @@
 
 .ptbl th {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   background: var(--acc3);
   color: #111111;
   border-bottom: 3px solid var(--ln);
@@ -820,7 +832,7 @@
 }
 
 [data-theme="auditor"] .ptbl-wrap {
-  padding: 0 0 3px 0;
+  padding: 0 0 5px 0;
 }
 
 [data-theme="auditor"] .ptbl {
@@ -835,10 +847,14 @@
   color: #ffffff;
   font-weight: 600;
   border-bottom: 2px solid #b08d3c;
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="auditor"] .ptbl td {
   border-bottom: 1px solid #e1e6ee;
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="auditor"] .ptbl tbody tr:last-child td {
@@ -870,11 +886,37 @@
   text-wrap: balance;
 }
 
+/* Unified slide canvas typography across all themes so switching themes preserves exact wrapping, height, and layout symmetry */
+:root[data-theme] .cv,
+:root[data-theme] .cv .tx,
+:root[data-theme] .cv .s-s,
+:root[data-theme] .cv .s-m,
+:root[data-theme] .cv .s-l,
+:root[data-theme] .cv .s-xl,
+:root[data-theme] .cv .s-xxl,
+:root[data-theme] .cv .bt,
+:root[data-theme] .cv .ch,
+:root[data-theme] .cv .cb,
+:root[data-theme] .cv .concl,
+:root[data-theme] .cv .pbtn,
+:root[data-theme] .cv .ptbl,
+:root[data-theme] .cv .ptbl th,
+:root[data-theme] .cv .ptbl td {
+  font-family: var(--font-orias-sans), system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+:root[data-theme] .cv .ch .n {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
 .s-s {
   font-size: 14px;
+  line-height: 1.5;
 }
 .s-m {
   font-size: 18px;
+  line-height: 1.5;
 }
 .s-l {
   font-family: var(--font-display);
@@ -894,9 +936,11 @@
 
 .z-s {
   font-size: 14px;
+  line-height: 1.5;
 }
 .z-m {
   font-size: 18px;
+  line-height: 1.5;
 }
 .z-l {
   font-size: 28px;
@@ -924,13 +968,13 @@
 .term {
   display: inline;
   border: 0;
-  border-bottom: 3px solid var(--acc);
+  border-bottom: 2px solid var(--acc);
   background: var(--acc3);
   color: #111111;
-  padding: 1px 5px;
+  padding: 0 4px;
   font: inherit;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: 3px;
   transition: transform 0.12s ease, background-color 0.15s ease;
 }
 
@@ -971,7 +1015,8 @@
   padding: 16px;
   border-radius: var(--r);
   box-shadow: 5px 5px 0 var(--ln);
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 [data-theme="auditor"] .concl {
@@ -979,9 +1024,14 @@
   color: #14243d;
   border: 1px solid #d5dbe5;
   border-top: 3px solid #14243d;
+  padding: 16px 18px 18px 18px;
   border-radius: 6px;
   box-shadow: none;
   font-weight: 500;
+}
+
+[data-theme="auditor"] .cv .pbtn {
+  padding: 9px 16px;
 }
 
 /* Bottom Dock & Navigation Bar */
@@ -1645,6 +1695,8 @@
 }
 
 [data-theme="default"] .ch {
+  padding: 16px;
+  min-height: 56px;
   font-weight: 600;
 }
 
@@ -1664,7 +1716,13 @@
 }
 
 [data-theme="default"] .cb {
+  margin: 0 16px 16px;
+  padding-top: 14px;
   border-top: 1px solid #A9C6DC;
+}
+
+[data-theme="default"] .box {
+  padding: 18px;
 }
 
 [data-theme="default"] .bt {
@@ -1677,8 +1735,8 @@
 [data-theme="default"] .term {
   background: #EEF1F4;
   color: #7A5C00;
-  border-bottom: 1.5px solid #7A5C00;
-  border-radius: 2px;
+  border-bottom: 2px solid #7A5C00;
+  border-radius: 3px;
   font-weight: 600;
   padding: 0 4px;
 }
@@ -1686,7 +1744,7 @@
 [data-theme="default"] .term.mt {
   background: #A9C6DC;
   color: #0D0D0D;
-  border-bottom: 1.5px solid #0D0D0D;
+  border-bottom: 2px solid #0D0D0D;
 }
 
 [data-theme="default"] .concl {
@@ -1694,13 +1752,18 @@
   color: #0D0D0D;
   border: 1px solid #4F7A99;
   border-top: 2px solid #0D0D0D;
+  padding: 17px 18px 18px 18px;
   border-radius: 2px;
   box-shadow: none;
   font-weight: 500;
 }
 
+[data-theme="default"] .cv .pbtn {
+  padding: 9px 16px;
+}
+
 [data-theme="default"] .ptbl-wrap {
-  padding: 0;
+  padding: 0 0 5px 0;
 }
 
 [data-theme="default"] .ptbl {
@@ -1715,11 +1778,15 @@
   border-top: 1px solid #4F7A99;
   border-bottom: 2px solid #0D0D0D;
   font-weight: 600;
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="default"] .ptbl td {
   background: transparent;
   border-bottom: 1px solid #C8D4E0;
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="default"] .ptbl tbody tr:nth-child(even) td {
@@ -1899,21 +1966,21 @@
 }
 
 @media (max-width: 480px) {
-  [data-theme="default"] .pres-main {
+  .pres-main {
     padding: 14px 12px 28px;
   }
-  [data-theme="default"] .s-xl {
+  .s-xl {
     font-size: clamp(24px, 6vw, 32px);
   }
-  [data-theme="default"] .s-xxl {
+  .s-xxl {
     font-size: clamp(26px, 7vw, 32px);
   }
-  [data-theme="default"] .s-l {
+  .s-l {
     font-size: clamp(20px, 5vw, 24px);
   }
-  [data-theme="default"] .pinput,
-  [data-theme="default"] .ptarea,
-  [data-theme="default"] .pselect {
+  .pinput,
+  .ptarea,
+  .pselect {
     font-size: 16px;
   }
 }
@@ -2006,7 +2073,6 @@
 [data-theme="cyberpunk"] body {
   background: linear-gradient(180deg, #03050c 0%, #070b18 55%, #0c1428 100%);
   color: #e6f1ff;
-  letter-spacing: 0.01em;
 }
 
 [data-theme="cyberpunk"] .theme-backdrop {
@@ -2149,7 +2215,7 @@
 [data-theme="cyberpunk"] .card {
   position: relative;
   border: 1px solid rgba(0, 229, 255, 0.44);
-  border-top: 2.5px solid #00e5ff;
+  border-top: 2px solid #00e5ff;
   border-radius: 4px;
   background: rgba(11, 18, 36, 0.86);
   backdrop-filter: blur(12px);
@@ -2164,6 +2230,8 @@
 }
 
 [data-theme="cyberpunk"] .ch {
+  padding: 15px 16px 16px 16px;
+  min-height: 55px;
   font-weight: 600;
   color: #e6f1ff;
 }
@@ -2184,7 +2252,13 @@
 }
 
 [data-theme="cyberpunk"] .cb {
+  margin: 0 16px 16px;
+  padding-top: 14px;
   border-top: 1px dashed rgba(0, 229, 255, 0.42);
+}
+
+[data-theme="cyberpunk"] .box {
+  padding: 17px 18px 18px 18px;
 }
 
 [data-theme="cyberpunk"] .bt {
@@ -2218,12 +2292,17 @@
   color: #e6f1ff;
   border: 1px solid #ff2a85;
   border-left: 4px solid #fcee0a;
+  padding: 18px 18px 18px 15px;
   border-radius: 4px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 18px rgba(255, 42, 133, 0.16);
 }
 
+[data-theme="cyberpunk"] .cv .pbtn {
+  padding: 9px 16px;
+}
+
 [data-theme="cyberpunk"] .ptbl-wrap {
-  padding: 0 0 3px 0;
+  padding: 0 0 5px 0;
 }
 
 [data-theme="cyberpunk"] .ptbl {
@@ -2239,10 +2318,14 @@
   color: #00e5ff;
   border-bottom: 2px solid #00e5ff;
   font-weight: 600;
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="cyberpunk"] .ptbl td {
   border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="cyberpunk"] .ptbl tbody tr:nth-child(even) td {
@@ -2461,7 +2544,6 @@
 [data-theme="hacker"] body {
   background: #030804;
   color: #d9ffe5;
-  letter-spacing: 0.01em;
 }
 
 [data-theme="hacker"] .theme-backdrop {
@@ -2565,7 +2647,7 @@
 [data-theme="hacker"] .card {
   position: relative;
   border: 1px solid rgba(0, 255, 102, 0.44);
-  border-top: 2.5px solid #00ff66;
+  border-top: 2px solid #00ff66;
   border-radius: 4px;
   background: rgba(4, 14, 8, 0.88);
   backdrop-filter: blur(10px);
@@ -2579,6 +2661,8 @@
 }
 
 [data-theme="hacker"] .ch {
+  padding: 15px 16px 16px 16px;
+  min-height: 55px;
   font-weight: 600;
   color: #d9ffe5;
 }
@@ -2599,7 +2683,13 @@
 }
 
 [data-theme="hacker"] .cb {
+  margin: 0 16px 16px;
+  padding-top: 14px;
   border-top: 1px dashed rgba(0, 255, 102, 0.4);
+}
+
+[data-theme="hacker"] .box {
+  padding: 17px 18px 18px 18px;
 }
 
 [data-theme="hacker"] .bt {
@@ -2633,13 +2723,18 @@
   background: rgba(4, 16, 9, 0.92);
   color: #d9ffe5;
   border: 1px solid rgba(0, 255, 102, 0.55);
-  border-top: 2.5px solid #00ff66;
+  border-top: 2px solid #00ff66;
+  padding: 17px 18px 18px 18px;
   border-radius: 4px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.62), 0 0 18px rgba(0, 255, 102, 0.14);
 }
 
+[data-theme="hacker"] .cv .pbtn {
+  padding: 9px 16px;
+}
+
 [data-theme="hacker"] .ptbl-wrap {
-  padding: 0 0 3px 0;
+  padding: 0 0 5px 0;
 }
 
 [data-theme="hacker"] .ptbl {
@@ -2654,10 +2749,14 @@
   color: #00ff66;
   border-bottom: 2px solid #00ff66;
   font-weight: 600;
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="hacker"] .ptbl td {
   border-bottom: 1px solid rgba(0, 255, 102, 0.22);
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="hacker"] .ptbl tbody tr:nth-child(even) td {
@@ -2671,16 +2770,6 @@
 [data-theme="hacker"] .ptbl th + th,
 [data-theme="hacker"] .ptbl td + td {
   border-left: 1px solid rgba(0, 255, 102, 0.22);
-}
-
-@media (max-width: 639px) {
-  [data-theme="hacker"] .ptbl {
-    font-size: 12.5px;
-  }
-  [data-theme="hacker"] .ptbl th,
-  [data-theme="hacker"] .ptbl td {
-    padding: 7px 8px;
-  }
 }
 
 [data-theme="hacker"] .pres-nav {
@@ -3004,7 +3093,8 @@
 }
 
 [data-theme="astronomi"] .ch {
-  font-family: var(--font-display);
+  padding: 15px 16px 16px 16px;
+  min-height: 55px;
   font-weight: 600;
   color: #eef4ff;
 }
@@ -3025,11 +3115,16 @@
 }
 
 [data-theme="astronomi"] .cb {
+  margin: 0 16px 16px;
+  padding-top: 14px;
   border-top: 1px solid rgba(125, 211, 252, 0.28);
 }
 
+[data-theme="astronomi"] .box {
+  padding: 17px 18px 18px 18px;
+}
+
 [data-theme="astronomi"] .bt {
-  font-family: var(--font-display);
   color: #bae6fd;
   font-weight: 600;
   border-bottom: 1px solid rgba(125, 211, 252, 0.28);
@@ -3046,14 +3141,14 @@
 [data-theme="astronomi"] .term {
   background: rgba(245, 196, 81, 0.16);
   color: #f5c451;
-  border-bottom: 1.5px solid #f5c451;
+  border-bottom: 2px solid #f5c451;
   border-radius: 3px;
 }
 
 [data-theme="astronomi"] .term.mt {
   background: rgba(56, 189, 248, 0.18);
   color: #bae6fd;
-  border-bottom: 1.5px solid #7dd3fc;
+  border-bottom: 2px solid #7dd3fc;
 }
 
 [data-theme="astronomi"] .concl {
@@ -3061,12 +3156,17 @@
   color: #eef4ff;
   border: 1px solid rgba(125, 211, 252, 0.45);
   border-top: 2px solid #f5c451;
+  padding: 17px 18px 18px 18px;
   border-radius: 4px;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.58);
 }
 
+[data-theme="astronomi"] .cv .pbtn {
+  padding: 9px 16px;
+}
+
 [data-theme="astronomi"] .ptbl-wrap {
-  padding: 0 0 3px 0;
+  padding: 0 0 5px 0;
 }
 
 [data-theme="astronomi"] .ptbl {
@@ -3077,15 +3177,18 @@
 }
 
 [data-theme="astronomi"] .ptbl th {
-  font-family: var(--font-display);
   background: rgba(125, 211, 252, 0.13);
   color: #bae6fd;
-  border-bottom: 1.5px solid #7dd3fc;
+  border-bottom: 2px solid #7dd3fc;
   font-weight: 600;
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="astronomi"] .ptbl td {
   border-bottom: 1px solid rgba(125, 211, 252, 0.18);
+  padding-top: 11px;
+  padding-bottom: 11px;
 }
 
 [data-theme="astronomi"] .ptbl tbody tr:nth-child(even) td {
@@ -3099,16 +3202,6 @@
 [data-theme="astronomi"] .ptbl th + th,
 [data-theme="astronomi"] .ptbl td + td {
   border-left: 1px solid rgba(125, 211, 252, 0.18);
-}
-
-@media (max-width: 639px) {
-  [data-theme="astronomi"] .ptbl {
-    font-size: 12.5px;
-  }
-  [data-theme="astronomi"] .ptbl th,
-  [data-theme="astronomi"] .ptbl td {
-    padding: 7px 6px;
-  }
 }
 
 [data-theme="astronomi"] .pres-nav {
