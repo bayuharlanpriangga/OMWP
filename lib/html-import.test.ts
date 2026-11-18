@@ -262,6 +262,26 @@ test('importDeckFromHtml preserves detective theme attribute on standalone round
   assert.equal(generic.deck.theme, 'detective');
 });
 
+test('importDeckFromHtml preserves summer theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'summer';
+  deck.title = 'Pantai Kuning Musim Panas';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Ombak, Bangau & Minuman Segar';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'summer');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="summer"><head><title>Liburan Pantai</title></head><body><section class="slide"><h1>Tenda Payung & Selancar</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'summer');
+});
+
 test('importDeckFromHtml preserves multiple container titles and per-slide headerTitle on round-trip', () => {
   const deck = createDefaultDeck();
   deck.slides[0].headerTitle = 'Header Halaman 1 — Pengantar';

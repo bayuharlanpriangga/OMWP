@@ -50,6 +50,7 @@ import { GhostBackdrop } from './GhostBackdrop';
 import { HalloweenBackdrop } from './HalloweenBackdrop';
 import { MatrixRainBackdrop } from './MatrixRainBackdrop';
 import { SpaceBackdrop } from './SpaceBackdrop';
+import { SummerBackdrop } from './SummerBackdrop';
 import {
   ImageLightbox,
   PreferencesModal,
@@ -671,6 +672,7 @@ export function PresentationApp() {
         {deck.theme === 'halloween' && <HalloweenBackdrop />}
         {deck.theme === 'aquarium' && <AquariumBackdrop />}
         {deck.theme === 'detective' && <DetectiveBackdrop />}
+        {deck.theme === 'summer' && <SummerBackdrop />}
         <span className="tb-a" />
         <span className="tb-b" />
         <span className="tb-c" />

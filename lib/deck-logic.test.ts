@@ -502,6 +502,25 @@ test('detective theme normalizes cleanly and exports mocha styles with animated 
   assert.ok(html.includes('Cinzel'));
 });
 
+test('summer theme normalizes cleanly and exports sunny yellow styles with animated beach canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'summer';
+  deck.title = 'Liburan Musim Panas';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'summer');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="summer"'));
+  assert.ok(html.includes('[data-theme=summer]'));
+  assert.ok(html.includes('#fef9c3'));
+  assert.ok(html.includes('#facc15'));
+  assert.ok(html.includes('#eab308'));
+  assert.ok(html.includes('summer-bg'));
+  assert.ok(html.includes('Fredoka'));
+});
+
 test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {
   const deck = createDefaultDeck();
   deck.theme = 'hacker';
@@ -607,6 +626,7 @@ test('standalone HTML wraps ImageBlock in .im-frame and includes frame rules for
     'halloween',
     'aquarium',
     'detective',
+    'summer',
   ]) {
     assert.ok(
       html.includes(`[data-theme=${theme}] .im-frame{`),

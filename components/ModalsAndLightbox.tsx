@@ -67,6 +67,10 @@ const THEME_SWATCHES: Record<
     name: 'Detective',
     colors: ['#1c120d', '#462818', '#8c5a3c', '#d4a373', '#f5ebe0'],
   },
+  summer: {
+    name: 'Summer',
+    colors: ['#fef9c3', '#fde047', '#facc15', '#f59e0b', '#713f12'],
+  },
 };
 
 export function ThemeModal({
@@ -98,6 +102,7 @@ export function ThemeModal({
     'halloween',
     'aquarium',
     'detective',
+    'summer',
   ];
 
   const handleChoose = (id: ThemeId) => {
@@ -149,6 +154,7 @@ export function ThemeModal({
             const isHalloween = id === 'halloween';
             const isAquarium = id === 'aquarium';
             const isDetective = id === 'detective';
+            const isSummer = id === 'summer';
 
             return (
               <button
@@ -216,7 +222,13 @@ export function ThemeModal({
                                           ? 'border-[#d4a373] shadow-[0_0_16px_rgba(212,163,115,0.42)]'
                                           : 'border-[#a67c52]/60 hover:border-[#d4a373]'
                                       }`
-                                    : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                                    : isSummer
+                                      ? `bg-[#fef9c3] text-[#422006] border-[1.5px] rounded-[8px] ${
+                                          active
+                                            ? 'border-[#ca8a04] shadow-[0_0_16px_rgba(250,204,21,0.52)]'
+                                            : 'border-[#eab308]/80 hover:border-[#ca8a04]'
+                                        }`
+                                      : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -544,6 +556,49 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isSummer ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-semibold tracking-wide"
+                      style={{
+                        fontFamily:
+                          'var(--font-aquarium-display), var(--font-orias-sans), system-ui, sans-serif',
+                        color: '#422006',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 10px rgba(250, 204, 21, 0.72)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.05, y: -1 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1, y: 0 }
+                      }
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3.5 rounded-full shrink-0 border border-[#ca8a04]"
+                        style={{
+                          background:
+                            'radial-gradient(circle at 35% 35%, #fef9c3, #facc15 62%, #f59e0b 100%)',
+                          boxShadow:
+                            active || isEngaged
+                              ? '0 0 10px rgba(250, 204, 21, 0.9)'
+                              : '0 0 4px rgba(234, 179, 8, 0.5)',
+                        }}
+                        animate={
+                          clickedTheme === id
+                            ? { scale: 1.2 }
+                            : isEngaged
+                              ? { rotate: 45, scale: 1.1 }
+                              : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -597,7 +652,9 @@ export function ThemeModal({
                                         ? 'bg-[#38bdf8] text-[#04182e] rounded-full'
                                         : isDetective
                                           ? 'bg-[#d4a373] text-[#1c120d] rounded-[3px]'
-                                          : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                          : isSummer
+                                            ? 'bg-[#facc15] text-[#422006] border border-[#ca8a04] rounded-full'
+                                            : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -632,7 +689,9 @@ export function ThemeModal({
                                         ? 'rounded-full border border-[#38bdf8]/65'
                                         : isDetective
                                           ? 'rounded-[2px] border border-[#d4a373]/65'
-                                          : 'rounded-[3px] border border-[#c5ccd8]'
+                                          : isSummer
+                                            ? 'rounded-full border border-[#ca8a04]/70'
+                                            : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />
