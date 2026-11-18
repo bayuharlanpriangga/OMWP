@@ -606,7 +606,7 @@ export function SlideCanvas({
         return (
           <button
             type="button"
-            className="block w-full p-0 border-0 bg-transparent cursor-zoom-in rounded-md overflow-hidden"
+            className="im-frame im-frame-btn"
             onClick={() => onImageZoom(b.src, b.alt)}
             aria-label={`Perbesar gambar ${b.alt || 'presentasi'}`}
           >
@@ -614,7 +614,7 @@ export function SlideCanvas({
             <img
               src={b.src}
               alt={b.alt || 'Gambar presentasi'}
-              className="im block w-full h-auto rounded-md"
+              className="im block w-full h-auto"
               draggable={false}
               referrerPolicy="no-referrer"
             />
@@ -622,14 +622,16 @@ export function SlideCanvas({
         );
       }
       return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={b.src}
-          alt={b.alt || 'Gambar presentasi'}
-          className="im block w-full h-auto rounded-md"
-          draggable={false}
-          referrerPolicy="no-referrer"
-        />
+        <div className="im-frame">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={b.src}
+            alt={b.alt || 'Gambar presentasi'}
+            className="im block w-full h-auto"
+            draggable={false}
+            referrerPolicy="no-referrer"
+          />
+        </div>
       );
     }
 

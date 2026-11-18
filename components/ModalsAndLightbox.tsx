@@ -63,6 +63,10 @@ const THEME_SWATCHES: Record<
     name: 'Aquarium',
     colors: ['#04182e', '#0c4a6e', '#0ea5e9', '#38bdf8', '#e0f2fe'],
   },
+  detective: {
+    name: 'Detective',
+    colors: ['#1c120d', '#462818', '#8c5a3c', '#d4a373', '#f5ebe0'],
+  },
 };
 
 export function ThemeModal({
@@ -93,6 +97,7 @@ export function ThemeModal({
     'ghost',
     'halloween',
     'aquarium',
+    'detective',
   ];
 
   const handleChoose = (id: ThemeId) => {
@@ -118,7 +123,7 @@ export function ThemeModal({
         aria-label="Pilih tema presentasi"
         className="modal-card max-w-[460px]"
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <h2 className="text-xl font-bold m-0">Tema</h2>
           <button
             type="button"
@@ -130,7 +135,7 @@ export function ThemeModal({
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2 max-h-[calc(88vh-135px)] overflow-y-auto px-0.5 py-0.5 pr-1">
           {themes.map((id) => {
             const visual = THEME_SWATCHES[id];
             const active = currentTheme === id;
@@ -143,6 +148,7 @@ export function ThemeModal({
             const isGhost = id === 'ghost';
             const isHalloween = id === 'halloween';
             const isAquarium = id === 'aquarium';
+            const isDetective = id === 'detective';
 
             return (
               <button
@@ -159,7 +165,7 @@ export function ThemeModal({
                   setHoveredTheme((prev) => (prev === id ? null : prev))
                 }
                 onClick={() => handleChoose(id)}
-                className={`w-full flex items-center justify-between gap-4 px-4 py-3.5 text-left transition-colors ${
+                className={`w-full flex items-center justify-between gap-4 px-4 py-2.5 text-left transition-colors ${
                   isDefault
                     ? `bg-[#EEF1F4] text-[#0D0D0D] border rounded-[2px] ${
                         active
@@ -204,7 +210,13 @@ export function ThemeModal({
                                         ? 'border-[#38bdf8] shadow-[0_0_16px_rgba(14,165,233,0.46)]'
                                         : 'border-[#0ea5e9]/55 hover:border-[#38bdf8]'
                                     }`
-                                  : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                                  : isDetective
+                                    ? `bg-[#1c120d] text-[#f5ebe0] border rounded-[4px] ${
+                                        active
+                                          ? 'border-[#d4a373] shadow-[0_0_16px_rgba(212,163,115,0.42)]'
+                                          : 'border-[#a67c52]/60 hover:border-[#d4a373]'
+                                      }`
+                                    : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -497,6 +509,41 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isDetective ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-semibold tracking-wide"
+                      style={{
+                        fontFamily:
+                          'var(--font-ghost-display), var(--font-serif), Georgia, serif',
+                        color: '#f5ebe0',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(212, 163, 115, 0.65)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.05 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1 }
+                      }
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3.5 rounded-full shrink-0 border-2 border-[#d4a373] bg-[#5a3622]"
+                        animate={
+                          clickedTheme === id
+                            ? { rotate: 45, scale: 1.15 }
+                            : isEngaged
+                              ? { scale: 1.1 }
+                              : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -548,7 +595,9 @@ export function ThemeModal({
                                       ? 'bg-[#f97316] text-[#09060d] rounded-[3px]'
                                       : isAquarium
                                         ? 'bg-[#38bdf8] text-[#04182e] rounded-full'
-                                        : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                        : isDetective
+                                          ? 'bg-[#d4a373] text-[#1c120d] rounded-[3px]'
+                                          : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -581,7 +630,9 @@ export function ThemeModal({
                                       ? 'rounded-[2px] border border-[#f97316]/65'
                                       : isAquarium
                                         ? 'rounded-full border border-[#38bdf8]/65'
-                                        : 'rounded-[3px] border border-[#c5ccd8]'
+                                        : isDetective
+                                          ? 'rounded-[2px] border border-[#d4a373]/65'
+                                          : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />
@@ -592,7 +643,7 @@ export function ThemeModal({
           })}
         </div>
 
-        <div className="flex justify-end mt-5">
+        <div className="flex justify-end mt-4">
           <button type="button" className="pbtn sm" onClick={onClose}>
             Tutup
           </button>

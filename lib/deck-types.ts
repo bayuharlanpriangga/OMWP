@@ -9,7 +9,8 @@ export type ThemeId =
   | 'astronomi'
   | 'ghost'
   | 'halloween'
-  | 'aquarium';
+  | 'aquarium'
+  | 'detective';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';
 export type TextAlign = 'l' | 'c' | 'r';

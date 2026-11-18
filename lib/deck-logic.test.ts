@@ -483,6 +483,25 @@ test('aquarium theme normalizes cleanly and exports ocean-blue styles with anima
   assert.ok(html.includes('Fredoka'));
 });
 
+test('detective theme normalizes cleanly and exports mocha styles with animated study canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'detective';
+  deck.title = 'Kasus Ruang Kerja';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'detective');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="detective"'));
+  assert.ok(html.includes('[data-theme=detective]'));
+  assert.ok(html.includes('#1c120d'));
+  assert.ok(html.includes('#d4a373'));
+  assert.ok(html.includes('#a67c52'));
+  assert.ok(html.includes('detective-bg'));
+  assert.ok(html.includes('Cinzel'));
+});
+
 test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {
   const deck = createDefaultDeck();
   deck.theme = 'hacker';
@@ -565,4 +584,33 @@ test('each slide maintains an independent headerTitle while legacy decks fall ba
 
   const ctx2 = buildSlideAiContext(deck, deck.slides[1]);
   assert.equal(ctx2.deckTitle, 'Konteks Slide 2 — Analisis Data');
+});
+
+test('standalone HTML wraps ImageBlock in .im-frame and includes frame rules for every theme', () => {
+  const deck = createDefaultDeck();
+  const img = createBlock('img');
+  if (img.t !== 'img') throw new Error('Expected img');
+  img.src = 'data:image/png;base64,AAAA';
+  img.alt = 'Foto Bingkai';
+  deck.slides[0].blocks.push(img);
+
+  const html = buildStandaloneHtml(deck);
+  assert.ok(html.includes('<div class="im-frame"><img class="im"'));
+  assert.ok(html.includes('.im-frame{position:relative;display:block;width:100%;padding:8px;'));
+  for (const theme of [
+    'default',
+    'auditor',
+    'cyberpunk',
+    'hacker',
+    'astronomi',
+    'ghost',
+    'halloween',
+    'aquarium',
+    'detective',
+  ]) {
+    assert.ok(
+      html.includes(`[data-theme=${theme}] .im-frame{`),
+      `Expected standalone CSS .im-frame rule for theme ${theme}`
+    );
+  }
 });

@@ -723,19 +723,45 @@ export function SlideEditor({
         )}
 
         {b.t === 'title' && (
-          <input
-            type="text"
-            className="pinput font-semibold"
-            placeholder="Judul container (opsional)"
-            aria-label={`Judul tambahan container ${titleNumber}`}
-            value={b.text}
-            onChange={(e) => {
-              const val = e.target.value;
-              onUpdateBlock(b.id, (prev) =>
-                prev.t === 'title' ? { ...prev, text: val } : prev
-              );
-            }}
-          />
+          <div className="space-y-2">
+            <input
+              type="text"
+              className={`pinput-bt ${b.align ? `a-${b.align}` : ''}`}
+              placeholder="Judul tambahan (sama seperti header container)"
+              aria-label={`Judul tambahan container ${titleNumber}`}
+              value={b.text}
+              onChange={(e) => {
+                const val = e.target.value;
+                onUpdateBlock(b.id, (prev) =>
+                  prev.t === 'title' ? { ...prev, text: val } : prev
+                );
+              }}
+            />
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(
+                [
+                  { value: 'l', label: 'Rata kiri', Icon: AlignLeft },
+                  { value: 'c', label: 'Rata tengah', Icon: AlignCenter },
+                  { value: 'r', label: 'Rata kanan', Icon: AlignRight },
+                ] as const
+              ).map(({ value, label, Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`pbtn sm ${(b.align || 'l') === value ? 'on' : ''}`}
+                  onClick={() =>
+                    onUpdateBlock(b.id, (prev) =>
+                      prev.t === 'title' ? { ...prev, align: value } : prev
+                    )
+                  }
+                  aria-label={label}
+                  title={label}
+                >
+                  <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
         {b.t === 'dd' && (
@@ -792,13 +818,15 @@ export function SlideEditor({
         {b.t === 'img' && (
           <div className="space-y-2">
             {b.src && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={b.src}
-                alt={b.alt || 'Pratinjau'}
-                className="max-h-44 w-auto max-w-full rounded-md border border-current/20"
-                referrerPolicy="no-referrer"
-              />
+              <div className="im-frame im-frame-preview">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={b.src}
+                  alt={b.alt || 'Pratinjau'}
+                  className="im"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             )}
             <div className="flex flex-wrap gap-2">
               <button
@@ -830,7 +858,7 @@ export function SlideEditor({
           <div className="space-y-3">
             <input
               type="text"
-              className="pinput font-semibold"
+              className="pinput-bt"
               placeholder="Judul container (opsional)"
               aria-label="Judul container"
               value={b.title}

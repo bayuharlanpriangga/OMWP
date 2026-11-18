@@ -242,6 +242,26 @@ test('importDeckFromHtml preserves aquarium theme attribute on standalone round-
   assert.equal(generic.deck.theme, 'aquarium');
 });
 
+test('importDeckFromHtml preserves detective theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'detective';
+  deck.title = 'Investigasi Kasus 409';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Meja Detektif & Papan Pola';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'detective');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="detective"><head><title>Dossier Detektif</title></head><body><section class="slide"><h1>Petunjuk Utama</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'detective');
+});
+
 test('importDeckFromHtml preserves multiple container titles and per-slide headerTitle on round-trip', () => {
   const deck = createDefaultDeck();
   deck.slides[0].headerTitle = 'Header Halaman 1 — Pengantar';
@@ -273,4 +293,45 @@ test('importDeckFromHtml preserves multiple container titles and per-slide heade
       assert.equal(importedBox.children[0].text, 'Judul Tambahan Container');
     }
   }
+});
+
+test('importDeckFromHtml converts secondary .bt and heading elements inside cards into TitleBlock', () => {
+  const html = `<!doctype html><html><body><section class="slide">
+    <div class="card">
+      <div class="bt">BAB 7</div>
+      <p>Pengantar pertama.</p>
+      <div class="bt">BAB 8</div>
+      <h3>BAB 9</h3>
+    </div>
+  </section></body></html>`;
+
+  const imported = importDeckFromHtml(html);
+  assert.ok(imported);
+  const box = imported.deck.slides[0].blocks.find((b) => b.t === 'box');
+  assert.ok(box && box.t === 'box');
+  assert.equal(box.title, 'BAB 7');
+  assert.equal(box.children[0]?.t, 'text');
+  assert.equal(box.children[1]?.t, 'title');
+  assert.equal(box.children[2]?.t, 'title');
+  if (box.children[1]?.t === 'title') {
+    assert.equal(box.children[1].text, 'BAB 8');
+  }
+  if (box.children[2]?.t === 'title') {
+    assert.equal(box.children[2].text, 'BAB 9');
+  }
+});
+
+test('importDeckFromHtml extracts ImageBlock cleanly when wrapped in .im-frame', () => {
+  const html = `<!doctype html><html><body><section class="slide">
+    <div class="im-frame">
+      <img class="im" src="https://picsum.photos/seed/framed/640/360" alt="Gambar berbingkai" />
+    </div>
+  </section></body></html>`;
+
+  const imported = importDeckFromHtml(html);
+  assert.ok(imported);
+  const img = imported.deck.slides[0].blocks.find((b) => b.t === 'img');
+  assert.ok(img && img.t === 'img');
+  assert.equal(img.src, 'https://picsum.photos/seed/framed/640/360');
+  assert.equal(img.alt, 'Gambar berbingkai');
 });

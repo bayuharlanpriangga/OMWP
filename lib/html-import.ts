@@ -363,7 +363,8 @@ function isSlideElement(el: HtmlElementNode): boolean {
 
 function extractBlocksFromContainer(
   nodes: HtmlNode[],
-  defaultWidth = 12
+  defaultWidth = 12,
+  insideBox = false
 ): Block[] {
   const blocks: Block[] = [];
 
@@ -398,6 +399,16 @@ function extractBlocksFromContainer(
     if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h6') {
       const text = normalizeInlineWhitespace(node.children.map(serializeInline).join(''));
       if (!text) continue;
+      if (insideBox && tag !== 'h1') {
+        blocks.push({
+          id: uid(),
+          t: 'title',
+          text,
+          w: defaultWidth,
+          align: detectAlign(node),
+        });
+        continue;
+      }
       const size: TextSize =
         tag === 'h1' ? 'xl' : tag === 'h2' ? 'l' : tag === 'h3' ? 'l' : 'm';
       blocks.push({
@@ -531,7 +542,10 @@ function extractBlocksFromContainer(
       continue;
     }
 
-    if (hasClass(node, 'bt-sub')) {
+    if (
+      hasClass(node, 'bt-sub') ||
+      (insideBox && hasAnyClass(node, [/^bt$/, /^card-title$/, /^title$/]))
+    ) {
       const text = normalizeInlineWhitespace(node.children.map(serializeInline).join(''));
       if (text) {
         blocks.push({
@@ -585,7 +599,7 @@ function extractBlocksFromContainer(
         ? normalizeInlineWhitespace(titleEl.children.map(serializeInline).join(''))
         : '';
       const restNodes = node.children.filter((c) => c !== titleEl);
-      const children = extractBlocksFromContainer(restNodes, 12);
+      const children = extractBlocksFromContainer(restNodes, 12, true);
       if (title || children.length > 0) {
         const box: BoxBlock = {
           id: uid(),
@@ -614,14 +628,14 @@ function extractBlocksFromContainer(
                 ? 3
                 : 6;
         for (const childEl of elemChildren) {
-          blocks.push(...extractBlocksFromContainer([childEl], colW));
+          blocks.push(...extractBlocksFromContainer([childEl], colW, insideBox));
         }
         continue;
       }
     }
 
     // Generic container (div, main, span, figure, etc.)
-    blocks.push(...extractBlocksFromContainer(node.children, defaultWidth));
+    blocks.push(...extractBlocksFromContainer(node.children, defaultWidth, insideBox));
   }
 
   return blocks;
@@ -730,7 +744,8 @@ export function importDeckFromHtml(rawHtml: string): HtmlImportResult | null {
     themeAttr === 'astronomi' ||
     themeAttr === 'ghost' ||
     themeAttr === 'halloween' ||
-    themeAttr === 'aquarium'
+    themeAttr === 'aquarium' ||
+    themeAttr === 'detective'
       ? themeAttr
       : 'default';
 

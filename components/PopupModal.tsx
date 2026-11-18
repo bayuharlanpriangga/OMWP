@@ -67,7 +67,7 @@ function ModalBlockList({
               (b.src ? (
                 <button
                   type="button"
-                  className="block w-full p-0 border-0 bg-transparent cursor-zoom-in"
+                  className="im-frame im-frame-btn"
                   onClick={() => onImageZoom(b.src, b.alt)}
                   aria-label={`Perbesar gambar ${b.alt || ''}`}
                 >
@@ -75,7 +75,7 @@ function ModalBlockList({
                   <img
                     src={b.src}
                     alt={b.alt || 'Gambar modal'}
-                    className="block w-full h-auto rounded-md"
+                    className="im block w-full h-auto"
                     referrerPolicy="no-referrer"
                   />
                 </button>
