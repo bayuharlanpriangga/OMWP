@@ -542,6 +542,42 @@ test('pixel theme normalizes cleanly and exports dark-blue & yellow 8-bit game s
   assert.ok(html.includes('Silkscreen'));
 });
 
+test('dino theme normalizes cleanly and exports Chrome-gray pixel dino game styles with 4-dino canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'dino';
+  deck.title = 'Dino Offline Runner';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'dino');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="dino"'));
+  assert.ok(html.includes('[data-theme=dino]'));
+  assert.ok(html.includes('#e5e7eb'));
+  assert.ok(html.includes('#3f3f46'));
+  assert.ok(html.includes('dino-bg'));
+  assert.ok(html.includes('Silkscreen'));
+});
+
+test('zodiac theme normalizes cleanly and exports celestial midnight-gold styles with zodiac canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'zodiac';
+  deck.title = 'Atlas Langit Zodiak';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'zodiac');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="zodiac"'));
+  assert.ok(html.includes('[data-theme=zodiac]'));
+  assert.ok(html.includes('#070b1a'));
+  assert.ok(html.includes('#d4af37'));
+  assert.ok(html.includes('zodiac-bg'));
+  assert.ok(html.includes('Cinzel'));
+});
+
 test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {
   const deck = createDefaultDeck();
   deck.theme = 'hacker';
@@ -649,6 +685,8 @@ test('standalone HTML wraps ImageBlock in .im-frame and includes frame rules for
     'detective',
     'summer',
     'pixel',
+    'dino',
+    'zodiac',
   ]) {
     assert.ok(
       html.includes(`[data-theme=${theme}] .im-frame{`),

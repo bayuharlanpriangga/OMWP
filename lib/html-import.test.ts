@@ -304,6 +304,46 @@ test('importDeckFromHtml preserves pixel theme attribute on standalone round-tri
   assert.equal(generic.deck.theme, 'pixel');
 });
 
+test('importDeckFromHtml preserves dino theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'dino';
+  deck.title = 'Pixel Dino Offline';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Empat Dino Abu-Abu & Kaktus';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'dino');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="dino"><head><title>Offline Runner</title></head><body><section class="slide"><h1>Dino Terbang & Melompat</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'dino');
+});
+
+test('importDeckFromHtml preserves zodiac theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'zodiac';
+  deck.title = 'Observatorium Zodiak';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Rasi Bintang & Astrolabe';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'zodiac');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="zodiac"><head><title>Peta Langit</title></head><body><section class="slide"><h1>Konstelasi Zodiak</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'zodiac');
+});
+
 test('importDeckFromHtml preserves multiple container titles and per-slide headerTitle on round-trip', () => {
   const deck = createDefaultDeck();
   deck.slides[0].headerTitle = 'Header Halaman 1 — Pengantar';

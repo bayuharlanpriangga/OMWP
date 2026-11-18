@@ -6,12 +6,14 @@ import cyberpunkCityBg from '@/src/assets/images/cyberpunk_purple_city_179495218
 import type { ThemeId } from '@/lib/deck-types';
 import { AquariumTheme } from './AquariumTheme';
 import { DetectiveTheme } from './DetectiveTheme';
+import { DinoTheme } from './DinoTheme';
 import { GhostTheme } from './GhostTheme';
 import { HalloweenTheme } from './HalloweenTheme';
 import { MatrixRainTheme } from './MatrixRainTheme';
 import { PixelTheme } from './PixelTheme';
 import { SpaceTheme } from './SpaceTheme';
 import { SummerTheme } from './SummerTheme';
+import { ZodiacTheme } from './ZodiacTheme';
 
 interface ThemeBackdropProps {
   theme: ThemeId;
@@ -80,6 +82,8 @@ export function ThemeBackdrop({ theme }: ThemeBackdropProps) {
       {theme === 'detective' && <DetectiveTheme />}
       {theme === 'summer' && <SummerTheme />}
       {theme === 'pixel' && <PixelTheme />}
+      {theme === 'dino' && <DinoTheme />}
+      {theme === 'zodiac' && <ZodiacTheme />}
       <span className="tb-a" />
       <span className="tb-b" />
       <span className="tb-c" />

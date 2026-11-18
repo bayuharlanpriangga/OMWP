@@ -118,18 +118,18 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: 'Presentasi Interaktif',
   description:
-    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer & Pixel 8-Bit, ekspor HTML mandiri, dan Orias AI.',
+    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer, Pixel 8-Bit, Pixel Dino & Zodiak, ekspor HTML mandiri, dan Orias AI.',
   openGraph: {
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer & Pixel 8-Bit, ekspor HTML mandiri, dan Orias AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer, Pixel 8-Bit, Pixel Dino & Zodiak, ekspor HTML mandiri, dan Orias AI.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer & Pixel 8-Bit, ekspor HTML mandiri, dan Orias AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer, Pixel 8-Bit, Pixel Dino & Zodiak, ekspor HTML mandiri, dan Orias AI.',
   },
 };
 

@@ -82,6 +82,8 @@ export function ThemeModal({
             const isDetective = id === 'detective';
             const isSummer = id === 'summer';
             const isPixel = id === 'pixel';
+            const isDino = id === 'dino';
+            const isZodiac = id === 'zodiac';
 
             return (
               <button
@@ -161,7 +163,19 @@ export function ThemeModal({
                                               ? 'border-[#fde047] bg-[#132b6b]'
                                               : 'border-[#facc15]/80 hover:border-[#fde047]'
                                           }`
-                                        : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                                        : isDino
+                                          ? `bg-[#e5e7eb] text-[#18181b] border-2 rounded-none shadow-[3px_3px_0_#52525b] ${
+                                              active
+                                                ? 'border-[#18181b] bg-[#d4d4d8]'
+                                                : 'border-[#52525b] hover:border-[#18181b]'
+                                            }`
+                                          : isZodiac
+                                            ? `bg-[#091026] text-[#faf6eb] border rounded-[6px] ${
+                                                active
+                                                  ? 'border-[#d4af37] shadow-[0_0_16px_rgba(212,175,55,0.34)]'
+                                                  : 'border-[#d4af37]/55 hover:border-[#facc15]'
+                                              }`
+                                            : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -565,6 +579,79 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isDino ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-lg font-bold tracking-wide"
+                      style={{
+                        fontFamily:
+                          'var(--font-pixel), var(--font-mono), ui-monospace, monospace',
+                        color: '#27272a',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { y: [0, -5, 0] }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, y: 0 }
+                      }
+                      transition={{ duration: 0.22, ease: 'linear' }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3.5 shrink-0 border-2 border-[#27272a] bg-[#535353] shadow-[2px_2px_0_#9ca3af]"
+                        animate={
+                          isEngaged || active
+                            ? { y: [0, -3, 0] }
+                            : { y: 0 }
+                        }
+                        transition={{
+                          duration: 0.6,
+                          repeat: isEngaged || active ? Infinity : 0,
+                          ease: 'linear',
+                        }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
+                  ) : isZodiac ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-semibold tracking-wider"
+                      style={{
+                        fontFamily:
+                          'var(--font-ghost-display), var(--font-serif), Georgia, serif',
+                        color: '#faf6eb',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(212, 175, 55, 0.58)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.05 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1 }
+                      }
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3.5 shrink-0"
+                        style={{
+                          backgroundColor: '#e5c158',
+                          clipPath:
+                            'polygon(50% 0%, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0% 50%, 36% 36%)',
+                        }}
+                        animate={
+                          clickedTheme === id
+                            ? { rotate: 180, scale: 1.2 }
+                            : isEngaged || active
+                              ? { rotate: 45, scale: 1.08 }
+                              : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -622,7 +709,11 @@ export function ThemeModal({
                                             ? 'bg-[#facc15] text-[#422006] border border-[#ca8a04] rounded-full'
                                             : isPixel
                                               ? 'bg-[#facc15] text-[#08122e] border border-[#fde047] rounded-none'
-                                              : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                              : isDino
+                                                ? 'bg-[#3f3f46] text-[#f4f4f5] border border-[#18181b] rounded-none'
+                                                : isZodiac
+                                                  ? 'bg-[#d4af37] text-[#070b1a] rounded-[3px]'
+                                                  : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -661,7 +752,11 @@ export function ThemeModal({
                                             ? 'rounded-full border border-[#ca8a04]/70'
                                             : isPixel
                                               ? 'rounded-none border border-[#facc15]/85'
-                                              : 'rounded-[3px] border border-[#c5ccd8]'
+                                              : isDino
+                                                ? 'rounded-none border border-[#52525b]'
+                                                : isZodiac
+                                                  ? 'rounded-full border border-[#d4af37]/65'
+                                                  : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />

@@ -13,6 +13,8 @@ export const THEME_ORDER: ThemeId[] = [
   'detective',
   'summer',
   'pixel',
+  'dino',
+  'zodiac',
 ];
 
 export const THEME_META: Record<ThemeId, { name: string; description: string }> = {
@@ -75,6 +77,16 @@ export const THEME_META: Record<ThemeId, { name: string; description: string }> 
     description:
       'Dunia game retro pixel 8-bit bernuansa biru tua dan kuning: langit malam berpiksel, kastil & platform mengambang, koin emas berputar, pesawat luar angkasa, slime, dan karakter pahlawan pixel beranimasi.',
   },
+  dino: {
+    name: 'Pixel Dino',
+    description:
+      'Dunia game pixel Chrome Dino bernuansa abu-abu retro: trek gurun berpiksel, awan, kaktus, serta 4 dino acak yang bergantian lari terbang menabrak awan lalu jatuh dan bangkit lagi, dan berlari melompati kaktus hingga sesekali tersandung.',
+  },
+  zodiac: {
+    name: 'Zodiak',
+    description:
+      'Atlas astrologi malam indigo dan emas antik: roda astrolab berputar dengan 12 glif zodiak, konstelasi bintang bergantian menyala, orbit planet dengan garis aspek geometris, dan bintang jatuh.',
+  },
 };
 
 export const THEME_SWATCHES: Record<
@@ -131,5 +143,13 @@ export const THEME_SWATCHES: Record<
   pixel: {
     name: 'Pixel 8-Bit',
     colors: ['#08122e', '#132b6b', '#1d4ed8', '#facc15', '#fef08a'],
+  },
+  dino: {
+    name: 'Pixel Dino',
+    colors: ['#e5e7eb', '#d4d4d8', '#9ca3af', '#535353', '#27272a'],
+  },
+  zodiac: {
+    name: 'Zodiak',
+    colors: ['#070b1a', '#111b3d', '#334e78', '#d4af37', '#faf6eb'],
   },
 };

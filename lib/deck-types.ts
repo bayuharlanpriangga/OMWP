@@ -12,7 +12,9 @@ export type ThemeId =
   | 'aquarium'
   | 'detective'
   | 'summer'
-  | 'pixel';
+  | 'pixel'
+  | 'dino'
+  | 'zodiac';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';
 export type TextAlign = 'l' | 'c' | 'r';
