@@ -1,26 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  addBlockToSlide,
-  buildSlideAiContext,
-  buildStandaloneHtml,
-  computeReflowPositions,
   computeTableColumnWidths,
-  createBlock,
   createDefaultDeck,
-  deleteBlockInSlide,
-  duplicateSlide,
   getDeckDisplayTitle,
   getSlideHeaderTitle,
   loadAndNormalizeDeck,
   migrateLegacyDeck,
-  moveBlockInParent,
-  parseInlineMarkup,
   scanModalTitles,
   stripMarkup,
   syncSlideModals,
-  updateBlockInSlide,
 } from './deck-logic';
+import {
+  addBlockToSlide,
+  buildSlideAiContext,
+  buildStandaloneHtml,
+  deleteBlockInSlide,
+  duplicateSlide,
+  moveBlockInParent,
+  updateBlockInSlide,
+} from './logic/logic-presentation-app';
+import { parseInlineMarkup } from './logic/logic-page/logic-page-content/logic-markup-text-ai';
+import { createBlock } from './logic/logic-page/logic-page-content/logic-page-content-editor';
+import { computeReflowPositions } from './logic/logic-page/logic-page-present/logic-page-present';
 
 test('createDefaultDeck initializes an empty blank presentation without dummy data', () => {
   const deck = createDefaultDeck();

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildStandaloneHtml, createBlock, createDefaultDeck } from './deck-logic';
+import { createDefaultDeck } from './deck-logic';
+import { buildStandaloneHtml } from './logic/logic-presentation-app';
+import { createBlock } from './logic/logic-page/logic-page-content/logic-page-content-editor';
 import { importDeckFromHtml } from './html-import';
 
 test('importDeckFromHtml round-trips standalone HTML exported by the app', () => {

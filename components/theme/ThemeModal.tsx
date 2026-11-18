@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Check, X } from 'lucide-react';
 import type { ThemeId } from '@/lib/deck-types';
+import { THEME_ORDER, THEME_SWATCHES } from '@/lib/data/data-theme';
 
 interface ThemeModalProps {
   open: boolean;
@@ -11,63 +12,6 @@ interface ThemeModalProps {
   onSelectTheme: (theme: ThemeId) => void;
   onClose: () => void;
 }
-
-const THEME_SWATCHES: Record<
-  ThemeId,
-  {
-    name: string;
-    colors: string[];
-  }
-> = {
-  default: {
-    name: 'Default',
-    colors: ['#EEF1F4', '#FFFFFF', '#A9C6DC', '#D4A72C', '#0D0D0D'],
-  },
-  brutal: {
-    name: 'Brutalis',
-    colors: ['#fff4d6', '#ffd23f', '#ff6b35', '#2ec4b6', '#111111'],
-  },
-  auditor: {
-    name: 'Auditor',
-    colors: ['#f4f6f9', '#ffffff', '#14243d', '#b08d3c', '#1b2430'],
-  },
-  cyberpunk: {
-    name: 'Cyberpunk',
-    colors: ['#090612', '#150d28', '#a855f7', '#ff2a85', '#fcee0a'],
-  },
-  hacker: {
-    name: 'Hacker',
-    colors: ['#030804', '#06150b', '#00ff66', '#16a34a', '#d9ffe5'],
-  },
-  astronomi: {
-    name: 'Astronomi',
-    colors: ['#050507', '#18181b', '#71717a', '#d4d4d8', '#ffffff'],
-  },
-  ghost: {
-    name: 'Ghost',
-    colors: ['#080405', '#1a0a0c', '#dc2626', '#7f1d1d', '#f4eaea'],
-  },
-  halloween: {
-    name: 'Halloween',
-    colors: ['#09060d', '#1c1024', '#f97316', '#fbbf24', '#fff4e8'],
-  },
-  aquarium: {
-    name: 'Aquarium',
-    colors: ['#04182e', '#0c4a6e', '#0ea5e9', '#38bdf8', '#e0f2fe'],
-  },
-  detective: {
-    name: 'Detective',
-    colors: ['#1c120d', '#462818', '#8c5a3c', '#d4a373', '#f5ebe0'],
-  },
-  summer: {
-    name: 'Summer',
-    colors: ['#fef9c3', '#fde047', '#facc15', '#f59e0b', '#713f12'],
-  },
-  pixel: {
-    name: 'Pixel 8-Bit',
-    colors: ['#08122e', '#132b6b', '#1d4ed8', '#facc15', '#fef08a'],
-  },
-};
 
 export function ThemeModal({
   open,
@@ -86,21 +30,6 @@ export function ThemeModal({
   }, []);
 
   if (!open) return null;
-
-  const themes: ThemeId[] = [
-    'default',
-    'brutal',
-    'auditor',
-    'cyberpunk',
-    'hacker',
-    'astronomi',
-    'ghost',
-    'halloween',
-    'aquarium',
-    'detective',
-    'summer',
-    'pixel',
-  ];
 
   const handleChoose = (id: ThemeId) => {
     setClickedTheme(id);
@@ -138,7 +67,7 @@ export function ThemeModal({
         </div>
 
         <div className="space-y-2 max-h-[calc(88vh-135px)] overflow-y-auto px-0.5 py-0.5 pr-1">
-          {themes.map((id) => {
+          {THEME_ORDER.map((id) => {
             const visual = THEME_SWATCHES[id];
             const active = currentTheme === id;
             const isEngaged = hoveredTheme === id || clickedTheme === id;

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ArrowUpRight, Info } from 'lucide-react';
-import { parseInlineMarkup } from '@/lib/deck-logic';
+import { parseInlineMarkup } from '@/lib/logic/logic-page/logic-page-content/logic-markup-text-ai';
 import type { InlineToken } from '@/lib/deck-types';
 
 interface MarkupTextProps {

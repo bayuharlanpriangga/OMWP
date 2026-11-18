@@ -3,10 +3,10 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronRight, X } from 'lucide-react';
-import { stripMarkup } from '@/lib/deck-logic';
+import { stripMarkup } from '@/lib/logic/logic-page/logic-page-content/logic-markup-text-modal';
 import type { Block, SlideModal } from '@/lib/deck-types';
 import { MarkupText } from './MarkupTextAi';
-import { TableBlockView } from '@/components/TableBlockView';
+import { TableView } from '@/components/TableView';
 
 interface MarkupTextModalProps {
   modal: SlideModal | null;
@@ -137,7 +137,7 @@ function ModalBlockList({
               </div>
             )}
             {b.t === 'table' && (
-              <TableBlockView
+              <TableView
                 block={b}
                 live={true}
                 insideModal={true}

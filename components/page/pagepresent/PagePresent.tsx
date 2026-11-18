@@ -7,10 +7,10 @@ import {
   clamp,
   computeReflowPositions,
   stripMarkup,
-} from '@/lib/deck-logic';
+} from '@/lib/logic/logic-page/logic-page-present/logic-page-present';
 import type { Block, Slide, ThemeId } from '@/lib/deck-types';
 import { MarkupText } from '../pagecontent/MarkupTextAi';
-import { TableBlockView } from '../../TableBlockView';
+import { TableView } from '../../TableView';
 
 interface SlideBlockContentProps {
   block: Block;
@@ -229,7 +229,7 @@ export function SlideBlockContent({
 
   if (b.t === 'table') {
     return (
-      <TableBlockView
+      <TableView
         block={b}
         live={live}
         onTermClick={onTermClick}

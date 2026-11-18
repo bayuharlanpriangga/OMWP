@@ -5,7 +5,7 @@ import { computeTableColumnWidths } from '@/lib/deck-logic';
 import type { TableBlock } from '@/lib/deck-types';
 import { MarkupText } from './page/pagecontent/MarkupTextAi';
 
-interface TableBlockViewProps {
+interface TableViewProps {
   block: TableBlock;
   live: boolean;
   insideModal?: boolean;
@@ -13,13 +13,13 @@ interface TableBlockViewProps {
   onModalClick?: (title: string, event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-export function TableBlockView({
+export function TableView({
   block,
   live,
   insideModal = false,
   onTermClick,
   onModalClick,
-}: TableBlockViewProps) {
+}: TableViewProps) {
   const headers = block.headers.length > 0 ? block.headers : ['Kolom 1'];
   const rows = block.rows.length > 0 ? block.rows : [headers.map(() => '')];
   const layout = computeTableColumnWidths(headers, rows, block.w);

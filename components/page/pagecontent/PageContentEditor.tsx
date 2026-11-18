@@ -25,11 +25,19 @@ import {
 } from 'lucide-react';
 import {
   BLOCK_NAMES,
+  CONTAINER_ADD_BLOCK_TYPES,
+  MODAL_ADD_BLOCK_TYPES,
+  PAGE_CONTENT_EDITOR_LABELS,
+  SLIDE_ADD_BLOCK_TYPES,
+  TEXT_ALIGN_OPTIONS,
+  TEXT_SIZE_OPTIONS,
+} from '@/lib/data/data-page-content-editor';
+import {
   clamp,
   computeTableColumnWidths,
   createBlock,
   getSlideTitle,
-} from '@/lib/deck-logic';
+} from '@/lib/logic/logic-page/logic-page-content/logic-page-content-editor';
 import type {
   Block,
   Deck,
@@ -39,7 +47,7 @@ import type {
 } from '@/lib/deck-types';
 import { PageContentEditorGuide } from './PageContentEditorGuide';
 import { MarkupText } from './MarkupTextAi';
-import { TableBlockView } from '@/components/TableBlockView';
+import { TableView } from '@/components/TableView';
 
 interface PageContentEditorProps {
   deck: Deck;
@@ -162,24 +170,28 @@ function RichMarkupTextarea({
             className={`pbtn sm ${showTools ? 'on' : ''}`}
             onClick={() => setShowTools((v) => !v)}
           >
-            Format teks
+            {PAGE_CONTENT_EDITOR_LABELS.rte.formatTextButton}
           </button>
           <button
             type="button"
             className="pbtn sm"
-            onClick={() => wrapSelection('[[', ']]', 'istilah')}
-            title="Tandai istilah agar bisa dijelaskan Orias AI"
+            onClick={() =>
+              wrapSelection('[[', ']]', PAGE_CONTENT_EDITOR_LABELS.rte.aiTermFallback)
+            }
+            title={PAGE_CONTENT_EDITOR_LABELS.rte.aiTermTitle}
           >
             <Sparkles className="w-3 h-3" aria-hidden="true" />
-            <span>[[Istilah AI]]</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.rte.aiTermButton}</span>
           </button>
           <button
             type="button"
             className="pbtn sm"
-            onClick={() => wrapSelection('[[[', ']]]', 'Judul Modal')}
-            title="Tandai teks untuk membuka popup modal"
+            onClick={() =>
+              wrapSelection('[[[', ']]]', PAGE_CONTENT_EDITOR_LABELS.rte.modalFallback)
+            }
+            title={PAGE_CONTENT_EDITOR_LABELS.rte.modalTitle}
           >
-            <span>[[[Modal]]]</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.rte.modalButton}</span>
           </button>
         </div>
 
@@ -190,7 +202,7 @@ function RichMarkupTextarea({
           aria-pressed={showPreview}
         >
           <Eye className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>Pratinjau</span>
+          <span>{PAGE_CONTENT_EDITOR_LABELS.rte.previewButton}</span>
         </button>
       </div>
 
@@ -202,16 +214,17 @@ function RichMarkupTextarea({
             onClick={() => {
               const el = textareaRef.current;
               const hasSel = el && el.selectionStart !== el.selectionEnd;
-              if (hasSel) wrapSelection('**', '**', 'teks');
+              if (hasSel)
+                wrapSelection('**', '**', PAGE_CONTENT_EDITOR_LABELS.rte.selectionFallback);
               else if (allowWholeBlockStyle && onToggleBold) onToggleBold();
-              else wrapSelection('**', '**', 'teks tebal');
+              else wrapSelection('**', '**', PAGE_CONTENT_EDITOR_LABELS.rte.boldFallback);
             }}
-            aria-label="Tebal"
+            aria-label={PAGE_CONTENT_EDITOR_LABELS.rte.boldAriaLabel}
           >
             <Bold className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
 
-          {(['s', 'm', 'l', 'xl'] as const).map((sz) => (
+          {TEXT_SIZE_OPTIONS.map((sz) => (
             <button
               key={sz}
               type="button"
@@ -221,9 +234,19 @@ function RichMarkupTextarea({
               onClick={() => {
                 const el = textareaRef.current;
                 const hasSel = el && el.selectionStart !== el.selectionEnd;
-                if (hasSel) wrapSelection(`{${sz}}`, `{/${sz}}`, 'teks');
+                if (hasSel)
+                  wrapSelection(
+                    `{${sz}}`,
+                    `{/${sz}}`,
+                    PAGE_CONTENT_EDITOR_LABELS.rte.selectionFallback
+                  );
                 else if (allowWholeBlockStyle && onChangeSize) onChangeSize(sz);
-                else wrapSelection(`{${sz}}`, `{/${sz}}`, 'teks');
+                else
+                  wrapSelection(
+                    `{${sz}}`,
+                    `{/${sz}}`,
+                    PAGE_CONTENT_EDITOR_LABELS.rte.selectionFallback
+                  );
               }}
             >
               {sz.toUpperCase()}
@@ -236,7 +259,7 @@ function RichMarkupTextarea({
                 type="button"
                 className={`pbtn sm ${align === 'l' ? 'on' : ''}`}
                 onClick={() => onChangeAlign('l')}
-                aria-label="Rata kiri"
+                aria-label={TEXT_ALIGN_OPTIONS[0].label}
               >
                 <AlignLeft className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
@@ -244,7 +267,7 @@ function RichMarkupTextarea({
                 type="button"
                 className={`pbtn sm ${align === 'c' ? 'on' : ''}`}
                 onClick={() => onChangeAlign('c')}
-                aria-label="Rata tengah"
+                aria-label={TEXT_ALIGN_OPTIONS[1].label}
               >
                 <AlignCenter className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
@@ -252,7 +275,7 @@ function RichMarkupTextarea({
                 type="button"
                 className={`pbtn sm ${align === 'r' ? 'on' : ''}`}
                 onClick={() => onChangeAlign('r')}
-                aria-label="Rata kanan"
+                aria-label={TEXT_ALIGN_OPTIONS[2].label}
               >
                 <AlignRight className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
@@ -273,11 +296,15 @@ function RichMarkupTextarea({
 
       {showPreview && (
         <div className="p-3 rounded-lg border border-current/20 bg-[var(--card)] text-sm">
-          <div className="text-xs font-mono opacity-60 mb-1">Pratinjau:</div>
+          <div className="text-xs font-mono opacity-60 mb-1">
+            {PAGE_CONTENT_EDITOR_LABELS.rte.previewHeading}
+          </div>
           {value ? (
             <MarkupText text={value} live={false} />
           ) : (
-            <span className="italic opacity-55">(kosong)</span>
+            <span className="italic opacity-55">
+              {PAGE_CONTENT_EDITOR_LABELS.rte.emptyPreview}
+            </span>
           )}
         </div>
       )}
@@ -293,7 +320,10 @@ function TableBlockEditor({
   onUpdate: (updater: (prev: TableBlock) => TableBlock) => void;
 }) {
   const [showPreview, setShowPreview] = React.useState(false);
-  const headers = block.headers.length > 0 ? block.headers : ['Kolom 1'];
+  const headers =
+    block.headers.length > 0
+      ? block.headers
+      : [PAGE_CONTENT_EDITOR_LABELS.table.defaultFirstCol];
   const rows = block.rows.length > 0 ? block.rows : [headers.map(() => '')];
   const layout = computeTableColumnWidths(headers, rows, block.w);
 
@@ -303,7 +333,9 @@ function TableBlockEditor({
       const curCols = prev.headers.length;
       if (nextCols === curCols) return prev;
       const nextHeaders = Array.from({ length: nextCols }, (_, i) =>
-        i < curCols ? prev.headers[i] : `Header ${i + 1}`
+        i < curCols
+          ? prev.headers[i]
+          : `${PAGE_CONTENT_EDITOR_LABELS.table.headerPrefix} ${i + 1}`
       );
       const nextRows = prev.rows.map((r) =>
         Array.from({ length: nextCols }, (_, i) => r[i] ?? '')
@@ -354,13 +386,15 @@ function TableBlockEditor({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold opacity-80">Header:</span>
+            <span className="text-xs font-semibold opacity-80">
+              {PAGE_CONTENT_EDITOR_LABELS.table.headerLabel}
+            </span>
             <button
               type="button"
               className="pbtn sm !px-2"
               disabled={headers.length <= 1}
               onClick={() => setColumnCount(headers.length - 1)}
-              aria-label="Kurangi jumlah header tabel"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.table.decreaseColsAria}
             >
               <Minus className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
@@ -369,7 +403,7 @@ function TableBlockEditor({
               min={1}
               max={12}
               className="pinput !w-14 !py-1 !px-1.5 text-center text-sm font-mono tabular-nums"
-              aria-label="Jumlah header tabel"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.table.colsCountAria}
               value={headers.length}
               onChange={(e) => {
                 const parsed = Number.parseInt(e.target.value, 10);
@@ -381,21 +415,23 @@ function TableBlockEditor({
               className="pbtn sm !px-2"
               disabled={headers.length >= 12}
               onClick={() => setColumnCount(headers.length + 1)}
-              aria-label="Tambah header tabel"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.table.increaseColsAria}
             >
               <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Kolom</span>
+              <span>{PAGE_CONTENT_EDITOR_LABELS.table.addColButton}</span>
             </button>
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold opacity-80">Baris:</span>
+            <span className="text-xs font-semibold opacity-80">
+              {PAGE_CONTENT_EDITOR_LABELS.table.rowLabel}
+            </span>
             <button
               type="button"
               className="pbtn sm !px-2"
               disabled={rows.length <= 1}
               onClick={() => setRowCount(rows.length - 1)}
-              aria-label="Kurangi jumlah baris tabel"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.table.decreaseRowsAria}
             >
               <Minus className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
@@ -404,7 +440,7 @@ function TableBlockEditor({
               min={1}
               max={50}
               className="pinput !w-14 !py-1 !px-1.5 text-center text-sm font-mono tabular-nums"
-              aria-label="Jumlah baris tabel"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.table.rowsCountAria}
               value={rows.length}
               onChange={(e) => {
                 const parsed = Number.parseInt(e.target.value, 10);
@@ -416,10 +452,10 @@ function TableBlockEditor({
               className="pbtn sm !px-2"
               disabled={rows.length >= 50}
               onClick={() => setRowCount(rows.length + 1)}
-              aria-label="Tambah baris tabel"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.table.increaseRowsAria}
             >
               <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Baris</span>
+              <span>{PAGE_CONTENT_EDITOR_LABELS.table.addRowButton}</span>
             </button>
           </div>
         </div>
@@ -430,8 +466,8 @@ function TableBlockEditor({
             data-testid="table-sizing-status"
           >
             {layout.mode === 'symmetric'
-              ? `Simetris (${layout.widths.map((w) => `${Math.round(w)}%`).join(' : ')})`
-              : `Fit teks (${layout.widths.map((w) => `${Math.round(w)}%`).join(' : ')})`}
+              ? `${PAGE_CONTENT_EDITOR_LABELS.table.symmetricPrefix} (${layout.widths.map((w) => `${Math.round(w)}%`).join(' : ')})`
+              : `${PAGE_CONTENT_EDITOR_LABELS.table.adaptivePrefix} (${layout.widths.map((w) => `${Math.round(w)}%`).join(' : ')})`}
           </span>
           <button
             type="button"
@@ -440,7 +476,7 @@ function TableBlockEditor({
             aria-pressed={showPreview}
           >
             <Eye className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Pratinjau</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.table.previewButton}</span>
           </button>
         </div>
       </div>
@@ -464,15 +500,15 @@ function TableBlockEditor({
                 <th key={colIdx} className="p-1 align-bottom text-left font-normal">
                   <div className="flex items-center justify-between gap-1 mb-1 px-0.5">
                     <span className="text-[11px] font-mono opacity-70">
-                      Header {colIdx + 1} · {Math.round(layout.widths[colIdx] ?? 0)}%
+                      {PAGE_CONTENT_EDITOR_LABELS.table.headerPrefix} {colIdx + 1} · {Math.round(layout.widths[colIdx] ?? 0)}%
                     </span>
                     {headers.length > 1 && (
                       <button
                         type="button"
                         className="pbtn sm !p-0 !w-6 !h-6"
                         onClick={() => removeColumn(colIdx)}
-                        aria-label={`Hapus kolom ${colIdx + 1}`}
-                        title={`Hapus kolom ${colIdx + 1}`}
+                        aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.deleteColPrefix} ${colIdx + 1}`}
+                        title={`${PAGE_CONTENT_EDITOR_LABELS.table.deleteColPrefix} ${colIdx + 1}`}
                       >
                         <X className="w-3 h-3" aria-hidden="true" />
                       </button>
@@ -481,8 +517,8 @@ function TableBlockEditor({
                   <input
                     type="text"
                     className="pinput !py-1.5 !px-2 text-sm font-semibold min-w-[96px]"
-                    placeholder={`Header ${colIdx + 1}`}
-                    aria-label={`Header kolom ${colIdx + 1}`}
+                    placeholder={`${PAGE_CONTENT_EDITOR_LABELS.table.headerPrefix} ${colIdx + 1}`}
+                    aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.headerAriaPrefix} ${colIdx + 1}`}
                     value={headerText}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -496,7 +532,12 @@ function TableBlockEditor({
                   />
                 </th>
               ))}
-              {rows.length > 1 && <th className="w-9 p-1" aria-label="Aksi baris" />}
+              {rows.length > 1 && (
+                <th
+                  className="w-9 p-1"
+                  aria-label={PAGE_CONTENT_EDITOR_LABELS.table.rowActionsAria}
+                />
+              )}
             </tr>
           </thead>
           <tbody>
@@ -507,8 +548,8 @@ function TableBlockEditor({
                     <textarea
                       rows={3}
                       className="ptarea !py-1.5 !px-2 text-sm leading-snug min-w-[96px]"
-                      placeholder={`Isi baris ${rowIdx + 1}`}
-                      aria-label={`Baris ${rowIdx + 1} Kolom ${colIdx + 1}`}
+                      placeholder={`${PAGE_CONTENT_EDITOR_LABELS.table.rowPlaceholderPrefix} ${rowIdx + 1}`}
+                      aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.rowAriaPrefix} ${rowIdx + 1} ${PAGE_CONTENT_EDITOR_LABELS.table.colAriaPrefix} ${colIdx + 1}`}
                       value={row[colIdx] ?? ''}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -532,8 +573,8 @@ function TableBlockEditor({
                       type="button"
                       className="pbtn sm !p-0 !w-7 !h-7"
                       onClick={() => removeRow(rowIdx)}
-                      aria-label={`Hapus baris ${rowIdx + 1}`}
-                      title={`Hapus baris ${rowIdx + 1}`}
+                      aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.deleteRowPrefix} ${rowIdx + 1}`}
+                      title={`${PAGE_CONTENT_EDITOR_LABELS.table.deleteRowPrefix} ${rowIdx + 1}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
@@ -547,8 +588,10 @@ function TableBlockEditor({
 
       {showPreview && (
         <div className="p-3 rounded-lg border border-current/20 bg-[var(--bg)]">
-          <div className="text-xs font-mono opacity-60 mb-2">Pratinjau tabel:</div>
-          <TableBlockView
+          <div className="text-xs font-mono opacity-60 mb-2">
+            {PAGE_CONTENT_EDITOR_LABELS.table.previewHeading}
+          </div>
+          <TableView
             block={block}
             live={false}
             onTermClick={() => {}}
@@ -678,10 +721,10 @@ export function PageContentEditor({
                 b.t === 'box' && b.children.length > 0
               )
             }
-            aria-label={`Hapus blok ${BLOCK_NAMES[b.t]}`}
+            aria-label={`${PAGE_CONTENT_EDITOR_LABELS.block.deleteAriaPrefix} ${BLOCK_NAMES[b.t]}`}
           >
             <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Hapus</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.block.deleteButton}</span>
           </button>
         </div>
 
@@ -689,7 +732,7 @@ export function PageContentEditor({
           <RichMarkupTextarea
             blockId={b.id}
             value={b.text}
-            placeholder="Tulis teks… [[istilah]] = jelaskan via AI, [[[istilah]]] = popup modal"
+            placeholder={PAGE_CONTENT_EDITOR_LABELS.block.textPlaceholder}
             align={b.align}
             isBold={b.b}
             sizeClass={b.size}
@@ -722,8 +765,8 @@ export function PageContentEditor({
             <input
               type="text"
               className={`pinput-bt ${b.align ? `a-${b.align}` : ''}`}
-              placeholder="Judul tambahan (sama seperti header container)"
-              aria-label={`Judul tambahan container ${titleNumber}`}
+              placeholder={PAGE_CONTENT_EDITOR_LABELS.block.titlePlaceholder}
+              aria-label={`${PAGE_CONTENT_EDITOR_LABELS.block.titleAriaPrefix} ${titleNumber}`}
               value={b.text}
               onChange={(e) => {
                 const val = e.target.value;
@@ -733,28 +776,30 @@ export function PageContentEditor({
               }}
             />
             <div className="flex flex-wrap items-center gap-1.5">
-              {(
-                [
-                  { value: 'l', label: 'Rata kiri', Icon: AlignLeft },
-                  { value: 'c', label: 'Rata tengah', Icon: AlignCenter },
-                  { value: 'r', label: 'Rata kanan', Icon: AlignRight },
-                ] as const
-              ).map(({ value, label, Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`pbtn sm ${(b.align || 'l') === value ? 'on' : ''}`}
-                  onClick={() =>
-                    onUpdateBlock(b.id, (prev) =>
-                      prev.t === 'title' ? { ...prev, align: value } : prev
-                    )
-                  }
-                  aria-label={label}
-                  title={label}
-                >
-                  <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-                </button>
-              ))}
+              {TEXT_ALIGN_OPTIONS.map(({ value, label }) => {
+                const Icon =
+                  value === 'l'
+                    ? AlignLeft
+                    : value === 'c'
+                      ? AlignCenter
+                      : AlignRight;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`pbtn sm ${(b.align || 'l') === value ? 'on' : ''}`}
+                    onClick={() =>
+                      onUpdateBlock(b.id, (prev) =>
+                        prev.t === 'title' ? { ...prev, align: value } : prev
+                      )
+                    }
+                    aria-label={label}
+                    title={label}
+                  >
+                    <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -766,8 +811,8 @@ export function PageContentEditor({
                 type="text"
                 className="pinput !w-20 sm:!w-24 shrink-0 text-center font-bold"
                 placeholder={String(ddNumber)}
-                aria-label="Format poin dropdown"
-                title="Format poin / huruf / simbol (kosong = nomor urut otomatis)"
+                aria-label={PAGE_CONTENT_EDITOR_LABELS.block.ddBadgeAria}
+                title={PAGE_CONTENT_EDITOR_LABELS.block.ddBadgeTitle}
                 value={b.badge ?? ''}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -779,8 +824,8 @@ export function PageContentEditor({
               <input
                 type="text"
                 className="pinput flex-1 min-w-0 font-semibold"
-                placeholder="Judul poin"
-                aria-label="Judul poin dropdown"
+                placeholder={PAGE_CONTENT_EDITOR_LABELS.block.ddTitlePlaceholder}
+                aria-label={PAGE_CONTENT_EDITOR_LABELS.block.ddTitleAria}
                 value={b.text}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -793,7 +838,7 @@ export function PageContentEditor({
             <RichMarkupTextarea
               blockId={b.id}
               value={b.detail}
-              placeholder="Penjelasan… [[istilah]] = jelaskan via AI, [[[istilah]]] = popup"
+              placeholder={PAGE_CONTENT_EDITOR_LABELS.block.ddDetailPlaceholder}
               align={b.align || 'l'}
               allowWholeBlockStyle={false}
               onChange={(val) =>
@@ -817,7 +862,7 @@ export function PageContentEditor({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={b.src}
-                  alt={b.alt || 'Pratinjau'}
+                  alt={b.alt || PAGE_CONTENT_EDITOR_LABELS.block.imgPreviewAlt}
                   className="im"
                   referrerPolicy="no-referrer"
                 />
@@ -830,14 +875,18 @@ export function PageContentEditor({
                 onClick={() => pickImage({ kind: 'replace', id: b.id })}
               >
                 <ImagePlus className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>{b.src ? 'Ganti gambar' : 'Pilih gambar'}</span>
+                <span>
+                  {b.src
+                    ? PAGE_CONTENT_EDITOR_LABELS.block.imgReplaceButton
+                    : PAGE_CONTENT_EDITOR_LABELS.block.imgPickButton}
+                </span>
               </button>
             </div>
             <input
               type="text"
               className="pinput text-sm"
-              placeholder="Deskripsi gambar (opsional)"
-              aria-label="Deskripsi alt gambar"
+              placeholder={PAGE_CONTENT_EDITOR_LABELS.block.imgAltPlaceholder}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.block.imgAltAria}
               value={b.alt}
               onChange={(e) => {
                 const val = e.target.value;
@@ -854,8 +903,8 @@ export function PageContentEditor({
             <input
               type="text"
               className="pinput-bt"
-              placeholder="Judul container (opsional)"
-              aria-label="Judul container"
+              placeholder={PAGE_CONTENT_EDITOR_LABELS.block.boxTitlePlaceholder}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.block.boxTitleAria}
               value={b.title}
               onChange={(e) => {
                 const val = e.target.value;
@@ -867,7 +916,7 @@ export function PageContentEditor({
             <div className="space-y-3 pl-2">
               {renderBlockList(b.children)}
             </div>
-            {renderAddButtons(b.id, ['title', 'text', 'img', 'dd', 'table', 'concl'])}
+            {renderAddButtons(b.id, CONTAINER_ADD_BLOCK_TYPES)}
           </div>
         )}
 
@@ -887,8 +936,8 @@ export function PageContentEditor({
             <input
               type="text"
               className="pinput font-semibold"
-              placeholder="Teks tombol kesimpulan"
-              aria-label="Teks tombol kesimpulan"
+              placeholder={PAGE_CONTENT_EDITOR_LABELS.block.conclLabelPlaceholder}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.block.conclLabelAria}
               value={b.label}
               onChange={(e) => {
                 const val = e.target.value;
@@ -900,7 +949,7 @@ export function PageContentEditor({
             <RichMarkupTextarea
               blockId={b.id}
               value={b.text}
-              placeholder="Isi kesimpulan"
+              placeholder={PAGE_CONTENT_EDITOR_LABELS.block.conclTextPlaceholder}
               align={b.align || 'l'}
               allowWholeBlockStyle={false}
               onChange={(val) =>
@@ -967,14 +1016,14 @@ export function PageContentEditor({
             className={`pbtn sm min-w-[40px] ${idx === slideIndex ? 'on' : ''}`}
             onClick={() => onSelectSlide(idx)}
             title={getSlideTitle(s)}
-            aria-label={`Pilih slide ${idx + 1}: ${getSlideTitle(s)}`}
+            aria-label={`${PAGE_CONTENT_EDITOR_LABELS.slide.selectSlideAriaPrefix} ${idx + 1}: ${getSlideTitle(s)}`}
           >
             {idx + 1}
           </button>
         ))}
         <button type="button" className="pbtn sm" onClick={onAddSlide}>
           <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>Slide</span>
+          <span>{PAGE_CONTENT_EDITOR_LABELS.slide.addSlideButton}</span>
         </button>
       </div>
 
@@ -985,8 +1034,8 @@ export function PageContentEditor({
           className="pbtn sm w-[34px] h-[34px] !p-0"
           disabled={slideIndex <= 0}
           onClick={() => onMoveSlide(-1)}
-          aria-label="Geser slide sebelumnya"
-          title="Geser slide sebelumnya"
+          aria-label={PAGE_CONTENT_EDITOR_LABELS.slide.movePrevAria}
+          title={PAGE_CONTENT_EDITOR_LABELS.slide.movePrevAria}
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
         </button>
@@ -995,8 +1044,8 @@ export function PageContentEditor({
           className="pbtn sm w-[34px] h-[34px] !p-0"
           disabled={slideIndex >= deck.slides.length - 1}
           onClick={() => onMoveSlide(1)}
-          aria-label="Geser slide berikutnya"
-          title="Geser slide berikutnya"
+          aria-label={PAGE_CONTENT_EDITOR_LABELS.slide.moveNextAria}
+          title={PAGE_CONTENT_EDITOR_LABELS.slide.moveNextAria}
         >
           <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </button>
@@ -1006,7 +1055,7 @@ export function PageContentEditor({
           onClick={onDuplicateSlide}
         >
           <Copy className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>Duplikat</span>
+          <span>{PAGE_CONTENT_EDITOR_LABELS.slide.duplicateButton}</span>
         </button>
         <button
           type="button"
@@ -1014,14 +1063,14 @@ export function PageContentEditor({
           onClick={onDeleteSlide}
         >
           <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>Hapus slide</span>
+          <span>{PAGE_CONTENT_EDITOR_LABELS.slide.deleteSlideButton}</span>
         </button>
         <button
           type="button"
           className="pbtn sm w-[34px] h-[34px] !p-0 ml-auto"
           onClick={() => setGuideOpen(true)}
-          aria-label="Panduan editor"
-          title="Panduan editor"
+          aria-label={PAGE_CONTENT_EDITOR_LABELS.slide.guideAria}
+          title={PAGE_CONTENT_EDITOR_LABELS.slide.guideAria}
         >
           <BookOpen className="w-4 h-4" aria-hidden="true" />
         </button>
@@ -1033,13 +1082,15 @@ export function PageContentEditor({
           htmlFor="slide-header-title-input"
           className="block text-sm font-bold mb-1"
         >
-          Judul presentasi di header (Halaman {slideIndex + 1})
+          {PAGE_CONTENT_EDITOR_LABELS.slide.headerTitlePrefix} (
+          {PAGE_CONTENT_EDITOR_LABELS.slide.headerTitlePagePrefix}{' '}
+          {slideIndex + 1})
         </label>
         <input
           id="slide-header-title-input"
           type="text"
           className="pinput"
-          placeholder="Judul header untuk halaman ini (opsional)"
+          placeholder={PAGE_CONTENT_EDITOR_LABELS.slide.headerTitlePlaceholder}
           value={
             typeof slide.headerTitle === 'string'
               ? slide.headerTitle
@@ -1050,17 +1101,19 @@ export function PageContentEditor({
       </div>
 
       {/* Add component buttons directly below presentation title */}
-      {renderAddButtons(undefined, ['text', 'img', 'dd', 'box', 'table', 'concl'], 'mt-0')}
+      {renderAddButtons(undefined, SLIDE_ADD_BLOCK_TYPES, 'mt-0')}
 
       {/* Blocks */}
       <div className="pt-2">
-        <h2 className="text-xl font-bold mb-3">Isi slide</h2>
+        <h2 className="text-xl font-bold mb-3">
+          {PAGE_CONTENT_EDITOR_LABELS.slide.sectionTitle}
+        </h2>
         <div className="space-y-3">
           {renderBlockList(slide.blocks)}
         </div>
         {slide.blocks.length === 0 && (
           <p className="text-sm opacity-70 mt-2">
-            Slide ini masih kosong. Tambahkan komponen di atas.
+            {PAGE_CONTENT_EDITOR_LABELS.slide.emptySlideMessage}
           </p>
         )}
       </div>
@@ -1069,17 +1122,21 @@ export function PageContentEditor({
       {(slide.modals || []).length > 0 && (
         <div className="pt-4 border-t border-current/15 space-y-3">
           <div>
-            <h2 className="text-xl font-bold m-0">Modal</h2>
+            <h2 className="text-xl font-bold m-0">
+              {PAGE_CONTENT_EDITOR_LABELS.modals.sectionTitle}
+            </h2>
           </div>
           <div className="space-y-4">
             {(slide.modals || []).map((m) => (
               <div key={m.id} className="card box space-y-3">
                 <div className="text-xs font-mono uppercase tracking-wider opacity-65">
-                  Modal
+                  {PAGE_CONTENT_EDITOR_LABELS.modals.itemBadge}
                 </div>
                 <div className="bt">
                   {m.title || (
-                    <span className="italic opacity-55">(tanpa judul)</span>
+                    <span className="italic opacity-55">
+                      {PAGE_CONTENT_EDITOR_LABELS.modals.untitledLabel}
+                    </span>
                   )}
                 </div>
                 <div className="space-y-3">
@@ -1087,10 +1144,10 @@ export function PageContentEditor({
                 </div>
                 {m.children.length === 0 && (
                   <p className="text-xs opacity-70 m-0">
-                    Modal masih kosong. Tambahkan komponen di bawah.
+                    {PAGE_CONTENT_EDITOR_LABELS.modals.emptyModalMessage}
                   </p>
                 )}
-                {renderAddButtons(m.id, ['title', 'text', 'img', 'dd', 'table', 'concl'])}
+                {renderAddButtons(m.id, MODAL_ADD_BLOCK_TYPES)}
               </div>
             ))}
           </div>
@@ -1102,11 +1159,11 @@ export function PageContentEditor({
         <div className="flex flex-wrap gap-2">
           <button type="button" className="pbtn" onClick={onExportHtml}>
             <Download className="w-4 h-4" aria-hidden="true" />
-            <span>Export HTML final</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.io.exportHtmlButton}</span>
           </button>
           <button type="button" className="pbtn" onClick={onExportJson}>
             <FileJson className="w-4 h-4" aria-hidden="true" />
-            <span>Simpan JSON</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.io.exportJsonButton}</span>
           </button>
           <button
             type="button"
@@ -1114,7 +1171,7 @@ export function PageContentEditor({
             onClick={() => jsonInputRef.current?.click()}
           >
             <FolderOpen className="w-4 h-4" aria-hidden="true" />
-            <span>Buka JSON</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.io.importJsonButton}</span>
           </button>
           <button
             type="button"
@@ -1123,32 +1180,34 @@ export function PageContentEditor({
             onClick={() => setShowHtmlImport((v) => !v)}
           >
             <FileCode2 className="w-4 h-4" aria-hidden="true" />
-            <span>Import HTML</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.io.importHtmlButton}</span>
           </button>
           <button type="button" className="pbtn" onClick={onResetDeck}>
             <RotateCcw className="w-4 h-4" aria-hidden="true" />
-            <span>Kosongkan</span>
+            <span>{PAGE_CONTENT_EDITOR_LABELS.io.resetDeckButton}</span>
           </button>
         </div>
 
         {showHtmlImport && (
           <div className="ec space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <strong className="text-sm">Impor Presentasi dari HTML</strong>
+              <strong className="text-sm">
+                {PAGE_CONTENT_EDITOR_LABELS.io.htmlImportHeading}
+              </strong>
               <button
                 type="button"
                 className="pbtn sm"
                 onClick={() => htmlInputRef.current?.click()}
               >
                 <FolderOpen className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Pilih file .html</span>
+                <span>{PAGE_CONTENT_EDITOR_LABELS.io.pickHtmlFileButton}</span>
               </button>
             </div>
             <textarea
               rows={5}
               className="ptarea font-mono text-xs leading-relaxed"
-              placeholder="Atau tempel kode HTML slide presentasi di sini…"
-              aria-label="Tempel kode HTML presentasi"
+              placeholder={PAGE_CONTENT_EDITOR_LABELS.io.pasteHtmlPlaceholder}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.io.pasteHtmlAria}
               value={pastedHtml}
               onChange={(e) => setPastedHtml(e.target.value)}
             />
@@ -1161,7 +1220,7 @@ export function PageContentEditor({
                   setPastedHtml('');
                 }}
               >
-                Batal
+                {PAGE_CONTENT_EDITOR_LABELS.io.cancelButton}
               </button>
               <button
                 type="button"
@@ -1174,7 +1233,7 @@ export function PageContentEditor({
                   }
                 }}
               >
-                Impor HTML ke editor
+                {PAGE_CONTENT_EDITOR_LABELS.io.applyHtmlButton}
               </button>
             </div>
           </div>

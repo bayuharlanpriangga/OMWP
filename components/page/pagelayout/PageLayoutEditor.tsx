@@ -8,7 +8,7 @@ import {
   type AlignmentGuideLine,
   type RectPx,
 } from '@/lib/alignment-guides';
-import { clamp } from '@/lib/deck-logic';
+import { clamp } from '@/lib/logic/logic-page/logic-page-layout/logic-page-layout-editor';
 import type { Block, Slide, ThemeId } from '@/lib/deck-types';
 import { SlideBlockContent } from '../pagepresent/PagePresent';
 

@@ -11,7 +11,7 @@ import {
   Plus,
   X,
 } from 'lucide-react';
-import { BLOCK_NAMES } from '@/lib/deck-logic';
+import { BLOCK_NAMES } from '@/lib/logic/logic-page/logic-page-layout/logic-page-layout-editor-panel';
 import type { Block, TextAlign, TextSize } from '@/lib/deck-types';
 
 interface PageLayoutEditorPanelProps {
