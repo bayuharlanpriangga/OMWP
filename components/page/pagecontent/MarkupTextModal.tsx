@@ -5,10 +5,10 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ChevronRight, X } from 'lucide-react';
 import { stripMarkup } from '@/lib/deck-logic';
 import type { Block, SlideModal } from '@/lib/deck-types';
-import { MarkupText } from './MarkupText';
-import { TableBlockView } from './TableBlockView';
+import { MarkupText } from './MarkupTextAi';
+import { TableBlockView } from '@/components/TableBlockView';
 
-interface PopupModalProps {
+interface MarkupTextModalProps {
   modal: SlideModal | null;
   onClose: () => void;
   onTermClick: (term: string, e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -151,12 +151,12 @@ function ModalBlockList({
   );
 }
 
-export function PopupModal({
+export function MarkupTextModal({
   modal,
   onClose,
   onTermClick,
   onImageZoom,
-}: PopupModalProps) {
+}: MarkupTextModalProps) {
   return (
     <AnimatePresence>
       {modal && (

@@ -32,7 +32,7 @@ const MONOCHROME_STARS = [
   '#a1a1aa',
 ];
 
-export function SpaceBackdrop() {
+export function SpaceTheme() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

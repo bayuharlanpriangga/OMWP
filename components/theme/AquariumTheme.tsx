@@ -48,7 +48,7 @@ interface KelpBlade {
   phase: number;
 }
 
-export function AquariumBackdrop() {
+export function AquariumTheme() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

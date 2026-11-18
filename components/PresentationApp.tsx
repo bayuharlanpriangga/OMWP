@@ -41,25 +41,27 @@ import {
   orderByokKeysForRequest,
   type ByokKeyEntry,
 } from '@/lib/ai-providers';
-import { ApiKeysModal } from './ApiKeysModal';
-import { AiAssistant } from './AiAssistant';
-import { LayoutInspector } from './LayoutInspector';
-import { AquariumBackdrop } from './AquariumBackdrop';
-import { DetectiveBackdrop } from './DetectiveBackdrop';
-import { GhostBackdrop } from './GhostBackdrop';
-import { HalloweenBackdrop } from './HalloweenBackdrop';
-import { MatrixRainBackdrop } from './MatrixRainBackdrop';
-import { PixelBackdrop } from './PixelBackdrop';
-import { SpaceBackdrop } from './SpaceBackdrop';
-import { SummerBackdrop } from './SummerBackdrop';
+import { ApiKeysModal } from './ai/ApiKeysModal';
+import { OriasAi } from './ai/OriasAi';
+import { ProviderModal } from './ai/ProviderModal';
+import { AquariumTheme } from './theme/AquariumTheme';
+import { DetectiveTheme } from './theme/DetectiveTheme';
+import { GhostTheme } from './theme/GhostTheme';
+import { HalloweenTheme } from './theme/HalloweenTheme';
+import { MatrixRainTheme } from './theme/MatrixRainTheme';
+import { PixelTheme } from './theme/PixelTheme';
+import { SpaceTheme } from './theme/SpaceTheme';
+import { SummerTheme } from './theme/SummerTheme';
+import { ImageLightbox } from './ImageLightbox';
+import { ThemeModal } from './ThemeModal';
+import { MarkupTextModal } from './page/pagecontent/MarkupTextModal';
+import { PageContentEditor } from './page/pagecontent/PageContentEditor';
 import {
-  ImageLightbox,
-  PreferencesModal,
-  ThemeModal,
-} from './ModalsAndLightbox';
-import { PopupModal } from './PopupModal';
-import { SlideCanvas, type SlideCanvasHandle } from './SlideCanvas';
-import { SlideEditor } from './SlideEditor';
+  PageLayoutEditor,
+  type PageLayoutEditorHandle,
+} from './page/pagelayout/PageLayoutEditor';
+import { PageLayoutEditorPanel } from './page/pagelayout/PageLayoutEditorPanel';
+import { PagePresent } from './page/pagepresent/PagePresent';
 import { TopBar } from './TopBar';
 
 const DECK_STORAGE_KEY = 'opres.deck';
@@ -126,7 +128,7 @@ export function PresentationApp() {
   const toastTimerRef = React.useRef<number | null>(null);
   const storageWarnedRef = React.useRef<number>(0);
   const touchRef = React.useRef<{ x: number; y: number } | null>(null);
-  const canvasActionRef = React.useRef<SlideCanvasHandle | null>(null);
+  const canvasActionRef = React.useRef<PageLayoutEditorHandle | null>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
 
   const showToast = React.useCallback((msg: string) => {
@@ -451,7 +453,7 @@ export function PresentationApp() {
         ) {
           if (activeByokKeys.length === 0) {
             throw new Error(
-              'Pada mode statis (GitHub Pages), tambahkan API key di Pengaturan Orias AI (ikon kunci) untuk memakai Orias AI.'
+              'Pada mode statis (GitHub Pages), tambahkan API key di Provider AI (ikon kunci) untuk memakai Orias AI.'
             );
           }
           const sys = [
@@ -667,14 +669,14 @@ export function PresentationApp() {
             className="tb-city-img object-cover object-bottom"
           />
         )}
-        {deck.theme === 'hacker' && <MatrixRainBackdrop />}
-        {deck.theme === 'astronomi' && <SpaceBackdrop />}
-        {deck.theme === 'ghost' && <GhostBackdrop />}
-        {deck.theme === 'halloween' && <HalloweenBackdrop />}
-        {deck.theme === 'aquarium' && <AquariumBackdrop />}
-        {deck.theme === 'detective' && <DetectiveBackdrop />}
-        {deck.theme === 'summer' && <SummerBackdrop />}
-        {deck.theme === 'pixel' && <PixelBackdrop />}
+        {deck.theme === 'hacker' && <MatrixRainTheme />}
+        {deck.theme === 'astronomi' && <SpaceTheme />}
+        {deck.theme === 'ghost' && <GhostTheme />}
+        {deck.theme === 'halloween' && <HalloweenTheme />}
+        {deck.theme === 'aquarium' && <AquariumTheme />}
+        {deck.theme === 'detective' && <DetectiveTheme />}
+        {deck.theme === 'summer' && <SummerTheme />}
+        {deck.theme === 'pixel' && <PixelTheme />}
         <span className="tb-a" />
         <span className="tb-b" />
         <span className="tb-c" />
@@ -750,7 +752,7 @@ export function PresentationApp() {
         )}
 
         {mode === 'edit' ? (
-          <SlideEditor
+          <PageContentEditor
             deck={deck}
             slideIndex={safeSlideIndex}
             onSelectSlide={selectSlide}
@@ -912,17 +914,26 @@ export function PresentationApp() {
             }}
             onToast={showToast}
           />
-        ) : (
-          <SlideCanvas
+        ) : mode === 'layout' ? (
+          <PageLayoutEditor
             slide={currentSlide}
-            mode={mode}
+            theme={deck.theme}
+            selectedBlockId={selectedBlockId}
+            actionRef={canvasActionRef}
+            onSelectBlock={setSelectedBlockId}
+            onUpdateBlocksLayout={(blocks) =>
+              updateCurrentSlide((s) =>
+                syncSlideModals({ ...s, vc: false, blocks })
+              )
+            }
+          />
+        ) : (
+          <PagePresent
+            slide={currentSlide}
             theme={deck.theme}
             slideDirection={slideDirection}
-            selectedBlockId={selectedBlockId}
             openBlockIds={openBlockIds}
-            actionRef={canvasActionRef}
             onToggleBlockOpen={handleToggleBlockOpen}
-            onSelectBlock={setSelectedBlockId}
             onUpdateBlocksLayout={(blocks) =>
               updateCurrentSlide((s) =>
                 syncSlideModals({ ...s, vc: false, blocks })
@@ -939,7 +950,7 @@ export function PresentationApp() {
       {/* Bottom Dock: Layout Inspector (above nav when active) + Persistent Slide Footer */}
       <div className="pres-bottom">
         {mode === 'layout' && selectedInfo && (
-          <LayoutInspector
+          <PageLayoutEditorPanel
             block={selectedInfo.block}
             isTopLevel={selectedInfo.parentKind === 'slide'}
             onDeselect={() => {
@@ -1002,7 +1013,7 @@ export function PresentationApp() {
       </div>
 
       {/* Floating AI Assistant */}
-      <AiAssistant
+      <OriasAi
         open={aiOpen}
         miniOpen={miniAiOpen}
         busy={aiBusy}
@@ -1025,7 +1036,7 @@ export function PresentationApp() {
       />
 
       {/* Interactive [[[Modal]]] Popup */}
-      <PopupModal
+      <MarkupTextModal
         modal={activeModal}
         onClose={() => setActiveModalId(null)}
         onTermClick={(term) => askTerm(term)}
@@ -1042,8 +1053,8 @@ export function PresentationApp() {
         onClose={() => setThemeModalOpen(false)}
       />
 
-      {/* Preferences Modal */}
-      <PreferencesModal
+      {/* Provider AI Modal */}
+      <ProviderModal
         open={prefsModalOpen}
         prefs={prefs}
         byokKeys={byokKeys}

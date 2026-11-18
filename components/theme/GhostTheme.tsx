@@ -20,7 +20,7 @@ interface NoiseGrain {
   bright: boolean;
 }
 
-export function GhostBackdrop() {
+export function GhostTheme() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

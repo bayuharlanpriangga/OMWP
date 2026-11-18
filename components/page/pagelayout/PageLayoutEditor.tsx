@@ -2,27 +2,17 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { ChevronRight, Move, Scaling } from 'lucide-react';
+import { Move, Scaling } from 'lucide-react';
 import {
   computeAlignmentGuides,
   type AlignmentGuideLine,
   type RectPx,
 } from '@/lib/alignment-guides';
-import {
-  clamp,
-  computeReflowPositions,
-  stripMarkup,
-} from '@/lib/deck-logic';
-import type {
-  Block,
-  Slide,
-  ThemeId,
-  WorkspaceMode,
-} from '@/lib/deck-types';
-import { MarkupText } from './MarkupText';
-import { TableBlockView } from './TableBlockView';
+import { clamp } from '@/lib/deck-logic';
+import type { Block, Slide, ThemeId } from '@/lib/deck-types';
+import { SlideBlockContent } from '../pagepresent/PagePresent';
 
-export interface SlideCanvasHandle {
+export interface PageLayoutEditorHandle {
   nudgeAndShowGuides: (
     block: Block,
     dir: 'u' | 'd' | 'l' | 'r'
@@ -31,37 +21,25 @@ export interface SlideCanvasHandle {
   clearGuides: () => void;
 }
 
-interface SlideCanvasProps {
+interface PageLayoutEditorProps {
   slide: Slide;
-  mode: 'present' | 'layout';
   theme: ThemeId;
-  slideDirection: 'next' | 'prev' | null;
   selectedBlockId: string | null;
-  openBlockIds: Set<string>;
-  actionRef?: React.RefObject<SlideCanvasHandle | null>;
-  onToggleBlockOpen: (blockId: string, block: Block) => void;
+  actionRef?: React.RefObject<PageLayoutEditorHandle | null>;
   onSelectBlock: (blockId: string | null) => void;
   onUpdateBlocksLayout: (blocks: Block[]) => void;
-  onTermClick: (term: string, event: React.MouseEvent<HTMLButtonElement>) => void;
-  onModalClick: (title: string, event: React.MouseEvent<HTMLButtonElement>) => void;
-  onImageZoom: (src: string, alt: string) => void;
 }
 
-export function SlideCanvas({
+const NOOP = () => {};
+
+export function PageLayoutEditor({
   slide,
-  mode,
   theme,
-  slideDirection,
   selectedBlockId,
-  openBlockIds,
   actionRef,
-  onToggleBlockOpen,
   onSelectBlock,
   onUpdateBlocksLayout,
-  onTermClick,
-  onModalClick,
-  onImageZoom,
-}: SlideCanvasProps) {
+}: PageLayoutEditorProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [guideState, setGuideState] = React.useState<{
     slideId: string;
@@ -87,9 +65,7 @@ export function SlideCanvas({
   const dragEndedAtRef = React.useRef<number>(0);
 
   const alignmentGuides =
-    mode === 'layout' && guideState.slideId === slide.id
-      ? guideState.guides
-      : [];
+    guideState.slideId === slide.id ? guideState.guides : [];
 
   const clearGuideTimer = React.useCallback(() => {
     if (guideTimerRef.current !== null) {
@@ -118,40 +94,43 @@ export function SlideCanvas({
     return () => clearGuideTimer();
   }, [clearGuideTimer]);
 
-  const measureCanvasBlocks = React.useCallback((targetId: string, fallbackW: number) => {
-    const root = rootRef.current;
-    if (!root) return null;
-    const rootWidth = root.offsetWidth || 1;
-    const blockEls = Array.from(root.children).filter((el) =>
-      el.classList.contains('blk')
-    ) as HTMLElement[];
+  const measureCanvasBlocks = React.useCallback(
+    (targetId: string, fallbackW: number) => {
+      const root = rootRef.current;
+      if (!root) return null;
+      const rootWidth = root.offsetWidth || 1;
+      const blockEls = Array.from(root.children).filter((el) =>
+        el.classList.contains('blk')
+      ) as HTMLElement[];
 
-    let foundTarget = false;
-    let activeWidth = (fallbackW / 12) * rootWidth;
-    let activeHeight = 60;
-    const otherRects: RectPx[] = [];
+      let foundTarget = false;
+      let activeWidth = (fallbackW / 12) * rootWidth;
+      let activeHeight = 60;
+      const otherRects: RectPx[] = [];
 
-    for (const el of blockEls) {
-      const id = el.dataset.id;
-      if (!id) continue;
-      if (id === targetId) {
-        foundTarget = true;
-        activeWidth = el.offsetWidth || activeWidth;
-        activeHeight = el.offsetHeight || activeHeight;
-      } else {
-        otherRects.push({
-          id,
-          left: el.offsetLeft,
-          top: el.offsetTop,
-          width: el.offsetWidth,
-          height: el.offsetHeight,
-        });
+      for (const el of blockEls) {
+        const id = el.dataset.id;
+        if (!id) continue;
+        if (id === targetId) {
+          foundTarget = true;
+          activeWidth = el.offsetWidth || activeWidth;
+          activeHeight = el.offsetHeight || activeHeight;
+        } else {
+          otherRects.push({
+            id,
+            left: el.offsetLeft,
+            top: el.offsetTop,
+            width: el.offsetWidth,
+            height: el.offsetHeight,
+          });
+        }
       }
-    }
 
-    if (!foundTarget) return null;
-    return { rootWidth, activeWidth, activeHeight, otherRects };
-  }, []);
+      if (!foundTarget) return null;
+      return { rootWidth, activeWidth, activeHeight, otherRects };
+    },
+    []
+  );
 
   React.useImperativeHandle(
     actionRef,
@@ -205,7 +184,6 @@ export function SlideCanvas({
         );
         let nextY = Math.max(0, Math.round(res.snappedTop));
 
-        // Ensure nudge never stalls against an existing alignment anchor
         const stalledX =
           snapXAxis && rawX !== curX && Math.abs(nextX - curX) < 0.05;
         const stalledY = snapYAxis && rawY !== curY && nextY === curY;
@@ -294,55 +272,22 @@ export function SlideCanvas({
       return;
     }
 
-    if (mode === 'present') {
-      const reflowInputs = slide.blocks
-        .map((b) => {
-          const el = children.find((c) => c.dataset.id === b.id);
-          if (!el || b.y == null) return null;
-          let extra = 0;
-          el.querySelectorAll('.card.open > .cb, .concl').forEach((node) => {
-            extra += (node as HTMLElement).offsetHeight + 14;
-          });
-          return {
-            id: b.id,
-            x: b.x ?? 0,
-            y: b.y,
-            w: b.w,
-            collapsedHeight: el.offsetHeight - extra,
-            extraExpandedHeight: extra,
-          };
-        })
-        .filter((x): x is NonNullable<typeof x> => x !== null);
-
-      const nextTops = computeReflowPositions(reflowInputs);
-      let bottom = 0;
-      for (const b of slide.blocks) {
-        const el = children.find((c) => c.dataset.id === b.id);
-        if (!el) continue;
-        const top = nextTops[b.id] ?? b.y ?? 0;
-        el.style.top = `${top}px`;
-        bottom = Math.max(bottom, top + el.offsetHeight);
-      }
-      root.style.height = `${bottom + 28}px`;
-    } else {
-      let bottom = 0;
-      for (const b of slide.blocks) {
-        const el = children.find((c) => c.dataset.id === b.id);
-        if (!el) continue;
-        const top = b.y ?? 0;
-        el.style.top = `${top}px`;
-        bottom = Math.max(bottom, top + el.offsetHeight);
-      }
-      root.style.height = `${bottom + 80}px`;
+    let bottom = 0;
+    for (const b of slide.blocks) {
+      const el = children.find((c) => c.dataset.id === b.id);
+      if (!el) continue;
+      const top = b.y ?? 0;
+      el.style.top = `${top}px`;
+      bottom = Math.max(bottom, top + el.offsetHeight);
     }
-  }, [slide.blocks, isFree, mode]);
+    root.style.height = `${bottom + 80}px`;
+  }, [slide.blocks, isFree]);
 
   const onUpdateLayoutRef = React.useRef(onUpdateBlocksLayout);
   React.useEffect(() => {
     onUpdateLayoutRef.current = onUpdateBlocksLayout;
   }, [onUpdateBlocksLayout]);
 
-  // Measure initial grid layout -> convert to free-canvas (x%, y px, w/12) once per unpositioned slide
   React.useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
@@ -393,9 +338,8 @@ export function SlideCanvas({
     }
 
     applyLayoutGeometry();
-  }, [slide, mode, openBlockIds, applyLayoutGeometry]);
+  }, [slide, applyLayoutGeometry]);
 
-  // Recompute on resize & font ready
   React.useEffect(() => {
     const onResize = () => applyLayoutGeometry();
     window.addEventListener('resize', onResize);
@@ -405,10 +349,7 @@ export function SlideCanvas({
     return () => window.removeEventListener('resize', onResize);
   }, [applyLayoutGeometry]);
 
-  // Pointer drag/resize handlers in layout mode
   React.useEffect(() => {
-    if (mode !== 'layout') return;
-
     const onPointerMove = (e: PointerEvent) => {
       const d = dragStateRef.current;
       if (!d) return;
@@ -515,7 +456,7 @@ export function SlideCanvas({
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
     };
-  }, [mode, setGuides]);
+  }, [setGuides]);
 
   const startDrag = (
     e: React.PointerEvent,
@@ -553,250 +494,21 @@ export function SlideCanvas({
     };
   };
 
-  const renderBlockInner = (
-    b: Block,
-    ddNumber: number,
-    m: WorkspaceMode
-  ): React.ReactNode => {
-    const live = m === 'present';
-    const lay = m === 'layout';
-    const isOpen = live && openBlockIds.has(b.id);
-
-    if (b.t === 'text') {
-      return (
-        <div
-          className={`tx s-${b.size || 'm'} a-${b.align || 'l'} ${b.b ? 'bd' : ''}`}
-        >
-          {b.text ? (
-            <MarkupText
-              text={b.text}
-              live={live}
-              onTermClick={onTermClick}
-              onModalClick={onModalClick}
-            />
-          ) : lay ? (
-            <span className="text-sm italic opacity-55">(teks kosong)</span>
-          ) : null}
-        </div>
-      );
-    }
-
-    if (b.t === 'title') {
-      return (
-        <div className={`bt bt-sub ${b.align ? `a-${b.align}` : ''}`}>
-          {b.text ? (
-            <MarkupText
-              text={b.text}
-              live={live}
-              onTermClick={onTermClick}
-              onModalClick={onModalClick}
-            />
-          ) : lay ? (
-            <span className="text-sm italic opacity-55">(judul kosong)</span>
-          ) : null}
-        </div>
-      );
-    }
-
-    if (b.t === 'img') {
-      if (!b.src) {
-        return <div className="text-sm italic opacity-55">(gambar kosong)</div>;
-      }
-      if (live) {
-        return (
-          <button
-            type="button"
-            className="im-frame im-frame-btn"
-            onClick={() => onImageZoom(b.src, b.alt)}
-            aria-label={`Perbesar gambar ${b.alt || 'presentasi'}`}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={b.src}
-              alt={b.alt || 'Gambar presentasi'}
-              className="im block w-full h-auto"
-              draggable={false}
-              referrerPolicy="no-referrer"
-            />
-          </button>
-        );
-      }
-      return (
-        <div className="im-frame">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={b.src}
-            alt={b.alt || 'Gambar presentasi'}
-            className="im block w-full h-auto"
-            draggable={false}
-            referrerPolicy="no-referrer"
-          />
-        </div>
-      );
-    }
-
-    if (b.t === 'dd') {
-      const badgeLabel = b.badge?.trim() ? b.badge : String(ddNumber);
-      return (
-        <div className={`card ${isOpen ? 'open' : ''}`}>
-          {live ? (
-            <button
-              type="button"
-              className="ch"
-              aria-expanded={isOpen}
-              onClick={() => onToggleBlockOpen(b.id, b)}
-            >
-              <span className="n">{badgeLabel}</span>
-              <span className="flex-1 text-left">
-                {stripMarkup(b.text) || 'Poin'}
-              </span>
-              <ChevronRight
-                className={`w-4 h-4 ml-auto shrink-0 transition-transform duration-200 ${
-                  isOpen ? 'rotate-90' : ''
-                }`}
-                aria-hidden="true"
-              />
-            </button>
-          ) : (
-            <div className="ch">
-              <span className="n">{badgeLabel}</span>
-              <span className="flex-1 text-left">
-                {stripMarkup(b.text) || 'Poin'}
-              </span>
-              <ChevronRight className="w-4 h-4 ml-auto shrink-0" aria-hidden="true" />
-            </div>
-          )}
-
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: theme === 'auditor' ? 0.25 : 0.16 }}
-              className={`cb ${b.align ? `a-${b.align}` : ''}`}
-            >
-              {b.detail ? (
-                <MarkupText
-                  text={b.detail}
-                  live={live}
-                  onTermClick={onTermClick}
-                  onModalClick={onModalClick}
-                />
-              ) : (
-                <em>Belum ada penjelasan.</em>
-              )}
-            </motion.div>
-          )}
-        </div>
-      );
-    }
-
-    if (b.t === 'box') {
-      let childDd = 0;
-      return (
-        <div className="card box">
-          {b.title && (
-            <div className="bt">
-              <MarkupText
-                text={b.title}
-                live={live}
-                onTermClick={onTermClick}
-                onModalClick={onModalClick}
-              />
-            </div>
-          )}
-          <div className="cv">
-            {b.children.map((child) => {
-              if (live && child.t === 'title' && !child.text.trim()) {
-                return null;
-              }
-              const num = child.t === 'dd' ? ++childDd : 0;
-              const isSel = lay && selectedBlockId === child.id;
-              return (
-                <div
-                  key={child.id}
-                  data-id={child.id}
-                  style={{ gridColumn: `span ${clamp(Math.round(child.w), 1, 12)}` }}
-                  className={`blk ${isSel ? 'sel' : ''}`}
-                  onClick={(e) => {
-                    if (!lay) return;
-                    e.stopPropagation();
-                    if (Date.now() - dragEndedAtRef.current < 250) return;
-                    onSelectBlock(child.id);
-                  }}
-                >
-                  {renderBlockInner(child, num, m)}
-                  {isSel && (
-                    <span className="wb">{child.w}/12</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          {lay && b.children.length === 0 && (
-            <div className="text-sm italic opacity-55">(container kosong)</div>
-          )}
-        </div>
-      );
-    }
-
-    if (b.t === 'table') {
-      return (
-        <TableBlockView
-          block={b}
-          live={live}
-          onTermClick={onTermClick}
-          onModalClick={onModalClick}
-        />
-      );
-    }
-
-    // conclusion block
-    const label = b.label || '★ Kesimpulan';
-    return (
-      <div>
-        {live ? (
-          <button
-            type="button"
-            className="pbtn"
-            aria-expanded={isOpen}
-            onClick={() => onToggleBlockOpen(b.id, b)}
-          >
-            {isOpen ? 'Tutup kesimpulan' : label}
-          </button>
-        ) : (
-          <span className="pbtn pointer-events-none">{label}</span>
-        )}
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.18 }}
-            className={`concl ${b.align ? `a-${b.align}` : ''}`}
-          >
-            <MarkupText
-              text={b.text}
-              live={live}
-              onTermClick={onTermClick}
-              onModalClick={onModalClick}
-            />
-          </motion.div>
-        )}
-      </div>
-    );
-  };
+  const handleSelectBoxChild = React.useCallback(
+    (childId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (Date.now() - dragEndedAtRef.current < 250) return;
+      onSelectBlock(childId);
+    },
+    [onSelectBlock]
+  );
 
   let ddCounter = 0;
-  const enterX =
-    slideDirection === 'next' ? 32 : slideDirection === 'prev' ? -32 : 0;
 
   return (
     <motion.section
       key={slide.id}
-      initial={
-        mode === 'present' && slideDirection
-          ? { opacity: 0, x: enterX }
-          : { opacity: 0.96 }
-      }
+      initial={{ opacity: 0.96 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{
         duration: theme === 'auditor' ? 0.35 : theme === 'default' ? 0.22 : 0.25,
@@ -804,32 +516,28 @@ export function SlideCanvas({
       }}
       className={`slide ${slide.vc && !isFree ? 'vc' : ''}`}
       onClick={() => {
-        if (mode === 'layout') {
-          setGuides([]);
-          onSelectBlock(null);
-        }
+        setGuides([]);
+        onSelectBlock(null);
       }}
     >
       <div
         ref={rootRef}
         data-testid="slide-canvas"
-        className={`cv root ${isFree ? 'free max-sm:!flex max-sm:!flex-col max-sm:!gap-3.5 max-sm:!h-auto' : ''} ${
-          mode === 'layout' ? 'lay' : ''
-        }`}
+        className={`cv root ${
+          isFree ? 'free max-sm:!flex max-sm:!flex-col max-sm:!gap-3.5 max-sm:!h-auto' : ''
+        } lay`}
       >
         {slide.blocks.length === 0 && (
           <div className="col-span-12 flex flex-col items-center justify-center min-h-[260px] text-center px-4 opacity-60">
             <p className="text-base font-medium m-0">Slide masih kosong.</p>
             <p className="text-sm mt-1 m-0">
-              {mode === 'layout'
-                ? 'Tambahkan komponen lewat mode Isi terlebih dahulu.'
-                : 'Klik tombol Isi di kanan atas untuk mulai menambahkan materi.'}
+              Tambahkan komponen lewat mode Isi terlebih dahulu.
             </p>
           </div>
         )}
         {slide.blocks.map((b) => {
           const ddNumber = b.t === 'dd' ? ++ddCounter : 0;
-          const isSelected = mode === 'layout' && selectedBlockId === b.id;
+          const isSelected = selectedBlockId === b.id;
           const freeStyle: React.CSSProperties =
             isFree && b.y != null
               ? {
@@ -850,13 +558,22 @@ export function SlideCanvas({
                 isSelected ? 'sel' : ''
               }`}
               onClick={(e) => {
-                if (mode !== 'layout') return;
                 e.stopPropagation();
                 if (Date.now() - dragEndedAtRef.current < 250) return;
                 onSelectBlock(b.id);
               }}
             >
-              {renderBlockInner(b, ddNumber, mode)}
+              <SlideBlockContent
+                block={b}
+                ddNumber={ddNumber}
+                live={false}
+                theme={theme}
+                selectedBlockId={selectedBlockId}
+                onSelectBoxChild={handleSelectBoxChild}
+                onTermClick={NOOP}
+                onModalClick={NOOP}
+                onImageZoom={NOOP}
+              />
 
               {isSelected && (
                 <>
@@ -883,34 +600,33 @@ export function SlideCanvas({
           );
         })}
 
-        {mode === 'layout' &&
-          alignmentGuides.map((g, idx) => (
-            <div
-              key={`${g.orientation}-${g.kind}-${g.position}-${idx}`}
-              data-testid="alignment-guide"
-              data-orientation={g.orientation}
-              data-kind={g.kind}
-              aria-hidden="true"
-              className={`align-guide ${
-                g.orientation === 'horizontal'
-                  ? 'align-guide-h'
-                  : 'align-guide-v'
-              } align-guide-${g.kind}`}
-              style={
-                g.orientation === 'horizontal'
-                  ? {
-                      left: `${g.start}px`,
-                      top: `${g.position}px`,
-                      width: `${Math.max(0, g.end - g.start)}px`,
-                    }
-                  : {
-                      top: `${g.start}px`,
-                      left: `${g.position}px`,
-                      height: `${Math.max(0, g.end - g.start)}px`,
-                    }
-              }
-            />
-          ))}
+        {alignmentGuides.map((g, idx) => (
+          <div
+            key={`${g.orientation}-${g.kind}-${g.position}-${idx}`}
+            data-testid="alignment-guide"
+            data-orientation={g.orientation}
+            data-kind={g.kind}
+            aria-hidden="true"
+            className={`align-guide ${
+              g.orientation === 'horizontal'
+                ? 'align-guide-h'
+                : 'align-guide-v'
+            } align-guide-${g.kind}`}
+            style={
+              g.orientation === 'horizontal'
+                ? {
+                    left: `${g.start}px`,
+                    top: `${g.position}px`,
+                    width: `${Math.max(0, g.end - g.start)}px`,
+                  }
+                : {
+                    top: `${g.start}px`,
+                    left: `${g.position}px`,
+                    height: `${Math.max(0, g.end - g.start)}px`,
+                  }
+            }
+          />
+        ))}
       </div>
     </motion.section>
   );

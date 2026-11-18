@@ -14,7 +14,7 @@ import {
 import { BLOCK_NAMES } from '@/lib/deck-logic';
 import type { Block, TextAlign, TextSize } from '@/lib/deck-types';
 
-interface LayoutInspectorProps {
+interface PageLayoutEditorPanelProps {
   block: Block;
   isTopLevel: boolean;
   onDeselect: () => void;
@@ -33,7 +33,7 @@ const ALIGNS: Array<{ value: TextAlign; label: string }> = [
   { value: 'r', label: 'Kanan' },
 ];
 
-export function LayoutInspector({
+export function PageLayoutEditorPanel({
   block,
   isTopLevel,
   onDeselect,
@@ -43,7 +43,7 @@ export function LayoutInspector({
   onSetSize,
   onToggleBold,
   onSetAlign,
-}: LayoutInspectorProps) {
+}: PageLayoutEditorPanelProps) {
   return (
     <section
       className="pres-insp"

@@ -3,7 +3,7 @@
 import React from 'react';
 import { computeTableColumnWidths } from '@/lib/deck-logic';
 import type { TableBlock } from '@/lib/deck-types';
-import { MarkupText } from './MarkupText';
+import { MarkupText } from './page/pagecontent/MarkupTextAi';
 
 interface TableBlockViewProps {
   block: TableBlock;

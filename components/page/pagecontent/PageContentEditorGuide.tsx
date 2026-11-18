@@ -3,12 +3,15 @@
 import React from 'react';
 import { BookOpen, X } from 'lucide-react';
 
-interface EditorGuideModalProps {
+interface PageContentEditorGuideProps {
   open: boolean;
   onClose: () => void;
 }
 
-export function EditorGuideModal({ open, onClose }: EditorGuideModalProps) {
+export function PageContentEditorGuide({
+  open,
+  onClose,
+}: PageContentEditorGuideProps) {
   React.useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {

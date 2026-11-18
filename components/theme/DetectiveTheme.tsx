@@ -35,7 +35,7 @@ interface WindWisp {
   phase: number;
 }
 
-export function DetectiveBackdrop() {
+export function DetectiveTheme() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

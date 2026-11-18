@@ -37,11 +37,11 @@ import type {
   TableBlock,
   TextAlign,
 } from '@/lib/deck-types';
-import { EditorGuideModal } from './EditorGuideModal';
-import { MarkupText } from './MarkupText';
-import { TableBlockView } from './TableBlockView';
+import { PageContentEditorGuide } from './PageContentEditorGuide';
+import { MarkupText } from './MarkupTextAi';
+import { TableBlockView } from '@/components/TableBlockView';
 
-interface SlideEditorProps {
+interface PageContentEditorProps {
   deck: Deck;
   slideIndex: number;
   onSelectSlide: (idx: number) => void;
@@ -559,7 +559,7 @@ function TableBlockEditor({
   );
 }
 
-export function SlideEditor({
+export function PageContentEditor({
   deck,
   slideIndex,
   onSelectSlide,
@@ -577,7 +577,7 @@ export function SlideEditor({
   onImportHtml,
   onResetDeck,
   onToast,
-}: SlideEditorProps) {
+}: PageContentEditorProps) {
   const slide: Slide = deck.slides[slideIndex];
   const jsonInputRef = React.useRef<HTMLInputElement>(null);
   const htmlInputRef = React.useRef<HTMLInputElement>(null);
@@ -1182,7 +1182,7 @@ export function SlideEditor({
 
       </div>
 
-      <EditorGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
+      <PageContentEditorGuide open={guideOpen} onClose={() => setGuideOpen(false)} />
     </section>
   );
 }

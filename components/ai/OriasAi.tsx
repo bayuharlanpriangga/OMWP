@@ -3,18 +3,18 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
+  BrainCircuit,
   Loader2,
   Maximize2,
   Send,
-  Settings,
   Sparkles,
   Trash2,
   X,
 } from 'lucide-react';
 import type { ChatMessage, ThemeId } from '@/lib/deck-types';
-import { AiMessageText } from './MarkupText';
+import { AiMessageText } from '../page/pagecontent/MarkupTextAi';
 
-interface AiAssistantProps {
+interface OriasAiProps {
   open: boolean;
   miniOpen: boolean;
   busy: boolean;
@@ -30,7 +30,7 @@ interface AiAssistantProps {
   onSendQuestion: (question: string, cacheTerm?: string) => void;
 }
 
-export function AiAssistant({
+export function OriasAi({
   open,
   miniOpen,
   busy,
@@ -44,7 +44,7 @@ export function AiAssistant({
   onClear,
   onOpenPrefs,
   onSendQuestion,
-}: AiAssistantProps) {
+}: OriasAiProps) {
   const [input, setInput] = React.useState('');
   const [typedCounts, setTypedCounts] = React.useState<Record<string, number>>(
     {}
@@ -250,10 +250,10 @@ export function AiAssistant({
                   type="button"
                   className="pbtn sm w-7 h-7 !p-0"
                   onClick={onOpenPrefs}
-                  aria-label="Pengaturan Orias AI"
-                  title="Pengaturan Orias AI"
+                  aria-label="Provider AI"
+                  title="Provider AI"
                 >
-                  <Settings className="w-3.5 h-3.5" aria-hidden="true" />
+                  <BrainCircuit className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
