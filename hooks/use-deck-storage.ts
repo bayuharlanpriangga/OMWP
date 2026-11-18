@@ -7,7 +7,7 @@ import {
   loadAndNormalizeDeck,
 } from '@/lib/logic/logic-presentation-app';
 import type { Deck, PresenterPrefs } from '@/lib/deck-types';
-import type { ByokKeyEntry } from '@/lib/ai-providers';
+import type { ByokKeyEntry } from '@/lib/ai/ai-providers';
 
 const DECK_STORAGE_KEY = 'opres.deck';
 const DUMMY_CLEARED_KEY = 'opres.dummyCleared';

@@ -28,7 +28,7 @@ interface Sparkle {
   speed: number;
 }
 
-export function SummerTheme() {
+export function ThemeTypesSummer() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

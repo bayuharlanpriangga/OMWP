@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { computeAlignmentGuides, type RectPx } from './alignment-guides';
+import {
+  computeAlignmentGuides,
+  type RectPx,
+} from './page-layout-aligntment-guides';
 
 test('computeAlignmentGuides snaps horizontally and produces top+bottom row guides for side-by-side equal-height blocks', () => {
   const neighbor: RectPx = {

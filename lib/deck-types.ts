@@ -1,4 +1,4 @@
-import type { AiProviderId } from './ai-providers';
+import type { AiProviderId } from './ai/ai-providers';
 
 export type ThemeId =
   | 'default'
@@ -14,7 +14,9 @@ export type ThemeId =
   | 'summer'
   | 'pixel'
   | 'dino'
-  | 'zodiac';
+  | 'zodiac'
+  | 'tarot'
+  | 'ai';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';
 export type TextAlign = 'l' | 'c' | 'r';

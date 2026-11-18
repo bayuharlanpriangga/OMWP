@@ -9,7 +9,7 @@ import {
   type DinoCactus,
   type DinoCloud,
   type DinoWorld,
-} from '@/lib/dino-simulation';
+} from '@/lib/theme/theme-types/theme-types-dino-simulation';
 
 const DINO_RUN_A = [
   '.......DDDDDD.',
@@ -318,7 +318,7 @@ function drawDino(
   }
 }
 
-export function DinoTheme() {
+export function ThemeTypesDino() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

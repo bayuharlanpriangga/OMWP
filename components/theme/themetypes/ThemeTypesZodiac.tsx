@@ -7,7 +7,7 @@ import {
   resizeZodiacWorld,
   stepZodiacWorld,
   type ZodiacWorld,
-} from '@/lib/zodiac-simulation';
+} from '@/lib/theme/theme-types/theme-types-zodiac-simulation';
 
 function drawZodiacGlyph(
   ctx: CanvasRenderingContext2D,
@@ -163,7 +163,7 @@ function drawFourPointStar(
   ctx.restore();
 }
 
-export function ZodiacTheme() {
+export function ThemeTypesZodiac() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

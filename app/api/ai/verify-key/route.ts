@@ -3,7 +3,7 @@ import {
   inferCandidateProviders,
   PROVIDER_META,
   type AiProviderId,
-} from '@/lib/ai-providers';
+} from '@/lib/ai/ai-providers';
 
 interface VerifyResult {
   valid: boolean;

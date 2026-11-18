@@ -16,7 +16,7 @@ import type {
   TitleBlock,
 } from './deck-types';
 
-import { THEME_META } from './data/data-theme';
+import { THEME_META } from './theme/theme-data';
 
 export function uid(): string {
   return Math.random().toString(36).slice(2, 9);

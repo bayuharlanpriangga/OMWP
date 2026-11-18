@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createDefaultDeck } from './deck-logic';
-import { buildStandaloneHtml } from './logic/logic-presentation-app';
-import { createBlock } from './logic/logic-page/logic-page-content/logic-page-content-editor';
-import { importDeckFromHtml } from './html-import';
+import { createDefaultDeck } from '../deck-logic';
+import { buildStandaloneHtml } from '../export/export-html';
+import { createBlock } from '../logic/logic-page/logic-page-content/logic-page-content-editor';
+import { importDeckFromHtml } from './import-html';
 
 test('importDeckFromHtml round-trips standalone HTML exported by the app', () => {
   const deck = createDefaultDeck();
@@ -342,6 +342,46 @@ test('importDeckFromHtml preserves zodiac theme attribute on standalone round-tr
   );
   assert.ok(generic);
   assert.equal(generic.deck.theme, 'zodiac');
+});
+
+test('importDeckFromHtml preserves tarot theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'tarot';
+  deck.title = 'Arkana Tarot Mistis';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Kartu Major Arcana & Bulan Kembar Tiga';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'tarot');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="tarot"><head><title>Pembacaan Arkana</title></head><body><section class="slide"><h1>Kartu Takdir</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'tarot');
+});
+
+test('importDeckFromHtml preserves ai theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'ai';
+  deck.title = 'Konvergensi AI Nexus';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Gemini, Claude, ChatGPT & DeepSeek';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'ai');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="ai"><head><title>Arsitektur AI</title></head><body><section class="slide"><h1>Neural Nexus</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'ai');
 });
 
 test('importDeckFromHtml preserves multiple container titles and per-slide headerTitle on round-trip', () => {

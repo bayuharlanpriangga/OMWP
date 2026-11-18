@@ -4,7 +4,7 @@ import {
   verifyProviderModelAvailability,
   type AiProviderId,
   type ProviderModelCheckResult,
-} from '@/lib/ai-providers';
+} from '@/lib/ai/ai-providers';
 
 export async function POST(req: NextRequest) {
   let provider: AiProviderId | '' = '';

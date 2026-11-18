@@ -16,7 +16,7 @@ import {
   explainWithByokClient,
   orderByokKeysForRequest,
   type ByokKeyEntry,
-} from '@/lib/ai-providers';
+} from '@/lib/ai/ai-providers';
 
 export function useOriasAi({
   deck,

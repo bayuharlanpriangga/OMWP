@@ -1,6 +1,6 @@
 import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
-import { PROVIDER_META, type AiProviderId } from '@/lib/ai-providers';
+import { PROVIDER_META, type AiProviderId } from '@/lib/ai/ai-providers';
 import type { SlideAiContext } from '@/lib/deck-types';
 
 let cachedDefaultAi: GoogleGenAI | null = null;

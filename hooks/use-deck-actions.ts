@@ -3,21 +3,20 @@
 import React from 'react';
 import {
   addBlockToSlide,
-  buildStandaloneHtml,
   createDefaultDeck,
   deleteBlockInSlide,
   duplicateSlide,
   getDeckDisplayTitle,
   getSlideTitle,
   loadAndNormalizeDeck,
-  slugifyTitle,
   uid,
   updateBlockInSlide,
 } from '@/lib/logic/logic-presentation-app';
-import { importDeckFromHtml } from '@/lib/html-import';
-import { orderByokKeysForRequest, type ByokKeyEntry } from '@/lib/ai-providers';
+import { buildStandaloneHtml, slugifyTitle } from '@/lib/export/export-html';
+import { importDeckFromHtml } from '@/lib/import/import-html';
+import { orderByokKeysForRequest, type ByokKeyEntry } from '@/lib/ai/ai-providers';
 import type { Block, Deck, PresenterPrefs, Slide } from '@/lib/deck-types';
-import type { ConfirmDialogState } from '@/components/ConfirmDialog';
+import type { SystemsConfirmDialogState } from '@/components/systems/SystemsConfirmDialog';
 import { triggerFileDownload } from './use-deck-storage';
 
 export function useDeckActions({
@@ -47,7 +46,9 @@ export function useDeckActions({
   prefs: PresenterPrefs;
   byokKeys: ByokKeyEntry[];
   showToast: (msg: string) => void;
-  setConfirmState: React.Dispatch<React.SetStateAction<ConfirmDialogState | null>>;
+  setConfirmState: React.Dispatch<
+    React.SetStateAction<SystemsConfirmDialogState | null>
+  >;
 }) {
   const addSlide = React.useCallback(() => {
     const newSlide: Slide = {

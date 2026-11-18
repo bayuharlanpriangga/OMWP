@@ -15,6 +15,8 @@ export const THEME_ORDER: ThemeId[] = [
   'pixel',
   'dino',
   'zodiac',
+  'tarot',
+  'ai',
 ];
 
 export const THEME_META: Record<ThemeId, { name: string; description: string }> = {
@@ -35,7 +37,7 @@ export const THEME_META: Record<ThemeId, { name: string; description: string }> 
   cyberpunk: {
     name: 'Cyberpunk',
     description:
-      'Metropolis malam neon: latar perkotaan malam hari gelap, aksen ungu & magenta elektrik, kartu kaca gelap futuristik.',
+      'Metropolis malam neon beranimasi: gedung pencakar langit parallax bergerak, kereta monorel & kendaraan terbang neon, papan reklame holografik, dan kartu kaca futuristik.',
   },
   hacker: {
     name: 'Hacker',
@@ -86,6 +88,16 @@ export const THEME_META: Record<ThemeId, { name: string; description: string }> 
     name: 'Zodiak',
     description:
       'Atlas astrologi malam indigo dan emas antik: roda astrolab berputar dengan 12 glif zodiak, konstelasi bintang bergantian menyala, orbit planet dengan garis aspek geometris, dan bintang jatuh.',
+  },
+  tarot: {
+    name: 'Tarot',
+    description:
+      'Sanctum mistis beludru ungu-merah anggur dan emas antik: kartu Major Arcana melayang berputar membuka simbol arkana, lingkaran alkitab suci & fase bulan kembar tiga, kabut dupa mengalun, dan bara lilin.',
+  },
+  ai: {
+    name: 'AI Nexus',
+    description:
+      'Konvergensi kecerdasan frontier (Gemini, Claude, ChatGPT, DeepSeek): nexus orbital 4 inti AI yang saling mengirim paket penalaran di atas kisi tensor biru obsidian, gelombang harmonik, dan partikel atensi beranimasi.',
   },
 };
 
@@ -151,5 +163,13 @@ export const THEME_SWATCHES: Record<
   zodiac: {
     name: 'Zodiak',
     colors: ['#070b1a', '#111b3d', '#334e78', '#d4af37', '#faf6eb'],
+  },
+  tarot: {
+    name: 'Tarot',
+    colors: ['#0c0611', '#221033', '#8b2c4e', '#c99846', '#f5ecda'],
+  },
+  ai: {
+    name: 'AI Nexus',
+    colors: ['#060913', '#60a5fa', '#d97757', '#10a37f', '#4d6bfe'],
   },
 };

@@ -17,7 +17,7 @@ import {
   verifyKeyDirectClient,
   type AiProviderId,
   type ByokKeyEntry,
-} from '@/lib/ai-providers';
+} from '@/lib/ai/ai-providers';
 import { uid } from '@/lib/deck-logic';
 import { ProviderIcon } from './ProviderBadge';
 

@@ -14,7 +14,7 @@ interface MatrixState {
   columnChars: string[];
 }
 
-export function MatrixRainTheme() {
+export function ThemeTypesMatrixRain() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

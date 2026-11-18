@@ -20,10 +20,13 @@ import { LayoutSlideStrip } from './page/pagelayout/LayoutSlideStrip';
 import { PageLayoutEditor } from './page/pagelayout/PageLayoutEditor';
 import { PageLayoutEditorPanel } from './page/pagelayout/PageLayoutEditorPanel';
 import { PagePresent } from './page/pagepresent/PagePresent';
-import { ConfirmDialog, type ConfirmDialogState } from './ConfirmDialog';
+import {
+  SystemsConfirmDialog,
+  type SystemsConfirmDialogState,
+} from './systems/SystemsConfirmDialog';
 import { ImageLightbox } from './ImageLightbox';
 import { SlideNav } from './SlideNav';
-import { ToastBanner } from './ToastBanner';
+import { SystemsToastBanner } from './systems/SystemsToastBanner';
 import { TopBar } from './TopBar';
 
 export function PresentationApp() {
@@ -44,7 +47,7 @@ export function PresentationApp() {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [confirmState, setConfirmState] =
-    React.useState<ConfirmDialogState | null>(null);
+    React.useState<SystemsConfirmDialogState | null>(null);
 
   const toastTimerRef = React.useRef<number | null>(null);
   const touchRef = React.useRef<{ x: number; y: number } | null>(null);
@@ -419,12 +422,12 @@ export function PresentationApp() {
         onClose={() => setLightboxImage(null)}
       />
 
-      <ConfirmDialog
+      <SystemsConfirmDialog
         state={confirmState}
         onCancel={() => setConfirmState(null)}
       />
 
-      <ToastBanner message={toastMessage} />
+      <SystemsToastBanner message={toastMessage} />
     </div>
   );
 }

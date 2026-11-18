@@ -7,7 +7,7 @@ import {
   getZodiacLayout,
   resizeZodiacWorld,
   stepZodiacWorld,
-} from './zodiac-simulation';
+} from '../theme-types/theme-types-zodiac-simulation';
 
 test('ZODIAC_CONSTELLATIONS defines all 12 signs with valid star indices and elements', () => {
   assert.equal(ZODIAC_CONSTELLATIONS.length, 12);

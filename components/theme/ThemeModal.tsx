@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Check, X } from 'lucide-react';
 import type { ThemeId } from '@/lib/deck-types';
-import { THEME_ORDER, THEME_SWATCHES } from '@/lib/data/data-theme';
+import { THEME_ORDER, THEME_SWATCHES } from '@/lib/theme/theme-data';
 
 interface ThemeModalProps {
   open: boolean;
@@ -84,6 +84,8 @@ export function ThemeModal({
             const isPixel = id === 'pixel';
             const isDino = id === 'dino';
             const isZodiac = id === 'zodiac';
+            const isTarot = id === 'tarot';
+            const isAi = id === 'ai';
 
             return (
               <button
@@ -175,7 +177,19 @@ export function ThemeModal({
                                                   ? 'border-[#d4af37] shadow-[0_0_16px_rgba(212,175,55,0.34)]'
                                                   : 'border-[#d4af37]/55 hover:border-[#facc15]'
                                               }`
-                                            : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                                            : isTarot
+                                              ? `bg-[#12071b] text-[#f5ecda] border rounded-[6px] ${
+                                                  active
+                                                    ? 'border-[#e3b96c] shadow-[0_0_16px_rgba(201,152,70,0.38)]'
+                                                    : 'border-[#c99846]/55 hover:border-[#e3b96c]'
+                                                }`
+                                              : isAi
+                                                ? `bg-[#070b18] text-[#eef4ff] border rounded-[6px] ${
+                                                    active
+                                                      ? 'border-[#60a5fa] shadow-[0_0_16px_rgba(77,107,254,0.4)]'
+                                                      : 'border-[#4d6bfe]/55 hover:border-[#60a5fa]'
+                                                  }`
+                                                : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -652,6 +666,90 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isTarot ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-semibold tracking-wider"
+                      style={{
+                        fontFamily:
+                          'var(--font-ghost-display), var(--font-serif), Georgia, serif',
+                        color: '#f5ecda',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(201, 152, 70, 0.65)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.05 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1 }
+                      }
+                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3 h-4 shrink-0 border border-[#e3b96c] rounded-[2px]"
+                        style={{
+                          background:
+                            'linear-gradient(155deg, #8b2c4e 0%, #381d52 60%, #160922 100%)',
+                          boxShadow:
+                            active || isEngaged
+                              ? '0 0 8px rgba(227, 185, 108, 0.72)'
+                              : 'none',
+                        }}
+                        animate={
+                          clickedTheme === id
+                            ? { rotateY: 180, scale: 1.15 }
+                            : isEngaged || active
+                              ? { rotate: -8, scale: 1.08 }
+                              : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
+                  ) : isAi ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-semibold tracking-wide"
+                      style={{
+                        fontFamily:
+                          'var(--font-astro-display), var(--font-orias-sans), system-ui, sans-serif',
+                        color: '#eef4ff',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(96, 165, 250, 0.58)'
+                            : 'none',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.05 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1 }
+                      }
+                      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3.5 shrink-0"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, #60a5fa 0%, #d97757 38%, #10a37f 72%, #4d6bfe 100%)',
+                          clipPath:
+                            'polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%)',
+                        }}
+                        animate={
+                          clickedTheme === id
+                            ? { rotate: 180, scale: 1.2 }
+                            : isEngaged || active
+                              ? { rotate: 45, scale: 1.1 }
+                              : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -713,7 +811,11 @@ export function ThemeModal({
                                                 ? 'bg-[#3f3f46] text-[#f4f4f5] border border-[#18181b] rounded-none'
                                                 : isZodiac
                                                   ? 'bg-[#d4af37] text-[#070b1a] rounded-[3px]'
-                                                  : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                                  : isTarot
+                                                    ? 'bg-[#c99846] text-[#0c0611] rounded-[3px]'
+                                                    : isAi
+                                                      ? 'bg-[#60a5fa] text-[#060913] rounded-[3px]'
+                                                      : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -756,7 +858,11 @@ export function ThemeModal({
                                                 ? 'rounded-none border border-[#52525b]'
                                                 : isZodiac
                                                   ? 'rounded-full border border-[#d4af37]/65'
-                                                  : 'rounded-[3px] border border-[#c5ccd8]'
+                                                  : isTarot
+                                                    ? 'rounded-[3px] border border-[#c99846]/65'
+                                                    : isAi
+                                                      ? 'rounded-[3px] border border-[#60a5fa]/65'
+                                                      : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />

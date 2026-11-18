@@ -5,7 +5,7 @@ import {
   normalizeModelIdForProvider,
   PROVIDER_META,
   type AiProviderId,
-} from '@/lib/ai-providers';
+} from '@/lib/ai/ai-providers';
 
 export async function POST(req: NextRequest) {
   let provider: AiProviderId | '' = '';

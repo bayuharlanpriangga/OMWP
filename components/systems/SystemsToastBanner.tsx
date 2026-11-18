@@ -2,11 +2,11 @@
 
 import React from 'react';
 
-interface ToastBannerProps {
+interface SystemsToastBannerProps {
   message: string | null;
 }
 
-export function ToastBanner({ message }: ToastBannerProps) {
+export function SystemsToastBanner({ message }: SystemsToastBannerProps) {
   if (!message) return null;
 
   return (

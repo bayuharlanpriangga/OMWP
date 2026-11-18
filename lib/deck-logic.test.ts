@@ -14,12 +14,12 @@ import {
 import {
   addBlockToSlide,
   buildSlideAiContext,
-  buildStandaloneHtml,
   deleteBlockInSlide,
   duplicateSlide,
   moveBlockInParent,
   updateBlockInSlide,
 } from './logic/logic-presentation-app';
+import { buildStandaloneHtml } from './export/export-html';
 import { parseInlineMarkup } from './logic/logic-page/logic-page-content/logic-markup-text-ai';
 import { createBlock } from './logic/logic-page/logic-page-content/logic-page-content-editor';
 import { computeReflowPositions } from './logic/logic-page/logic-page-present/logic-page-present';
@@ -367,7 +367,7 @@ test('TableBlock normalizes custom rows/columns, feeds modal scan & AI context, 
   assert.ok(html.includes('tblWidths'));
 });
 
-test('cyberpunk theme normalizes cleanly and exports purple self-contained cityscape styles', () => {
+test('cyberpunk theme normalizes cleanly and exports purple self-contained animated cityscape styles', () => {
   const deck = createDefaultDeck();
   deck.theme = 'cyberpunk';
   deck.title = 'Metropolis Malam';
@@ -382,7 +382,8 @@ test('cyberpunk theme normalizes cleanly and exports purple self-contained citys
   assert.ok(html.includes('#090612'));
   assert.ok(html.includes('#a855f7'));
   assert.ok(!html.includes('#00e5ff'));
-  assert.ok(html.includes('data:image/svg+xml'));
+  assert.ok(html.includes('cyberpunk-bg'));
+  assert.ok(!html.includes('data:image/svg+xml'));
 });
 
 test('hacker theme normalizes cleanly and exports neon green styles with matrix rain', () => {
@@ -578,6 +579,44 @@ test('zodiac theme normalizes cleanly and exports celestial midnight-gold styles
   assert.ok(html.includes('Cinzel'));
 });
 
+test('tarot theme normalizes cleanly and exports mystical velvet-gold styles with tarot canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'tarot';
+  deck.title = 'Arkana Malam Mistis';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'tarot');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="tarot"'));
+  assert.ok(html.includes('[data-theme=tarot]'));
+  assert.ok(html.includes('#0c0611'));
+  assert.ok(html.includes('#c99846'));
+  assert.ok(html.includes('tarot-bg'));
+  assert.ok(html.includes('Cinzel'));
+});
+
+test('ai theme normalizes cleanly and exports AI Nexus obsidian-cobalt styles with ai canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'ai';
+  deck.title = 'Sintesis Multi-Model AI Nexus';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'ai');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="ai"'));
+  assert.ok(html.includes('[data-theme=ai]'));
+  assert.ok(html.includes('#060913'));
+  assert.ok(html.includes('#4d6bfe'));
+  assert.ok(html.includes('#10a37f'));
+  assert.ok(html.includes('#d97757'));
+  assert.ok(html.includes('ai-bg'));
+  assert.ok(html.includes('Chakra Petch'));
+});
+
 test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {
   const deck = createDefaultDeck();
   deck.theme = 'hacker';
@@ -687,6 +726,8 @@ test('standalone HTML wraps ImageBlock in .im-frame and includes frame rules for
     'pixel',
     'dino',
     'zodiac',
+    'tarot',
+    'ai',
   ]) {
     assert.ok(
       html.includes(`[data-theme=${theme}] .im-frame{`),

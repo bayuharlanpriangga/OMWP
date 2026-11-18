@@ -10,7 +10,7 @@ import {
   Sparkles,
   Zap,
 } from 'lucide-react';
-import { PROVIDER_META, type AiProviderId } from '@/lib/ai-providers';
+import { PROVIDER_META, type AiProviderId } from '@/lib/ai/ai-providers';
 
 interface ProviderIconProps {
   provider: AiProviderId;

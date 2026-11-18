@@ -1,19 +1,20 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
-import cyberpunkCityBg from '@/src/assets/images/cyberpunk_purple_city_1794952180578.jpg';
 import type { ThemeId } from '@/lib/deck-types';
-import { AquariumTheme } from './AquariumTheme';
-import { DetectiveTheme } from './DetectiveTheme';
-import { DinoTheme } from './DinoTheme';
-import { GhostTheme } from './GhostTheme';
-import { HalloweenTheme } from './HalloweenTheme';
-import { MatrixRainTheme } from './MatrixRainTheme';
-import { PixelTheme } from './PixelTheme';
-import { SpaceTheme } from './SpaceTheme';
-import { SummerTheme } from './SummerTheme';
-import { ZodiacTheme } from './ZodiacTheme';
+import { ThemeTypesAi } from './themetypes/ThemeTypesAi';
+import { ThemeTypesAquarium } from './themetypes/ThemeTypesAquarium';
+import { ThemeTypesCyberpunk } from './themetypes/ThemeTypesCyberpunk';
+import { ThemeTypesDetective } from './themetypes/ThemeTypesDetective';
+import { ThemeTypesDino } from './themetypes/ThemeTypesDino';
+import { ThemeTypesGhost } from './themetypes/ThemeTypesGhost';
+import { ThemeTypesHalloween } from './themetypes/ThemeTypesHalloween';
+import { ThemeTypesMatrixRain } from './themetypes/ThemeTypesMatrixRain';
+import { ThemeTypesPixel } from './themetypes/ThemeTypesPixel';
+import { ThemeTypesSpace } from './themetypes/ThemeTypesSpace';
+import { ThemeTypesSummer } from './themetypes/ThemeTypesSummer';
+import { ThemeTypesTarot } from './themetypes/ThemeTypesTarot';
+import { ThemeTypesZodiac } from './themetypes/ThemeTypesZodiac';
 
 interface ThemeBackdropProps {
   theme: ThemeId;
@@ -63,27 +64,19 @@ export function ThemeBackdrop({ theme }: ThemeBackdropProps) {
 
   return (
     <div className="theme-backdrop" aria-hidden="true">
-      {theme === 'cyberpunk' && (
-        <Image
-          src={cyberpunkCityBg}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          referrerPolicy="no-referrer"
-          className="tb-city-img object-cover object-bottom"
-        />
-      )}
-      {theme === 'hacker' && <MatrixRainTheme />}
-      {theme === 'astronomi' && <SpaceTheme />}
-      {theme === 'ghost' && <GhostTheme />}
-      {theme === 'halloween' && <HalloweenTheme />}
-      {theme === 'aquarium' && <AquariumTheme />}
-      {theme === 'detective' && <DetectiveTheme />}
-      {theme === 'summer' && <SummerTheme />}
-      {theme === 'pixel' && <PixelTheme />}
-      {theme === 'dino' && <DinoTheme />}
-      {theme === 'zodiac' && <ZodiacTheme />}
+      {theme === 'cyberpunk' && <ThemeTypesCyberpunk />}
+      {theme === 'hacker' && <ThemeTypesMatrixRain />}
+      {theme === 'astronomi' && <ThemeTypesSpace />}
+      {theme === 'ghost' && <ThemeTypesGhost />}
+      {theme === 'halloween' && <ThemeTypesHalloween />}
+      {theme === 'aquarium' && <ThemeTypesAquarium />}
+      {theme === 'detective' && <ThemeTypesDetective />}
+      {theme === 'summer' && <ThemeTypesSummer />}
+      {theme === 'pixel' && <ThemeTypesPixel />}
+      {theme === 'dino' && <ThemeTypesDino />}
+      {theme === 'zodiac' && <ThemeTypesZodiac />}
+      {theme === 'tarot' && <ThemeTypesTarot />}
+      {theme === 'ai' && <ThemeTypesAi />}
       <span className="tb-a" />
       <span className="tb-b" />
       <span className="tb-c" />

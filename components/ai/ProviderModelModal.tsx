@@ -8,7 +8,7 @@ import {
   verifyModelDirectClient,
   type AiProviderId,
   type ProviderModelCheckResult,
-} from '@/lib/ai-providers';
+} from '@/lib/ai/ai-providers';
 import { ProviderIcon } from './ProviderBadge';
 
 interface ProviderModelModalProps {

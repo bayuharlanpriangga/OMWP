@@ -5,7 +5,7 @@ import {
   stripMarkup,
   syncSlideModals,
   uid,
-} from './deck-logic';
+} from '../deck-logic';
 import type {
   Block,
   BoxBlock,
@@ -14,7 +14,7 @@ import type {
   TextAlign,
   TextSize,
   ThemeId,
-} from './deck-types';
+} from '../deck-types';
 
 export interface HtmlImportResult {
   deck: Deck;
@@ -749,7 +749,9 @@ export function importDeckFromHtml(rawHtml: string): HtmlImportResult | null {
     themeAttr === 'summer' ||
     themeAttr === 'pixel' ||
     themeAttr === 'dino' ||
-    themeAttr === 'zodiac'
+    themeAttr === 'zodiac' ||
+    themeAttr === 'tarot' ||
+    themeAttr === 'ai'
       ? themeAttr
       : 'default';
 

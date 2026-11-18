@@ -113,7 +113,7 @@ function drawPixelMatrix(
   }
 }
 
-export function PixelTheme() {
+export function ThemeTypesPixel() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

@@ -7,7 +7,7 @@ import {
   groupDetectedKeys,
   type AiProviderId,
   type ByokKeyEntry,
-} from '@/lib/ai-providers';
+} from '@/lib/ai/ai-providers';
 import type { PresenterPrefs } from '@/lib/deck-types';
 import { ProviderIcon } from './ProviderBadge';
 import { ProviderModelModal } from './ProviderModelModal';

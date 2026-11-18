@@ -31,7 +31,7 @@ interface MistBand {
   alpha: number;
 }
 
-export function HalloweenTheme() {
+export function ThemeTypesHalloween() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {

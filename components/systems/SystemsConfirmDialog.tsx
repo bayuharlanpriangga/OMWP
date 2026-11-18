@@ -2,18 +2,21 @@
 
 import React from 'react';
 
-export interface ConfirmDialogState {
+export interface SystemsConfirmDialogState {
   title: string;
   message: string;
   onConfirm: () => void;
 }
 
-interface ConfirmDialogProps {
-  state: ConfirmDialogState | null;
+interface SystemsConfirmDialogProps {
+  state: SystemsConfirmDialogState | null;
   onCancel: () => void;
 }
 
-export function ConfirmDialog({ state, onCancel }: ConfirmDialogProps) {
+export function SystemsConfirmDialog({
+  state,
+  onCancel,
+}: SystemsConfirmDialogProps) {
   if (!state) return null;
 
   return (

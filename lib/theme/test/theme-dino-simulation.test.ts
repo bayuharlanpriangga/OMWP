@@ -7,7 +7,7 @@ import {
   rotateDinoRoles,
   stepDinoWorld,
   type DinoState,
-} from './dino-simulation';
+} from '../theme-types/theme-types-dino-simulation';
 
 function makeSeededRng(seed = 1337): () => number {
   let s = seed >>> 0;
