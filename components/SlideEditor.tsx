@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Bold,
+  BookOpen,
   Copy,
   Download,
   Eye,
@@ -36,6 +37,7 @@ import type {
   TableBlock,
   TextAlign,
 } from '@/lib/deck-types';
+import { EditorGuideModal } from './EditorGuideModal';
 import { MarkupText } from './MarkupText';
 import { TableBlockView } from './TableBlockView';
 
@@ -543,14 +545,6 @@ function TableBlockEditor({
         </table>
       </div>
 
-      <p className="text-[11px] opacity-70 m-0">
-        Lebar kolom seimbang otomatis bila semua isi ringkas, dan menyesuaikan
-        teks terpanjang jika ada kolom yang berisi keterangan panjang. Mendukung{' '}
-        <code className="font-mono">**tebal**</code>,{' '}
-        <code className="font-mono">[[istilah]]</code>, dan{' '}
-        <code className="font-mono">[[[modal]]]</code>.
-      </p>
-
       {showPreview && (
         <div className="p-3 rounded-lg border border-current/20 bg-[var(--bg)]">
           <div className="text-xs font-mono opacity-60 mb-2">Pratinjau tabel:</div>
@@ -590,6 +584,7 @@ export function SlideEditor({
   const imgInputRef = React.useRef<HTMLInputElement>(null);
   const [showHtmlImport, setShowHtmlImport] = React.useState(false);
   const [pastedHtml, setPastedHtml] = React.useState('');
+  const [guideOpen, setGuideOpen] = React.useState(false);
   const pendingImgTargetRef = React.useRef<{
     kind: 'add' | 'replace';
     id?: string;
@@ -1021,6 +1016,15 @@ export function SlideEditor({
           <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
           <span>Hapus slide</span>
         </button>
+        <button
+          type="button"
+          className="pbtn sm w-[34px] h-[34px] !p-0 ml-auto"
+          onClick={() => setGuideOpen(true)}
+          aria-label="Panduan editor"
+          title="Panduan editor"
+        >
+          <BookOpen className="w-4 h-4" aria-hidden="true" />
+        </button>
       </div>
 
       {/* Per-slide Header Title */}
@@ -1043,9 +1047,6 @@ export function SlideEditor({
           }
           onChange={(e) => onSlideHeaderTitleChange(e.target.value)}
         />
-        <p className="text-xs opacity-70 mt-1 mb-0">
-          Setiap halaman memiliki judul header sendiri sebagai konteks atau informasi tambahan.
-        </p>
       </div>
 
       {/* Add component buttons directly below presentation title */}
@@ -1069,11 +1070,6 @@ export function SlideEditor({
         <div className="pt-4 border-t border-current/15 space-y-3">
           <div>
             <h2 className="text-xl font-bold m-0">Modal</h2>
-            <p className="text-xs opacity-75 mt-1">
-              Terdeteksi otomatis dari tanda{' '}
-              <code className="font-mono">[[[ ]]]</code> di slide. Isi di bawah
-              tampil sebagai popup saat teksnya diklik.
-            </p>
           </div>
           <div className="space-y-4">
             {(slide.modals || []).map((m) => (
@@ -1101,16 +1097,8 @@ export function SlideEditor({
         </div>
       )}
 
-      {/* Tips & Export / Import */}
+      {/* Export / Import */}
       <div className="pt-4 border-t border-current/15 space-y-3">
-        <p className="text-xs opacity-75 m-0">
-          Urutan, ukuran, dan perataan bebas diatur di mode{' '}
-          <strong>Layout</strong>. Tanda <code className="font-mono">[[ ]]</code>{' '}
-          (penjelasan AI) dan <code className="font-mono">[[[ ]]]</code> (popup
-          modal) hanya terlihat di sini; saat ditampilkan istilahnya menjadi
-          tombol interaktif.
-        </p>
-
         <div className="flex flex-wrap gap-2">
           <button type="button" className="pbtn" onClick={onExportHtml}>
             <Download className="w-4 h-4" aria-hidden="true" />
@@ -1156,12 +1144,6 @@ export function SlideEditor({
                 <span>Pilih file .html</span>
               </button>
             </div>
-            <p className="text-xs opacity-75 m-0">
-              Mendukung file HTML hasil ekspor aplikasi ini maupun file HTML presentasi umum (elemen{' '}
-              <code className="font-mono">&lt;section&gt;</code>,{' '}
-              <code className="font-mono">.slide</code>, heading, kartu, daftar, dan{' '}
-              <code className="font-mono">&lt;details&gt;</code>) agar langsung bisa diedit per blok.
-            </p>
             <textarea
               rows={5}
               className="ptarea font-mono text-xs leading-relaxed"
@@ -1198,11 +1180,9 @@ export function SlideEditor({
           </div>
         )}
 
-        <p className="text-xs opacity-70 m-0">
-          Export HTML menghasilkan satu file presentasi mandiri tanpa editor,
-          siap dibuka offline atau dipublish ke GitHub Pages.
-        </p>
       </div>
+
+      <EditorGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
     </section>
   );
 }
