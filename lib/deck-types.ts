@@ -11,7 +11,8 @@ export type ThemeId =
   | 'halloween'
   | 'aquarium'
   | 'detective'
-  | 'summer';
+  | 'summer'
+  | 'pixel';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';
 export type TextAlign = 'l' | 'c' | 'r';

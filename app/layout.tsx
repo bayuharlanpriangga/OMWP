@@ -11,6 +11,7 @@ import {
   Orbitron,
   Plus_Jakarta_Sans,
   Rajdhani,
+  Silkscreen,
   Source_Serif_4,
   Space_Mono,
 } from 'next/font/google';
@@ -93,6 +94,13 @@ const jakarta = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
+const silkscreen = Silkscreen({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-pixel',
+  display: 'swap',
+});
+
 const sourceSerif = Source_Serif_4({
   subsets: ['latin'],
   weight: ['400', '600', '700'],
@@ -110,18 +118,18 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: 'Presentasi Interaktif',
   description:
-    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective & Summer, ekspor HTML mandiri, dan Orias AI.',
+    'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer & Pixel 8-Bit, ekspor HTML mandiri, dan Orias AI.',
   openGraph: {
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective & Summer, ekspor HTML mandiri, dan Orias AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer & Pixel 8-Bit, ekspor HTML mandiri, dan Orias AI.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Presentasi Interaktif',
     description:
-      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective & Summer, ekspor HTML mandiri, dan Orias AI.',
+      'Web presentasi interaktif dengan canvas bebas, kartu dropdown, popup modal, tema Default, Brutalis, Auditor, Cyberpunk, Hacker, Astronomi, Ghost, Halloween, Aquarium, Detective, Summer & Pixel 8-Bit, ekspor HTML mandiri, dan Orias AI.',
   },
 };
 
@@ -130,7 +138,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="id"
       data-theme="default"
-      className={`${bricolage.variable} ${chakraPetch.variable} ${cinzel.variable} ${creepster.variable} ${fredoka.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${lora.variable} ${orbitron.variable} ${rajdhani.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
+      className={`${bricolage.variable} ${chakraPetch.variable} ${cinzel.variable} ${creepster.variable} ${fredoka.variable} ${ibmPlexSans.variable} ${jetbrainsMono.variable} ${lora.variable} ${orbitron.variable} ${rajdhani.variable} ${silkscreen.variable} ${jakarta.variable} ${sourceSerif.variable} ${spaceMono.variable}`}
       suppressHydrationWarning
     >
       <body suppressHydrationWarning>{children}</body>

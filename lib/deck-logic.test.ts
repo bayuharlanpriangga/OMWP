@@ -521,6 +521,25 @@ test('summer theme normalizes cleanly and exports sunny yellow styles with anima
   assert.ok(html.includes('Fredoka'));
 });
 
+test('pixel theme normalizes cleanly and exports dark-blue & yellow 8-bit game styles with animated pixel canvas', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'pixel';
+  deck.title = 'Petualangan Pixel 8-Bit';
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.theme, 'pixel');
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('data-theme="pixel"'));
+  assert.ok(html.includes('[data-theme=pixel]'));
+  assert.ok(html.includes('#08122e'));
+  assert.ok(html.includes('#facc15'));
+  assert.ok(html.includes('#1d4ed8'));
+  assert.ok(html.includes('pixel-bg'));
+  assert.ok(html.includes('Silkscreen'));
+});
+
 test('standalone HTML unifies slide canvas font metrics and borderless header/footer across all themes', () => {
   const deck = createDefaultDeck();
   deck.theme = 'hacker';
@@ -627,6 +646,7 @@ test('standalone HTML wraps ImageBlock in .im-frame and includes frame rules for
     'aquarium',
     'detective',
     'summer',
+    'pixel',
   ]) {
     assert.ok(
       html.includes(`[data-theme=${theme}] .im-frame{`),

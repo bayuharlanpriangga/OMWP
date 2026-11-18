@@ -71,6 +71,10 @@ const THEME_SWATCHES: Record<
     name: 'Summer',
     colors: ['#fef9c3', '#fde047', '#facc15', '#f59e0b', '#713f12'],
   },
+  pixel: {
+    name: 'Pixel 8-Bit',
+    colors: ['#08122e', '#132b6b', '#1d4ed8', '#facc15', '#fef08a'],
+  },
 };
 
 export function ThemeModal({
@@ -103,6 +107,7 @@ export function ThemeModal({
     'aquarium',
     'detective',
     'summer',
+    'pixel',
   ];
 
   const handleChoose = (id: ThemeId) => {
@@ -155,6 +160,7 @@ export function ThemeModal({
             const isAquarium = id === 'aquarium';
             const isDetective = id === 'detective';
             const isSummer = id === 'summer';
+            const isPixel = id === 'pixel';
 
             return (
               <button
@@ -228,7 +234,13 @@ export function ThemeModal({
                                             ? 'border-[#ca8a04] shadow-[0_0_16px_rgba(250,204,21,0.52)]'
                                             : 'border-[#eab308]/80 hover:border-[#ca8a04]'
                                         }`
-                                      : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                                      : isPixel
+                                        ? `bg-[#0b183d] text-[#fefce8] border-2 rounded-none shadow-[3px_3px_0_#facc15] ${
+                                            active
+                                              ? 'border-[#fde047] bg-[#132b6b]'
+                                              : 'border-[#facc15]/80 hover:border-[#fde047]'
+                                          }`
+                                        : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -599,6 +611,39 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isPixel ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-lg font-bold tracking-wide"
+                      style={{
+                        fontFamily:
+                          'var(--font-pixel), var(--font-mono), ui-monospace, monospace',
+                        color: '#fef08a',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { y: [0, -4, 0] }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, y: 0 }
+                      }
+                      transition={{ duration: 0.22, ease: 'linear' }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3.5 shrink-0 border-2 border-[#b45309] bg-[#facc15] shadow-[2px_2px_0_#1d4ed8]"
+                        animate={
+                          isEngaged || active
+                            ? { y: [0, -2, 0] }
+                            : { y: 0 }
+                        }
+                        transition={{
+                          duration: 0.7,
+                          repeat: isEngaged || active ? Infinity : 0,
+                          ease: 'linear',
+                        }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : (
                     <motion.span
                       className="relative inline-block text-xl font-semibold"
@@ -654,7 +699,9 @@ export function ThemeModal({
                                           ? 'bg-[#d4a373] text-[#1c120d] rounded-[3px]'
                                           : isSummer
                                             ? 'bg-[#facc15] text-[#422006] border border-[#ca8a04] rounded-full'
-                                            : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                            : isPixel
+                                              ? 'bg-[#facc15] text-[#08122e] border border-[#fde047] rounded-none'
+                                              : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -691,7 +738,9 @@ export function ThemeModal({
                                           ? 'rounded-[2px] border border-[#d4a373]/65'
                                           : isSummer
                                             ? 'rounded-full border border-[#ca8a04]/70'
-                                            : 'rounded-[3px] border border-[#c5ccd8]'
+                                            : isPixel
+                                              ? 'rounded-none border border-[#facc15]/85'
+                                              : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />

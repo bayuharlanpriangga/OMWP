@@ -49,6 +49,7 @@ import { DetectiveBackdrop } from './DetectiveBackdrop';
 import { GhostBackdrop } from './GhostBackdrop';
 import { HalloweenBackdrop } from './HalloweenBackdrop';
 import { MatrixRainBackdrop } from './MatrixRainBackdrop';
+import { PixelBackdrop } from './PixelBackdrop';
 import { SpaceBackdrop } from './SpaceBackdrop';
 import { SummerBackdrop } from './SummerBackdrop';
 import {
@@ -673,6 +674,7 @@ export function PresentationApp() {
         {deck.theme === 'aquarium' && <AquariumBackdrop />}
         {deck.theme === 'detective' && <DetectiveBackdrop />}
         {deck.theme === 'summer' && <SummerBackdrop />}
+        {deck.theme === 'pixel' && <PixelBackdrop />}
         <span className="tb-a" />
         <span className="tb-b" />
         <span className="tb-c" />

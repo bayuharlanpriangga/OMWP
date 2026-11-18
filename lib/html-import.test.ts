@@ -282,6 +282,26 @@ test('importDeckFromHtml preserves summer theme attribute on standalone round-tr
   assert.equal(generic.deck.theme, 'summer');
 });
 
+test('importDeckFromHtml preserves pixel theme attribute on standalone round-trip and generic HTML', () => {
+  const deck = createDefaultDeck();
+  deck.theme = 'pixel';
+  deck.title = 'Arcade Pixel 8-Bit';
+  deck.slides[0].blocks.push(createBlock('text'));
+  if (deck.slides[0].blocks[0].t === 'text') {
+    deck.slides[0].blocks[0].text = 'Dunia Biru Tua & Koin Kuning';
+  }
+  const exported = buildStandaloneHtml(deck);
+  const reimported = importDeckFromHtml(exported);
+  assert.ok(reimported);
+  assert.equal(reimported.deck.theme, 'pixel');
+
+  const generic = importDeckFromHtml(
+    '<!doctype html><html data-theme="pixel"><head><title>Retro Game</title></head><body><section class="slide"><h1>Level 1: Kastil Biru</h1></section></body></html>'
+  );
+  assert.ok(generic);
+  assert.equal(generic.deck.theme, 'pixel');
+});
+
 test('importDeckFromHtml preserves multiple container titles and per-slide headerTitle on round-trip', () => {
   const deck = createDefaultDeck();
   deck.slides[0].headerTitle = 'Header Halaman 1 — Pengantar';
