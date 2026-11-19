@@ -3,7 +3,7 @@
 import React from 'react';
 import { resolveTableColumnWidths } from '@/lib/presentation/presentation-table-view';
 import type { TableBlock } from '@/lib/deck-types';
-import { MarkupText } from './PageEditMarkupText';
+import { MarkupText } from '../PageEditMarkupText';
 
 interface TableViewProps {
   block: TableBlock;

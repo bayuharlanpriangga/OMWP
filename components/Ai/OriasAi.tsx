@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import type { ChatMessage, ThemeId } from '@/lib/deck-types';
-import { AiMessageText } from '../page/pageedit/PageEditMarkupTextAi';
+import { AiMessageText } from '../Page/PageEdit/PageEditMarkupTextAi';
 
 interface OriasAiProps {
   open: boolean;

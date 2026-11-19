@@ -3,7 +3,7 @@
 import React from 'react';
 import { PAGE_CONTENT_EDITOR_LABELS } from '@/lib/data/data-page-content-editor';
 import type { TableBlock } from '@/lib/deck-types';
-import { TableView } from '../PageEditTable';
+import { TableView } from '../PageEditTable/PageEditTableView';
 
 interface PageEditPreviewTableProps {
   block: TableBlock;

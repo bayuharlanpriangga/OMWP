@@ -3,7 +3,7 @@
 import React from 'react';
 import { Check, LayoutGrid, Palette, Pencil } from 'lucide-react';
 import type { WorkspaceMode } from '@/lib/deck-types';
-import { PageFullscreen } from '../page/pagefullscreen/PageFullscreen';
+import { PageFullscreen } from '../Page/PageFullscreen/PageFullscreen';
 
 interface TopBarProps {
   title: string;

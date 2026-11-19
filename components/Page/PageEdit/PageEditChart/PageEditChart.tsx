@@ -11,11 +11,11 @@ import {
 import { formatChartNumber } from '@/lib/presentation/presentation-chart';
 import type { ChartBlock } from '@/lib/deck-types';
 import { MarkupText } from '../PageEditMarkupText';
-import { PageEditChartTypesBatang } from './pageeditcharttypes/PageEditChartTypesBatang';
-import { PageEditChartTypesGaris } from './pageeditcharttypes/PageEditChartTypesGaris';
-import { PageEditChartTypesKolom } from './pageeditcharttypes/PageEditChartTypesKolom';
-import { PageEditChartTypesPie } from './pageeditcharttypes/PageEditChartTypesPie';
-import { PageEditChartTypesSunburst } from './pageeditcharttypes/PageEditChartTypesSunburst';
+import { PageEditChartTypesBatang } from './PageEditChartTypes/PageEditChartTypesBatang';
+import { PageEditChartTypesGaris } from './PageEditChartTypes/PageEditChartTypesGaris';
+import { PageEditChartTypesKolom } from './PageEditChartTypes/PageEditChartTypesKolom';
+import { PageEditChartTypesPie } from './PageEditChartTypes/PageEditChartTypesPie';
+import { PageEditChartTypesSunburst } from './PageEditChartTypes/PageEditChartTypesSunburst';
 
 interface ChartViewProps {
   block: ChartBlock;

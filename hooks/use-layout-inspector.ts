@@ -8,7 +8,7 @@ import {
   updateBlockInSlide,
 } from '@/lib/page/page-presentation';
 import type { Slide, TextAlign, TextSize, WorkspaceMode } from '@/lib/deck-types';
-import type { PageLayoutEditorHandle } from '@/components/page/pagelayout/PageLayout';
+import type { PageLayoutEditorHandle } from '@/components/Page/PageLayout/PageLayout';
 
 export function useLayoutInspector({
   mode,

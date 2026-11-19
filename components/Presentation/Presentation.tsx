@@ -17,24 +17,24 @@ import { useDeckStorage } from '@/hooks/use-deck-storage';
 import { useDeckActions } from '@/hooks/use-deck-actions';
 import { useLayoutInspector } from '@/hooks/use-layout-inspector';
 import { useOriasAi } from '@/hooks/use-orias-ai';
-import { OriasAiHub } from '../ai/OriasAiHub';
-import { ThemeBackdrop } from '../theme/ThemeBackdrop';
-import { ThemeModal } from '../theme/ThemeModal';
-import { MarkupText } from '../page/pageedit/PageEditMarkupText';
-import { MarkupTextModal } from '../page/pageedit/PageEditMarkupTextModal';
-import { PageContentEditor } from '../page/pageedit/PageEdit';
-import { TableView } from '../page/pageedit/PageEditTable';
-import { LayoutSlideStrip } from '../page/pagelayout/PageLayoutSlideStrip';
-import { PageLayoutEditor } from '../page/pagelayout/PageLayout';
-import { PageLayoutEditorPanel } from '../page/pagelayout/PageLayoutPanel';
+import { OriasAiHub } from '../Ai/OriasAiHub';
+import { ThemeBackdrop } from '../Theme/ThemeBackdrop';
+import { ThemeModal } from '../Theme/ThemeModal';
+import { MarkupText } from '../Page/PageEdit/PageEditMarkupText';
+import { MarkupTextModal } from '../Page/PageEdit/PageEditMarkupTextModal';
+import { PageContentEditor } from '../Page/PageEdit/PageEdit';
+import { TableView } from '../Page/PageEdit/PageEditTable/PageEditTableView';
+import { LayoutSlideStrip } from '../Page/PageLayout/PageLayoutSlideStrip';
+import { PageLayoutEditor } from '../Page/PageLayout/PageLayout';
+import { PageLayoutEditorPanel } from '../Page/PageLayout/PageLayoutPanel';
 import {
   SystemsConfirmDialog,
   type SystemsConfirmDialogState,
-} from '../systems/SystemsConfirmDialog';
-import { ChartView } from '../page/pageedit/pageeditchart/PageEditChart';
+} from '../Systems/SystemsConfirmDialog';
+import { ChartView } from '../Page/PageEdit/PageEditChart/PageEditChart';
 import { ImageLightbox } from './PresentationImageView';
 import { SlideNav } from './PresentationSlideNavigation';
-import { SystemsToastBanner } from '../systems/SystemsToastBanner';
+import { SystemsToastBanner } from '../Systems/SystemsToastBanner';
 import { TopBar } from './PresentationTopBar';
 
 interface SlideBlockContentProps {

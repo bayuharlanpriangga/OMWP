@@ -2,20 +2,20 @@
 
 import React from 'react';
 import type { ThemeId } from '@/lib/deck-types';
-import { ThemeTypesAi } from './themetypes/ThemeTypesAi';
-import { ThemeTypesAquarium } from './themetypes/ThemeTypesAquarium';
-import { ThemeTypesCyberpunk } from './themetypes/ThemeTypesCyberpunk';
-import { ThemeTypesDetective } from './themetypes/ThemeTypesDetective';
-import { ThemeTypesDino } from './themetypes/ThemeTypesDino';
-import { ThemeTypesGhost } from './themetypes/ThemeTypesGhost';
-import { ThemeTypesHalloween } from './themetypes/ThemeTypesHalloween';
-import { ThemeTypesJoker } from './themetypes/ThemeTypesJoker';
-import { ThemeTypesMatrixRain } from './themetypes/ThemeTypesMatrixRain';
-import { ThemeTypesPixel } from './themetypes/ThemeTypesPixel';
-import { ThemeTypesSpace } from './themetypes/ThemeTypesSpace';
-import { ThemeTypesSummer } from './themetypes/ThemeTypesSummer';
-import { ThemeTypesTarot } from './themetypes/ThemeTypesTarot';
-import { ThemeTypesZodiac } from './themetypes/ThemeTypesZodiac';
+import { ThemeTypesAi } from './ThemeTypes/ThemeTypesAi';
+import { ThemeTypesAquarium } from './ThemeTypes/ThemeTypesAquarium';
+import { ThemeTypesCyberpunk } from './ThemeTypes/ThemeTypesCyberpunk';
+import { ThemeTypesDetective } from './ThemeTypes/ThemeTypesDetective';
+import { ThemeTypesDino } from './ThemeTypes/ThemeTypesDino';
+import { ThemeTypesGhost } from './ThemeTypes/ThemeTypesGhost';
+import { ThemeTypesHalloween } from './ThemeTypes/ThemeTypesHalloween';
+import { ThemeTypesJoker } from './ThemeTypes/ThemeTypesJoker';
+import { ThemeTypesMatrixRain } from './ThemeTypes/ThemeTypesMatrixRain';
+import { ThemeTypesPixel } from './ThemeTypes/ThemeTypesPixel';
+import { ThemeTypesSpace } from './ThemeTypes/ThemeTypesSpace';
+import { ThemeTypesSummer } from './ThemeTypes/ThemeTypesSummer';
+import { ThemeTypesTarot } from './ThemeTypes/ThemeTypesTarot';
+import { ThemeTypesZodiac } from './ThemeTypes/ThemeTypesZodiac';
 
 interface ThemeBackdropProps {
   theme: ThemeId;

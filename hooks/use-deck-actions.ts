@@ -17,7 +17,7 @@ import { importDeckFromHtml } from '@/lib/import/import-types/import-types-html'
 import { importDeckFromJson } from '@/lib/import/import-types/import-types-json';
 import { orderByokKeysForRequest, type ByokKeyEntry } from '@/lib/ai/ai-providers';
 import type { Block, Deck, PresenterPrefs, Slide } from '@/lib/deck-types';
-import type { SystemsConfirmDialogState } from '@/components/systems/SystemsConfirmDialog';
+import type { SystemsConfirmDialogState } from '@/components/Systems/SystemsConfirmDialog';
 import { triggerFileDownload } from './use-deck-storage';
 
 export function useDeckActions({
