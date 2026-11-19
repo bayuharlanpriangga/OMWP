@@ -39,15 +39,15 @@ import {
   clamp,
   createBlock,
   createChartBlock,
-  createEqualTableColumnWidths,
   getSlideTitle,
-  resolveTableColumnWidths,
 } from '@/lib/page/page-edit/page-edit';
+import { formatChartEditorTitle } from '@/lib/presentation/presentation-chart';
 import {
+  createEqualTableColumnWidths,
   removeTableColumnWidth,
   resizeTableColumnWidths,
+  resolveTableColumnWidths,
 } from '@/lib/presentation/presentation-table-view';
-import { formatChartEditorTitle } from '@/lib/presentation/presentation-chart';
 import { uid } from '@/lib/presentation/presentation-utils';
 import type {
   Block,
@@ -58,11 +58,11 @@ import type {
   TableBlock,
   TextAlign,
 } from '@/lib/deck-types';
-import { PageEditChartModal } from './PageEditChartModal';
+import { PageEditChartModal } from './pageeditchart/PageEditChartModal';
+import { PageEditPreviewChart } from './pageeditpreview/PageEditPreviewChart';
+import { PageEditPreviewTable } from './pageeditpreview/PageEditPreviewTable';
 import { PageContentEditorGuide } from './PageEditGuides';
 import { MarkupText } from './PageEditMarkupText';
-import { ChartView } from '@/components/presentation/PresentationChartView';
-import { TableView } from '@/components/presentation/PresentationTableView';
 
 interface PageContentEditorProps {
   deck: Deck;
@@ -762,18 +762,7 @@ function TableBlockEditor({
         </table>
       </div>
 
-      {showPreview && (
-        <div className="p-3 rounded-lg border border-current/20 bg-[var(--bg)]">
-          <div className="text-xs font-mono opacity-60 mb-2">
-            {PAGE_CONTENT_EDITOR_LABELS.table.previewHeading}
-          </div>
-          <TableView
-            block={block}
-            live={false}
-            onTermClick={() => {}}
-          />
-        </div>
-      )}
+      {showPreview && <PageEditPreviewTable block={block} />}
     </div>
   );
 }
@@ -1149,14 +1138,7 @@ function ChartBlockEditor({
         </p>
       )}
 
-      {showPreview && (
-        <div className="p-3 rounded-lg border border-current/20 bg-[var(--bg)]">
-          <div className="text-xs font-mono opacity-60 mb-2">
-            {PAGE_CONTENT_EDITOR_LABELS.chart.previewHeading}
-          </div>
-          <ChartView block={block} live={false} interactive={true} />
-        </div>
-      )}
+      {showPreview && <PageEditPreviewChart block={block} />}
     </div>
   );
 }

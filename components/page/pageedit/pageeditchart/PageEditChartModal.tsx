@@ -14,9 +14,9 @@ import {
   CHART_TYPE_LIST,
   createDefaultChartData,
   getChartTypeMeta,
-} from '@/lib/presentation/presentation-chart';
+} from '@/lib/page/page-edit/page-edit-chart';
 import type { ChartBlock, ChartType } from '@/lib/deck-types';
-import { ChartView } from '@/components/presentation/PresentationChartView';
+import { ChartView } from './PageEditChart';
 
 interface PageEditChartModalProps {
   open: boolean;

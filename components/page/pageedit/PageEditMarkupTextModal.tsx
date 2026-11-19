@@ -6,8 +6,8 @@ import { ChevronRight, X } from 'lucide-react';
 import { stripMarkup } from '@/lib/page/page-edit/page-edit-markup-text-modal';
 import type { Block, SlideModal } from '@/lib/deck-types';
 import { MarkupText } from './PageEditMarkupText';
-import { ChartView } from '@/components/presentation/PresentationChartView';
-import { TableView } from '@/components/presentation/PresentationTableView';
+import { ChartView } from './pageeditchart/PageEditChart';
+import { TableView } from './PageEditTable';
 
 interface MarkupTextModalProps {
   modal: SlideModal | null;

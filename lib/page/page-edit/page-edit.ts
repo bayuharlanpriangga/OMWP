@@ -1,5 +1,5 @@
 import type { Block } from '../../deck-types';
-import { createChartBlock } from '../../presentation/presentation-chart';
+import { createChartBlock } from './page-edit-chart';
 import { getSlideTitle } from '../../presentation/presentation-page-content';
 import {
   createEqualTableColumnWidths,

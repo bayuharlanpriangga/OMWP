@@ -1,31 +1,23 @@
 'use client';
 
 import React from 'react';
-import {
-  Check,
-  LayoutGrid,
-  Minimize2,
-  Palette,
-  Pencil,
-  Play,
-} from 'lucide-react';
+import { Check, LayoutGrid, Palette, Pencil } from 'lucide-react';
 import type { WorkspaceMode } from '@/lib/deck-types';
+import { PageFullscreen } from '../page/pagefullscreen/PageFullscreen';
 
 interface TopBarProps {
   title: string;
   mode: WorkspaceMode;
-  isFullscreen: boolean;
   onModeChange: (mode: WorkspaceMode) => void;
-  onToggleFullscreen: () => void;
+  onToast: (message: string) => void;
   onOpenThemes: () => void;
 }
 
 export function TopBar({
   title,
   mode,
-  isFullscreen,
   onModeChange,
-  onToggleFullscreen,
+  onToast,
   onOpenThemes,
 }: TopBarProps) {
   const isEdit = mode === 'edit';
@@ -75,21 +67,7 @@ export function TopBar({
           </button>
         </div>
 
-        {mode === 'present' && (
-          <button
-            type="button"
-            className="pbtn sm w-[34px] !px-0"
-            onClick={onToggleFullscreen}
-            aria-label={isFullscreen ? 'Keluar layar penuh' : 'Layar penuh'}
-            title={isFullscreen ? 'Keluar layar penuh' : 'Layar penuh'}
-          >
-            {isFullscreen ? (
-              <Minimize2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            ) : (
-              <Play className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            )}
-          </button>
-        )}
+        {mode === 'present' && <PageFullscreen onToast={onToast} />}
 
         <button
           type="button"

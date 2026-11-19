@@ -5,12 +5,12 @@ import {
   addBlockToSlide,
   createDefaultDeck,
   deleteBlockInSlide,
-  duplicateSlide,
   getDeckDisplayTitle,
   getSlideTitle,
   uid,
   updateBlockInSlide,
 } from '@/lib/page/page-presentation';
+import { duplicateSlide } from '@/lib/page/page-edit/page-edit-duplicate';
 import { buildStandaloneHtml, slugifyTitle } from '@/lib/export/export-html';
 import { buildDeckJsonExport } from '@/lib/export/export-json';
 import { importDeckFromHtml } from '@/lib/import/import-types/import-types-html';

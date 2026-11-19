@@ -10,7 +10,7 @@ import {
   type RectPx,
 } from '@/lib/page/page-layout/page-layout';
 import type { Block, Slide, ThemeId } from '@/lib/deck-types';
-import { SlideBlockContent } from '../pagepresent/PagePresent';
+import { SlideBlockContent } from '../../presentation/Presentation';
 
 export interface PageLayoutEditorHandle {
   nudgeAndShowGuides: (
