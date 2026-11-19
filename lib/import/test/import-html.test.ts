@@ -477,3 +477,18 @@ test('importDeckFromHtml extracts ImageBlock cleanly when wrapped in .im-frame',
   assert.equal(img.src, 'https://picsum.photos/seed/framed/640/360');
   assert.equal(img.alt, 'Gambar berbingkai');
 });
+
+test('importDeckFromHtml converts italic, underline, and nested bold+italic inline HTML tags into markup', () => {
+  const html = `<!doctype html><html><body><section class="slide">
+    <p>Kata <em>miring</em>, <i>juga miring</i>, <u>garis bawah</u>, dan <em><strong>tebal miring</strong></em>.</p>
+  </section></body></html>`;
+
+  const imported = importDeckFromHtml(html);
+  assert.ok(imported);
+  const tb = imported.deck.slides[0].blocks.find((b) => b.t === 'text');
+  assert.ok(tb && tb.t === 'text');
+  assert.ok(tb.text.includes('*miring*'));
+  assert.ok(tb.text.includes('*juga miring*'));
+  assert.ok(tb.text.includes('__garis bawah__'));
+  assert.ok(tb.text.includes('***tebal miring***'));
+});

@@ -1,6 +1,8 @@
 import type {
   Block,
   BoxBlock,
+  ChartBlock,
+  ChartType,
   ConclusionBlock,
   DropdownBlock,
   ImageBlock,
@@ -23,9 +25,21 @@ export function createTextBlock(
   text = '',
   size: TextSize = 'm',
   align: TextAlign = 'l',
-  b = false
+  b = false,
+  i = false,
+  u = false
 ): TextBlock {
-  return { id: uid(), t: 'text', text, size, align, w: 12, b };
+  return {
+    id: uid(),
+    t: 'text',
+    text,
+    size,
+    align,
+    w: 12,
+    b,
+    ...(i ? { i: true } : {}),
+    ...(u ? { u: true } : {}),
+  };
 }
 
 export function walkBlocks(blocks: Block[], fn: (b: Block) => void): void {
@@ -42,6 +56,14 @@ export function flattenBlocks(blocks: Block[]): Block[] {
   walkBlocks(blocks, (b) => result.push(b));
   return result;
 }
+
+const VALID_CHART_TYPES = new Set<ChartType>([
+  'column',
+  'pie',
+  'line',
+  'bar',
+  'sunburst',
+]);
 
 export function normalizeBlocks(blocks: Block[]): Block[] {
   return blocks.map((raw) => {
@@ -60,6 +82,8 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
         size: raw.size || 'm',
         align: raw.align || 'l',
         b: Boolean(raw.b),
+        ...(raw.i ? { i: true } : {}),
+        ...(raw.u ? { u: true } : {}),
         w,
         ...coords,
       };
@@ -128,15 +152,72 @@ export function normalizeBlocks(blocks: Block[]): Block[] {
               );
             })
           : [Array.from({ length: colCount }, () => '')];
+      const rawColWidths = Array.isArray(raw.colWidths)
+        ? raw.colWidths
+        : undefined;
+      const colWidths =
+        rawColWidths && rawColWidths.length > 0
+          ? Array.from({ length: colCount }, (_, idx) => {
+              const v = Number(rawColWidths[idx]);
+              return Number.isFinite(v) && v > 0
+                ? clamp(Number(v.toFixed(2)), 1, 100)
+                : Number((100 / colCount).toFixed(1));
+            })
+          : undefined;
       const tb: TableBlock = {
         id,
         t: 'table',
         headers,
         rows,
+        ...(colWidths ? { colWidths } : {}),
         w,
         ...coords,
       };
       return tb;
+    }
+    if (raw.t === 'chart') {
+      const chartType: ChartType = VALID_CHART_TYPES.has(raw.chartType)
+        ? raw.chartType
+        : 'column';
+      const rawCategories = Array.isArray(raw.categories)
+        ? raw.categories.map((c) => String(c ?? ''))
+        : [];
+      const categories =
+        rawCategories.length > 0 ? rawCategories : ['Kategori 1'];
+      const catCount = categories.length;
+      const rawSeries = Array.isArray(raw.series) ? raw.series : [];
+      const series =
+        rawSeries.length > 0
+          ? rawSeries.map((s, sIdx) => {
+              const rawVals = Array.isArray(s?.values) ? s.values : [];
+              return {
+                id: s?.id ? String(s.id) : uid(),
+                name:
+                  s?.name !== undefined ? String(s.name) : `Seri ${sIdx + 1}`,
+                values: Array.from({ length: catCount }, (_, cIdx) => {
+                  const num = Number(rawVals[cIdx]);
+                  return Number.isFinite(num) ? num : 0;
+                }),
+              };
+            })
+          : [
+              {
+                id: uid(),
+                name: 'Seri 1',
+                values: Array.from({ length: catCount }, () => 0),
+              },
+            ];
+      const cb: ChartBlock = {
+        id,
+        t: 'chart',
+        chartType,
+        ...(raw.title !== undefined ? { title: String(raw.title) } : {}),
+        categories,
+        series,
+        w,
+        ...coords,
+      };
+      return cb;
     }
     const cb: ConclusionBlock = {
       id,

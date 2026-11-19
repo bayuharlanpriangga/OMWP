@@ -37,6 +37,8 @@ export interface TextBlock extends BaseBlock {
   size: TextSize;
   align: TextAlign;
   b?: boolean;
+  i?: boolean;
+  u?: boolean;
 }
 
 export interface DropdownBlock extends BaseBlock {
@@ -68,11 +70,28 @@ export interface TableBlock extends BaseBlock {
   t: 'table';
   headers: string[];
   rows: string[][];
+  colWidths?: number[];
 }
 
 export interface TitleBlock extends BaseBlock {
   t: 'title';
   text: string;
+}
+
+export type ChartType = 'column' | 'pie' | 'line' | 'bar' | 'sunburst';
+
+export interface ChartSeries {
+  id: string;
+  name: string;
+  values: number[];
+}
+
+export interface ChartBlock extends BaseBlock {
+  t: 'chart';
+  chartType: ChartType;
+  title?: string;
+  categories: string[];
+  series: ChartSeries[];
 }
 
 export type Block =
@@ -82,7 +101,8 @@ export type Block =
   | ImageBlock
   | BoxBlock
   | ConclusionBlock
-  | TableBlock;
+  | TableBlock
+  | ChartBlock;
 
 export interface SlideModal {
   id: string;
@@ -153,6 +173,8 @@ export type InlineToken =
   | { type: 'text'; value: string }
   | { type: 'br' }
   | { type: 'bold'; children: InlineToken[] }
+  | { type: 'italic'; children: InlineToken[] }
+  | { type: 'underline'; children: InlineToken[] }
   | { type: 'size'; size: 's' | 'm' | 'l' | 'xl'; children: InlineToken[] }
   | { type: 'ai-term'; term: string }
   | { type: 'modal-trigger'; title: string };

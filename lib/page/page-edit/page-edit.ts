@@ -1,9 +1,19 @@
 import type { Block } from '../../deck-types';
+import { createChartBlock } from '../../presentation/presentation-chart';
 import { getSlideTitle } from '../../presentation/presentation-page-content';
-import { computeTableColumnWidths } from '../../presentation/presentation-table-view';
+import {
+  createEqualTableColumnWidths,
+  resolveTableColumnWidths,
+} from '../../presentation/presentation-table-view';
 import { clamp, createTextBlock, uid } from '../../presentation/presentation-utils';
 
-export { clamp, computeTableColumnWidths, getSlideTitle };
+export {
+  clamp,
+  createChartBlock,
+  createEqualTableColumnWidths,
+  getSlideTitle,
+  resolveTableColumnWidths,
+};
 
 export function createBlock(type: Block['t']): Block {
   switch (type) {
@@ -28,7 +38,10 @@ export function createBlock(type: Block['t']): Block {
           ['', ''],
           ['', ''],
         ],
+        colWidths: [50, 50],
         w: 12,
       };
+    case 'chart':
+      return createChartBlock('column');
   }
 }

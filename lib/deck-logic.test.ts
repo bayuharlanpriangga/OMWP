@@ -14,17 +14,27 @@ import {
   updateBlockInSlide,
 } from './page/page-presentation';
 import { buildStandaloneHtml } from './export/export-html';
-import { parseInlineMarkup } from './page/page-edit/page-edit-markup-text-ai';
+import { parseInlineMarkup } from './page/page-edit/page-edit-markup-text';
+import { parseAiTermToken } from './page/page-edit/page-edit-markup-text-ai';
 import { createBlock } from './page/page-edit/page-edit';
 import { computeReflowPositions } from './page/page-present/page-present';
 
-test('parseInlineMarkup tokenizes AI terms, modal triggers, bold, size tags, and line breaks', () => {
+test('parseInlineMarkup tokenizes AI terms, modal triggers, bold, italic, underline, size tags, and line breaks', () => {
   const tokens = parseInlineMarkup(
-    'Biaya **tetap** pada [[relevant range]] dan {l}detail{/l}\n[[[Grafik Biaya]]]'
+    'Biaya **tetap**, *miring*, __garis bawah__, dan ***gabungan*** pada [[relevant range]] dan {l}detail{/l}\n[[[Grafik Biaya]]]'
   );
   assert.deepEqual(tokens, [
     { type: 'text', value: 'Biaya ' },
     { type: 'bold', children: [{ type: 'text', value: 'tetap' }] },
+    { type: 'text', value: ', ' },
+    { type: 'italic', children: [{ type: 'text', value: 'miring' }] },
+    { type: 'text', value: ', ' },
+    { type: 'underline', children: [{ type: 'text', value: 'garis bawah' }] },
+    { type: 'text', value: ', dan ' },
+    {
+      type: 'bold',
+      children: [{ type: 'italic', children: [{ type: 'text', value: 'gabungan' }] }],
+    },
     { type: 'text', value: ' pada ' },
     { type: 'ai-term', term: 'relevant range' },
     { type: 'text', value: ' dan ' },
@@ -32,6 +42,23 @@ test('parseInlineMarkup tokenizes AI terms, modal triggers, bold, size tags, and
     { type: 'br' },
     { type: 'modal-trigger', title: 'Grafik Biaya' },
   ]);
+
+  const bulletAndMath = parseInlineMarkup('* item satu\n2 * 3 * 4\n{i}tag{/i} {u}bawah{/u}');
+  assert.deepEqual(bulletAndMath, [
+    { type: 'text', value: '* item satu' },
+    { type: 'br' },
+    { type: 'text', value: '2 * 3 * 4' },
+    { type: 'br' },
+    { type: 'italic', children: [{ type: 'text', value: 'tag' }] },
+    { type: 'text', value: ' ' },
+    { type: 'underline', children: [{ type: 'text', value: 'bawah' }] },
+  ]);
+
+  assert.deepEqual(parseAiTermToken('[[istilah AI]]', 0), {
+    token: { type: 'ai-term', term: 'istilah AI' },
+    nextIdx: 14,
+  });
+  assert.equal(parseAiTermToken('[[[modal]]]', 0), null);
 });
 
 test('block tree CRUD operations add, update, move, and delete cleanly', () => {
@@ -192,7 +219,7 @@ test('buildSlideAiContext derives slide title automatically and captures full sl
   assert.ok(ctx.surroundingContext?.includes('RTO 15 menit'));
 });
 
-test('TableBlock feeds AI context and exports to standalone HTML', () => {
+test('TableBlock feeds AI context, preserves manual colWidths, and exports to standalone HTML', () => {
   const deck = createDefaultDeck();
   const tbl = createBlock('table');
   if (tbl.t !== 'table') throw new Error('Expected table');
@@ -201,6 +228,7 @@ test('TableBlock feeds AI context and exports to standalone HTML', () => {
     ['[[Overhead]]', 'Biaya produksi tidak langsung yang dialokasikan ke unit produk.', '[[[Detail Rumus]]]'],
     ['Tenaga Kerja'],
   ];
+  tbl.colWidths = [20, 55, 25];
   deck.slides[0].blocks.push(tbl);
 
   const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
@@ -211,6 +239,7 @@ test('TableBlock feeds AI context and exports to standalone HTML', () => {
     assert.equal(normTbl.headers.length, 3);
     assert.equal(normTbl.rows.length, 2);
     assert.deepEqual(normTbl.rows[1], ['Tenaga Kerja', '', '']);
+    assert.deepEqual(normTbl.colWidths, [20, 55, 25]);
   }
   assert.equal(normalized.slides[0].modals?.[0].title, 'Detail Rumus');
 
@@ -221,7 +250,8 @@ test('TableBlock feeds AI context and exports to standalone HTML', () => {
 
   const html = buildStandaloneHtml(normalized);
   assert.ok(html.includes('ptbl-wrap'));
-  assert.ok(html.includes('tblWidths'));
+  assert.ok(html.includes('tblWidths(hdrs,b.colWidths)'));
+  assert.ok(html.includes('"colWidths":[20,55,25]'));
 });
 
 test('cyberpunk theme normalizes cleanly and exports purple self-contained animated cityscape styles', () => {
@@ -599,4 +629,89 @@ test('standalone HTML wraps ImageBlock in .im-frame and includes frame rules for
       `Expected standalone CSS .im-frame rule for theme ${theme}`
     );
   }
+});
+
+test('TextBlock whole-block italic and underline flags normalize and export cleanly to standalone HTML', () => {
+  const deck = createDefaultDeck();
+  const tb = createBlock('text');
+  if (tb.t !== 'text') throw new Error('Expected text');
+  tb.b = true;
+  tb.i = true;
+  tb.u = true;
+  tb.text = 'Teks *miring* dan __garis bawah__ serta ***tebal miring***';
+  deck.slides[0].blocks.push(tb);
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  const normTb = normalized.slides[0].blocks[0];
+  assert.equal(normTb.t, 'text');
+  if (normTb.t === 'text') {
+    assert.equal(normTb.b, true);
+    assert.equal(normTb.i, true);
+    assert.equal(normTb.u, true);
+  }
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('.it{font-style:italic}.ul{text-decoration:underline;text-underline-offset:3px}'));
+  assert.ok(html.includes("+(b.i?' it':'')+(b.u?' ul':'')"));
+  assert.ok(html.includes('<strong><em>$1</em></strong>'));
+  assert.ok(html.includes('<u class="ul">$1</u>'));
+});
+
+test('ChartBlock builds AI context, exports SVG chart in standalone HTML, and round-trips through HTML import', async () => {
+  const { importDeckFromHtml } = await import('./import/import-types/import-types-html');
+  const { createChartBlock } = await import('./presentation/presentation-chart');
+
+  const deck = createDefaultDeck();
+  const chart = createChartBlock('pie');
+  chart.title = 'Distribusi [[[Rincian Biaya]]]';
+  chart.categories = ['Bahan Baku', 'Tenaga Kerja'];
+  chart.series = [{ id: 's1', name: 'Persentase', values: [65, 35] }];
+  deck.slides[0].blocks.push(chart);
+
+  const normalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(normalized);
+  assert.equal(normalized.slides[0].modals?.length, 1);
+  assert.equal(normalized.slides[0].modals?.[0].title, 'Rincian Biaya');
+
+  const ctx = buildSlideAiContext(normalized, normalized.slides[0], 'Bahan Baku');
+  assert.ok(ctx.slideText.includes('Chart (Pai)'));
+  assert.ok(ctx.slideText.includes('Bahan Baku'));
+  assert.ok(ctx.surroundingContext?.includes('Chart (Pai)'));
+
+  const html = buildStandaloneHtml(normalized);
+  assert.ok(html.includes('renderChart(b)'));
+  assert.ok(html.includes('.pchart-wrap'));
+
+  const imported = importDeckFromHtml(html);
+  assert.ok(imported);
+  const reimportedChart = imported.deck.slides[0].blocks.find((b) => b.t === 'chart');
+  assert.ok(reimportedChart && reimportedChart.t === 'chart');
+  assert.equal(reimportedChart.chartType, 'pie');
+  assert.deepEqual(reimportedChart.categories, ['Bahan Baku', 'Tenaga Kerja']);
+  assert.deepEqual(reimportedChart.series[0].values, [65, 35]);
+
+  const sunChart = createChartBlock('sunburst');
+  sunChart.title = 'Struktur Pendapatan';
+  sunChart.categories = ['Jasa', 'Produk'];
+  sunChart.series = [
+    { id: 's1', name: 'Q1', values: [30, 20] },
+    { id: 's2', name: 'Q2', values: [40, 10] },
+  ];
+  deck.slides[0].blocks.push(sunChart);
+
+  const sunNormalized = loadAndNormalizeDeck(JSON.parse(JSON.stringify(deck)));
+  assert.ok(sunNormalized);
+  const sunCtx = buildSlideAiContext(sunNormalized, sunNormalized.slides[0], 'Jasa');
+  assert.ok(sunCtx.slideText.includes('Chart (Sunburst)'));
+  const sunHtml = buildStandaloneHtml(sunNormalized);
+  assert.ok(sunHtml.includes("ct==='sunburst'"));
+  assert.ok(sunHtml.includes("sunburst:'Sunburst'"));
+  const sunReimported = importDeckFromHtml(sunHtml);
+  assert.ok(sunReimported);
+  const foundSun = sunReimported.deck.slides[0].blocks.find(
+    (b) => b.t === 'chart' && b.chartType === 'sunburst'
+  );
+  assert.ok(foundSun && foundSun.t === 'chart');
+  assert.equal(foundSun.series.length, 2);
 });

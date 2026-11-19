@@ -85,7 +85,13 @@ export function useLayoutInspector({
   );
 
   const setSelectedTextProp = React.useCallback(
-    (patch: { size?: TextSize; b?: boolean; align?: TextAlign }) => {
+    (patch: {
+      size?: TextSize;
+      b?: boolean;
+      i?: boolean;
+      u?: boolean;
+      align?: TextAlign;
+    }) => {
       if (
         !selectedInfo ||
         (selectedInfo.block.t !== 'text' && selectedInfo.block.t !== 'title')

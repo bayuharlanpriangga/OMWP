@@ -1119,6 +1119,107 @@
   }
 }
 
+/* Presentation Charts */
+.pchart-wrap {
+  width: 100%;
+  max-width: 100%;
+}
+
+.pchart-card {
+  position: relative;
+  padding: 16px 18px 14px;
+}
+
+.pchart-card-compact {
+  padding: 12px 14px 10px;
+}
+
+.pchart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pchart-head.pchart-head-center {
+  justify-content: center;
+  text-align: center;
+}
+
+.pchart-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.pchart-card-compact .pchart-title {
+  font-size: 15px;
+}
+
+.pchart-readout {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 6;
+  pointer-events: none;
+  max-width: calc(100% - 24px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1.5px solid var(--ln);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pchart-canvas {
+  width: 100%;
+  overflow: hidden;
+}
+
+.pchart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.pchart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 16px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(128, 128, 128, 0.22);
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+
+.pchart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pchart-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 /* Text scales */
 .tx {
   margin: 0;
@@ -1203,6 +1304,13 @@
 }
 .bd {
   font-weight: 700;
+}
+.it {
+  font-style: italic;
+}
+.ul {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Inline term chips & modal triggers */
@@ -1673,7 +1781,8 @@
 .lay .concl,
 .lay .im,
 .lay .im-frame,
-.lay .ptbl {
+.lay .ptbl,
+.lay .pchart-card {
   pointer-events: none;
 }
 

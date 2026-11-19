@@ -359,6 +359,22 @@ export function PresentationApp() {
                     : false,
               })
             }
+            onToggleItalic={() =>
+              setSelectedTextProp({
+                i:
+                  selectedInfo.block.t === 'text'
+                    ? !selectedInfo.block.i
+                    : false,
+              })
+            }
+            onToggleUnderline={() =>
+              setSelectedTextProp({
+                u:
+                  selectedInfo.block.t === 'text'
+                    ? !selectedInfo.block.u
+                    : false,
+              })
+            }
             onSetAlign={(align) => setSelectedTextProp({ align })}
           />
         )}

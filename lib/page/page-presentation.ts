@@ -5,6 +5,7 @@ import type {
   Slide,
   SlideAiContext,
 } from '../deck-types';
+import { formatChartEditorTitle } from '../presentation/presentation-chart';
 import { stripMarkup } from '../presentation/presentation-clear-markup-text';
 import { syncSlideModals } from '../presentation/presentation-markup-text-modal';
 import { loadAndNormalizeDeck } from '../presentation/presentation-migration';
@@ -89,6 +90,26 @@ function describeBlockLines(blocks: Block[], scope?: string): string[] {
       if (tableText) {
         lines.push(scope ? `[${scope} > Tabel] ${tableText}` : `[Tabel] ${tableText}`);
       }
+    } else if (b.t === 'chart') {
+      const chartLabel = formatChartEditorTitle(b.chartType);
+      const titleText = stripMarkup(b.title || '').trim();
+      const cats = b.categories.map((c) => stripMarkup(c).trim()).filter(Boolean);
+      const serSummary = b.series
+        .slice(0, 6)
+        .map((s) => `${stripMarkup(s.name).trim() || 'Seri'}: [${s.values.join(', ')}]`)
+        .join(' ; ');
+      const chartDesc = [
+        titleText ? `Judul: ${titleText}` : '',
+        cats.length ? `Kategori: ${cats.join(', ')}` : '',
+        serSummary,
+      ]
+        .filter(Boolean)
+        .join(' | ');
+      if (chartDesc) {
+        lines.push(
+          scope ? `[${scope} > ${chartLabel}] ${chartDesc}` : `[${chartLabel}] ${chartDesc}`
+        );
+      }
     }
   }
   return lines;
@@ -140,6 +161,24 @@ function findSurroundingContextForTerm(slide: Slide, term: string): string {
           });
           const prefix = containerLabel ? `${containerLabel} > Tabel` : 'Tabel';
           return `${prefix} (${cols.join(' | ')})`;
+        }
+      }
+      if (b.t === 'chart') {
+        const titleMatch = b.title ? matches(b.title) : false;
+        const catMatch = b.categories.some((c) => matches(c));
+        const serMatch = b.series.some((s) => matches(s.name));
+        if (titleMatch || catMatch || serMatch) {
+          const chartLabel = formatChartEditorTitle(b.chartType);
+          const titleStr = stripMarkup(b.title || '').trim();
+          const summary = [
+            titleStr,
+            `Kategori: ${b.categories.join(', ')}`,
+            b.series.map((s) => `${s.name} (${s.values.join(', ')})`).join(' ; '),
+          ]
+            .filter(Boolean)
+            .join(' | ');
+          const prefix = containerLabel ? `${containerLabel} > ${chartLabel}` : chartLabel;
+          return `${prefix}: ${summary}`;
         }
       }
       if (b.t === 'box') {

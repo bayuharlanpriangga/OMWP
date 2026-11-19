@@ -1,129 +1,34 @@
 'use client';
 
 import React from 'react';
-import { ArrowUpRight, Info } from 'lucide-react';
-import { parseInlineMarkup } from '@/lib/page/page-edit/page-edit-markup-text-ai';
-import type { InlineToken } from '@/lib/deck-types';
 
-interface MarkupTextProps {
-  text: string;
+interface MarkupTextAiTermProps {
+  term: string;
   live: boolean;
-  insideModal?: boolean;
   onTermClick?: (term: string, event: React.MouseEvent<HTMLButtonElement>) => void;
-  onModalClick?: (title: string, event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-function renderTokens(
-  tokens: InlineToken[],
-  live: boolean,
-  insideModal: boolean,
-  onTermClick?: (term: string, event: React.MouseEvent<HTMLButtonElement>) => void,
-  onModalClick?: (title: string, event: React.MouseEvent<HTMLButtonElement>) => void,
-  keyPrefix = 't'
-): React.ReactNode[] {
-  return tokens.map((tok, i) => {
-    const key = `${keyPrefix}-${i}`;
-    switch (tok.type) {
-      case 'text':
-        return <React.Fragment key={key}>{tok.value}</React.Fragment>;
-      case 'br':
-        return <br key={key} />;
-      case 'bold':
-        return (
-          <strong key={key}>
-            {renderTokens(
-              tok.children,
-              live,
-              insideModal,
-              onTermClick,
-              onModalClick,
-              key
-            )}
-          </strong>
-        );
-      case 'size':
-        return (
-          <span key={key} className={`z-${tok.size}`}>
-            {renderTokens(
-              tok.children,
-              live,
-              insideModal,
-              onTermClick,
-              onModalClick,
-              key
-            )}
-          </span>
-        );
-      case 'ai-term':
-        if (live) {
-          return (
-            <button
-              key={key}
-              type="button"
-              className="term"
-              onClick={(e) => {
-                e.stopPropagation();
-                onTermClick?.(tok.term, e);
-              }}
-              aria-label={`Jelaskan istilah ${tok.term} dengan AI`}
-            >
-              {tok.term}
-            </button>
-          );
-        }
-        return (
-          <span key={key} className="term">
-            {tok.term}
-          </span>
-        );
-      case 'modal-trigger': {
-        const label = tok.title || 'Info';
-        if (live && !insideModal) {
-          return (
-            <button
-              key={key}
-              type="button"
-              className="term mt inline-flex items-center gap-0.5"
-              onClick={(e) => {
-                e.stopPropagation();
-                onModalClick?.(tok.title, e);
-              }}
-              aria-label={`Buka detail ${label}`}
-            >
-              {tok.title ? (
-                <>
-                  <span>{tok.title}</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 inline shrink-0" aria-hidden="true" />
-                </>
-              ) : (
-                <Info className="w-3.5 h-3.5 inline shrink-0" aria-hidden="true" />
-              )}
-            </button>
-          );
-        }
-        return (
-          <span key={key} className="term mt inline-flex items-center gap-0.5">
-            {tok.title || 'Info'}
-          </span>
-        );
-      }
-    }
-  });
-}
-
-export function MarkupText({
-  text,
+export function MarkupTextAiTerm({
+  term,
   live,
-  insideModal = false,
   onTermClick,
-  onModalClick,
-}: MarkupTextProps) {
-  const tokens = React.useMemo(() => parseInlineMarkup(text), [text]);
-  return (
-    <>
-      {renderTokens(tokens, live, insideModal, onTermClick, onModalClick)}
-    </>
-  );
+}: MarkupTextAiTermProps) {
+  if (live) {
+    return (
+      <button
+        type="button"
+        className="term"
+        onClick={(e) => {
+          e.stopPropagation();
+          onTermClick?.(term, e);
+        }}
+        aria-label={`Jelaskan istilah ${term} dengan AI`}
+      >
+        {term}
+      </button>
+    );
+  }
+  return <span className="term">{term}</span>;
 }
 
 export function AiMessageText({ text }: { text: string }) {

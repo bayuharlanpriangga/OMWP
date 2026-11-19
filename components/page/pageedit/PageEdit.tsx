@@ -7,6 +7,7 @@ import {
   AlignRight,
   ArrowLeft,
   ArrowRight,
+  BarChart3,
   Bold,
   BookOpen,
   Copy,
@@ -16,11 +17,13 @@ import {
   FileJson,
   FolderOpen,
   ImagePlus,
+  Italic,
   Minus,
   Plus,
   RotateCcw,
   Sparkles,
   Trash2,
+  Underline,
   X,
 } from 'lucide-react';
 import {
@@ -34,19 +37,31 @@ import {
 } from '@/lib/data/data-page-content-editor';
 import {
   clamp,
-  computeTableColumnWidths,
   createBlock,
+  createChartBlock,
+  createEqualTableColumnWidths,
   getSlideTitle,
+  resolveTableColumnWidths,
 } from '@/lib/page/page-edit/page-edit';
+import {
+  removeTableColumnWidth,
+  resizeTableColumnWidths,
+} from '@/lib/presentation/presentation-table-view';
+import { formatChartEditorTitle } from '@/lib/presentation/presentation-chart';
+import { uid } from '@/lib/presentation/presentation-utils';
 import type {
   Block,
+  ChartBlock,
+  ChartType,
   Deck,
   Slide,
   TableBlock,
   TextAlign,
 } from '@/lib/deck-types';
+import { PageEditChartModal } from './PageEditChartModal';
 import { PageContentEditorGuide } from './PageEditGuides';
-import { MarkupText } from './PageEditMarkupTextAi';
+import { MarkupText } from './PageEditMarkupText';
+import { ChartView } from '@/components/presentation/PresentationChartView';
 import { TableView } from '@/components/presentation/PresentationTableView';
 
 interface PageContentEditorProps {
@@ -119,9 +134,13 @@ function RichMarkupTextarea({
   placeholder,
   align,
   isBold,
+  isItalic,
+  isUnderline,
   sizeClass,
   onChange,
   onToggleBold,
+  onToggleItalic,
+  onToggleUnderline,
   onChangeAlign,
   onChangeSize,
   allowWholeBlockStyle,
@@ -131,9 +150,13 @@ function RichMarkupTextarea({
   placeholder: string;
   align?: TextAlign;
   isBold?: boolean;
+  isItalic?: boolean;
+  isUnderline?: boolean;
   sizeClass?: string;
   onChange: (val: string) => void;
   onToggleBold?: () => void;
+  onToggleItalic?: () => void;
+  onToggleUnderline?: () => void;
   onChangeAlign?: (a: TextAlign) => void;
   onChangeSize?: (s: 's' | 'm' | 'l' | 'xl') => void;
   allowWholeBlockStyle: boolean;
@@ -220,8 +243,43 @@ function RichMarkupTextarea({
               else wrapSelection('**', '**', PAGE_CONTENT_EDITOR_LABELS.rte.boldFallback);
             }}
             aria-label={PAGE_CONTENT_EDITOR_LABELS.rte.boldAriaLabel}
+            title={PAGE_CONTENT_EDITOR_LABELS.rte.boldAriaLabel}
           >
             <Bold className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className={`pbtn sm ${allowWholeBlockStyle && isItalic ? 'on' : ''}`}
+            onClick={() => {
+              const el = textareaRef.current;
+              const hasSel = el && el.selectionStart !== el.selectionEnd;
+              if (hasSel)
+                wrapSelection('*', '*', PAGE_CONTENT_EDITOR_LABELS.rte.selectionFallback);
+              else if (allowWholeBlockStyle && onToggleItalic) onToggleItalic();
+              else wrapSelection('*', '*', PAGE_CONTENT_EDITOR_LABELS.rte.italicFallback);
+            }}
+            aria-label={PAGE_CONTENT_EDITOR_LABELS.rte.italicAriaLabel}
+            title={PAGE_CONTENT_EDITOR_LABELS.rte.italicAriaLabel}
+          >
+            <Italic className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className={`pbtn sm ${allowWholeBlockStyle && isUnderline ? 'on' : ''}`}
+            onClick={() => {
+              const el = textareaRef.current;
+              const hasSel = el && el.selectionStart !== el.selectionEnd;
+              if (hasSel)
+                wrapSelection('__', '__', PAGE_CONTENT_EDITOR_LABELS.rte.selectionFallback);
+              else if (allowWholeBlockStyle && onToggleUnderline) onToggleUnderline();
+              else wrapSelection('__', '__', PAGE_CONTENT_EDITOR_LABELS.rte.underlineFallback);
+            }}
+            aria-label={PAGE_CONTENT_EDITOR_LABELS.rte.underlineAriaLabel}
+            title={PAGE_CONTENT_EDITOR_LABELS.rte.underlineAriaLabel}
+          >
+            <Underline className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
 
           {TEXT_SIZE_OPTIONS.map((sz) => (
@@ -300,7 +358,13 @@ function RichMarkupTextarea({
             {PAGE_CONTENT_EDITOR_LABELS.rte.previewHeading}
           </div>
           {value ? (
-            <MarkupText text={value} live={false} />
+            <div
+              className={`${allowWholeBlockStyle && isBold ? 'bd' : ''} ${
+                allowWholeBlockStyle && isItalic ? 'it' : ''
+              } ${allowWholeBlockStyle && isUnderline ? 'ul' : ''}`}
+            >
+              <MarkupText text={value} live={false} />
+            </div>
           ) : (
             <span className="italic opacity-55">
               {PAGE_CONTENT_EDITOR_LABELS.rte.emptyPreview}
@@ -320,17 +384,23 @@ function TableBlockEditor({
   onUpdate: (updater: (prev: TableBlock) => TableBlock) => void;
 }) {
   const [showPreview, setShowPreview] = React.useState(false);
+  const [editingWidth, setEditingWidth] = React.useState<{
+    colIdx: number;
+    value: string;
+  } | null>(null);
+
   const headers =
     block.headers.length > 0
       ? block.headers
       : [PAGE_CONTENT_EDITOR_LABELS.table.defaultFirstCol];
   const rows = block.rows.length > 0 ? block.rows : [headers.map(() => '')];
-  const layout = computeTableColumnWidths(headers, rows, block.w);
+  const layout = resolveTableColumnWidths(headers.length, block.colWidths);
 
   const setColumnCount = (targetCount: number) => {
     const nextCols = clamp(Math.round(targetCount) || 1, 1, 12);
+    setEditingWidth(null);
     onUpdate((prev) => {
-      const curCols = prev.headers.length;
+      const curCols = Math.max(1, prev.headers.length);
       if (nextCols === curCols) return prev;
       const nextHeaders = Array.from({ length: nextCols }, (_, i) =>
         i < curCols
@@ -340,7 +410,17 @@ function TableBlockEditor({
       const nextRows = prev.rows.map((r) =>
         Array.from({ length: nextCols }, (_, i) => r[i] ?? '')
       );
-      return { ...prev, headers: nextHeaders, rows: nextRows };
+      const nextColWidths = resizeTableColumnWidths(
+        prev.colWidths,
+        curCols,
+        nextCols
+      );
+      return {
+        ...prev,
+        headers: nextHeaders,
+        rows: nextRows,
+        colWidths: nextColWidths,
+      };
     });
   };
 
@@ -360,12 +440,19 @@ function TableBlockEditor({
   };
 
   const removeColumn = (colIdx: number) => {
+    setEditingWidth(null);
     onUpdate((prev) => {
       if (prev.headers.length <= 1) return prev;
+      const nextColWidths = removeTableColumnWidth(
+        prev.colWidths,
+        prev.headers.length,
+        colIdx
+      );
       return {
         ...prev,
         headers: prev.headers.filter((_, i) => i !== colIdx),
         rows: prev.rows.map((r) => r.filter((_, i) => i !== colIdx)),
+        colWidths: nextColWidths,
       };
     });
   };
@@ -380,9 +467,29 @@ function TableBlockEditor({
     });
   };
 
+  const updateColumnWidth = (colIdx: number, pct: number) => {
+    const clampedPct = clamp(Number(pct.toFixed(1)), 1, 100);
+    onUpdate((prev) => {
+      const colCount = Math.max(1, prev.headers.length);
+      const base = resolveTableColumnWidths(colCount, prev.colWidths).rawWidths;
+      const nextWidths = base.map((w, i) => (i === colIdx ? clampedPct : w));
+      return { ...prev, colWidths: nextWidths };
+    });
+  };
+
+  const equalizeWidths = () => {
+    setEditingWidth(null);
+    onUpdate((prev) => ({
+      ...prev,
+      colWidths: createEqualTableColumnWidths(Math.max(1, prev.headers.length)),
+    }));
+  };
+
+  const roundedTotal = Math.round(layout.rawTotal * 10) / 10;
+
   return (
     <div className="mt-2 space-y-3">
-      {/* Dimension controls & adaptive sizing readout */}
+      {/* Dimension controls & manual percentage summary */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
@@ -462,13 +569,24 @@ function TableBlockEditor({
 
         <div className="flex flex-wrap items-center gap-2">
           <span
-            className="text-xs font-mono opacity-75"
+            className="text-xs font-mono opacity-80 tabular-nums"
             data-testid="table-sizing-status"
           >
-            {layout.mode === 'symmetric'
-              ? `${PAGE_CONTENT_EDITOR_LABELS.table.symmetricPrefix} (${layout.widths.map((w) => `${Math.round(w)}%`).join(' : ')})`
-              : `${PAGE_CONTENT_EDITOR_LABELS.table.adaptivePrefix} (${layout.widths.map((w) => `${Math.round(w)}%`).join(' : ')})`}
+            {PAGE_CONTENT_EDITOR_LABELS.table.totalWidthPrefix}: {roundedTotal}%
+            {Math.abs(roundedTotal - 100) > 0.1 && headers.length > 1
+              ? ` (${PAGE_CONTENT_EDITOR_LABELS.table.autoNormalizedHint})`
+              : ''}
           </span>
+          {headers.length > 1 && (
+            <button
+              type="button"
+              className="pbtn sm"
+              onClick={equalizeWidths}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.table.equalizeAria}
+            >
+              {PAGE_CONTENT_EDITOR_LABELS.table.equalizeButton}
+            </button>
+          )}
           <button
             type="button"
             className={`pbtn sm ${showPreview ? 'on' : ''}`}
@@ -487,51 +605,109 @@ function TableBlockEditor({
           <colgroup>
             {headers.map((_, colIdx) => {
               const rawPct = layout.widths[colIdx] ?? 100 / headers.length;
-              // Keep editor inputs usable while giving long columns clearly wider space
               const edPct =
-                headers.length <= 4 ? Math.max(16, rawPct) : rawPct;
+                headers.length <= 4 ? Math.max(14, rawPct) : rawPct;
               return <col key={colIdx} style={{ width: `${edPct}%` }} />;
             })}
             {rows.length > 1 && <col style={{ width: '38px' }} />}
           </colgroup>
           <thead>
             <tr>
-              {headers.map((headerText, colIdx) => (
-                <th key={colIdx} className="p-1 align-bottom text-left font-normal">
-                  <div className="flex items-center justify-between gap-1 mb-1 px-0.5">
-                    <span className="text-[11px] font-mono opacity-70">
-                      {PAGE_CONTENT_EDITOR_LABELS.table.headerPrefix} {colIdx + 1} · {Math.round(layout.widths[colIdx] ?? 0)}%
-                    </span>
-                    {headers.length > 1 && (
-                      <button
-                        type="button"
-                        className="pbtn sm !p-0 !w-6 !h-6"
-                        onClick={() => removeColumn(colIdx)}
-                        aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.deleteColPrefix} ${colIdx + 1}`}
-                        title={`${PAGE_CONTENT_EDITOR_LABELS.table.deleteColPrefix} ${colIdx + 1}`}
-                      >
-                        <X className="w-3 h-3" aria-hidden="true" />
-                      </button>
-                    )}
-                  </div>
-                  <input
-                    type="text"
-                    className="pinput !py-1.5 !px-2 text-sm font-semibold min-w-[96px]"
-                    placeholder={`${PAGE_CONTENT_EDITOR_LABELS.table.headerPrefix} ${colIdx + 1}`}
-                    aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.headerAriaPrefix} ${colIdx + 1}`}
-                    value={headerText}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      onUpdate((prev) => ({
-                        ...prev,
-                        headers: prev.headers.map((h, i) =>
-                          i === colIdx ? val : h
-                        ),
-                      }));
-                    }}
-                  />
-                </th>
-              ))}
+              {headers.map((headerText, colIdx) => {
+                const rawVal = layout.rawWidths[colIdx] ?? 100;
+                const displayVal =
+                  editingWidth?.colIdx === colIdx
+                    ? editingWidth.value
+                    : String(rawVal);
+
+                return (
+                  <th key={colIdx} className="p-1 align-bottom text-left font-normal">
+                    <div className="flex flex-wrap items-center justify-between gap-1 mb-1 px-0.5">
+                      <span className="text-[11px] font-mono opacity-70">
+                        {PAGE_CONTENT_EDITOR_LABELS.table.headerPrefix} {colIdx + 1}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {headers.length > 1 ? (
+                          <div className="inline-flex items-center gap-0.5">
+                            <input
+                              type="number"
+                              min={1}
+                              max={100}
+                              step="any"
+                              className="pinput !w-14 !py-0.5 !px-1 text-right text-xs font-mono tabular-nums"
+                              aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.widthInputAriaPrefix} ${colIdx + 1}`}
+                              value={displayVal}
+                              onFocus={() =>
+                                setEditingWidth({
+                                  colIdx,
+                                  value: String(rawVal),
+                                })
+                              }
+                              onChange={(e) => {
+                                const nextStr = e.target.value;
+                                setEditingWidth({ colIdx, value: nextStr });
+                                const parsed = Number.parseFloat(nextStr);
+                                if (
+                                  Number.isFinite(parsed) &&
+                                  parsed >= 1 &&
+                                  parsed <= 100
+                                ) {
+                                  updateColumnWidth(colIdx, parsed);
+                                }
+                              }}
+                              onBlur={() => {
+                                if (editingWidth?.colIdx === colIdx) {
+                                  const parsed = Number.parseFloat(
+                                    editingWidth.value
+                                  );
+                                  if (Number.isFinite(parsed) && parsed >= 1) {
+                                    updateColumnWidth(colIdx, parsed);
+                                  }
+                                }
+                                setEditingWidth(null);
+                              }}
+                            />
+                            <span className="text-[11px] font-mono opacity-70">
+                              %
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] font-mono opacity-70">
+                            100%
+                          </span>
+                        )}
+                        {headers.length > 1 && (
+                          <button
+                            type="button"
+                            className="pbtn sm !p-0 !w-6 !h-6"
+                            onClick={() => removeColumn(colIdx)}
+                            aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.deleteColPrefix} ${colIdx + 1}`}
+                            title={`${PAGE_CONTENT_EDITOR_LABELS.table.deleteColPrefix} ${colIdx + 1}`}
+                          >
+                            <X className="w-3 h-3" aria-hidden="true" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      className="pinput !py-1.5 !px-2 text-sm font-semibold min-w-[96px]"
+                      placeholder={`${PAGE_CONTENT_EDITOR_LABELS.table.headerPrefix} ${colIdx + 1}`}
+                      aria-label={`${PAGE_CONTENT_EDITOR_LABELS.table.headerAriaPrefix} ${colIdx + 1}`}
+                      value={headerText}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        onUpdate((prev) => ({
+                          ...prev,
+                          headers: prev.headers.map((h, i) =>
+                            i === colIdx ? val : h
+                          ),
+                        }));
+                      }}
+                    />
+                  </th>
+                );
+              })}
               {rows.length > 1 && (
                 <th
                   className="w-9 p-1"
@@ -602,6 +778,389 @@ function TableBlockEditor({
   );
 }
 
+function ChartBlockEditor({
+  block,
+  onUpdate,
+}: {
+  block: ChartBlock;
+  onUpdate: (updater: (prev: ChartBlock) => ChartBlock) => void;
+}) {
+  const [showPreview, setShowPreview] = React.useState(false);
+  const [draftValues, setDraftValues] = React.useState<Record<string, string>>({});
+
+  const categories =
+    block.categories.length > 0 ? block.categories : ['Kategori 1'];
+  const series =
+    block.series.length > 0
+      ? block.series
+      : [{ id: uid(), name: 'Seri 1', values: [0] }];
+
+  const setCategoryCount = (nextCount: number) => {
+    const target = clamp(nextCount, 1, 20);
+    onUpdate((prev) => {
+      const curCats =
+        prev.categories.length > 0 ? prev.categories : ['Kategori 1'];
+      if (target === curCats.length) return prev;
+      const nextCats =
+        target > curCats.length
+          ? [
+              ...curCats,
+              ...Array.from(
+                { length: target - curCats.length },
+                (_, idx) => `Kategori ${curCats.length + idx + 1}`
+              ),
+            ]
+          : curCats.slice(0, target);
+      const nextSeries = prev.series.map((s) => ({
+        ...s,
+        values:
+          target > s.values.length
+            ? [
+                ...s.values,
+                ...Array.from({ length: target - s.values.length }, () => 0),
+              ]
+            : s.values.slice(0, target),
+      }));
+      return { ...prev, categories: nextCats, series: nextSeries };
+    });
+  };
+
+  const setSeriesCount = (nextCount: number) => {
+    const target = clamp(nextCount, 1, 12);
+    onUpdate((prev) => {
+      const catLen = Math.max(1, prev.categories.length);
+      const curSeries =
+        prev.series.length > 0
+          ? prev.series
+          : [{ id: uid(), name: 'Seri 1', values: Array.from({ length: catLen }, () => 0) }];
+      if (target === curSeries.length) return prev;
+      const nextSeries =
+        target > curSeries.length
+          ? [
+              ...curSeries,
+              ...Array.from({ length: target - curSeries.length }, (_, idx) => ({
+                id: uid(),
+                name: `Seri ${curSeries.length + idx + 1}`,
+                values: Array.from({ length: catLen }, () => 0),
+              })),
+            ]
+          : curSeries.slice(0, target);
+      return { ...prev, series: nextSeries };
+    });
+  };
+
+  const removeCategory = (catIdx: number) => {
+    if (categories.length <= 1) return;
+    onUpdate((prev) => ({
+      ...prev,
+      categories: prev.categories.filter((_, i) => i !== catIdx),
+      series: prev.series.map((s) => ({
+        ...s,
+        values: s.values.filter((_, i) => i !== catIdx),
+      })),
+    }));
+  };
+
+  const removeSeries = (serIdx: number) => {
+    if (series.length <= 1) return;
+    onUpdate((prev) => ({
+      ...prev,
+      series: prev.series.filter((_, i) => i !== serIdx),
+    }));
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Chart Title Input */}
+      <input
+        type="text"
+        className="pinput text-sm font-semibold"
+        placeholder={PAGE_CONTENT_EDITOR_LABELS.chart.titlePlaceholder}
+        aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.titleAria}
+        value={block.title ?? ''}
+        onChange={(e) => {
+          const val = e.target.value;
+          onUpdate((prev) => ({ ...prev, title: val }));
+        }}
+      />
+
+      {/* Category & Series Dimension Controls + Preview Toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-current/15">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold opacity-80">
+              {PAGE_CONTENT_EDITOR_LABELS.chart.categoryLabel}
+            </span>
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={categories.length <= 1}
+              onClick={() => setCategoryCount(categories.length - 1)}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.decreaseCategoriesAria}
+            >
+              <Minus className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              className="pinput !w-14 !py-1 !px-1.5 text-center text-sm font-mono tabular-nums"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.categoriesCountAria}
+              value={categories.length}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value, 10);
+                if (!Number.isNaN(parsed)) setCategoryCount(parsed);
+              }}
+            />
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={categories.length >= 20}
+              onClick={() => setCategoryCount(categories.length + 1)}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.increaseCategoriesAria}
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{PAGE_CONTENT_EDITOR_LABELS.chart.addCategoryButton}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold opacity-80">
+              {PAGE_CONTENT_EDITOR_LABELS.chart.seriesLabel}
+            </span>
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={series.length <= 1}
+              onClick={() => setSeriesCount(series.length - 1)}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.decreaseSeriesAria}
+            >
+              <Minus className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={12}
+              className="pinput !w-14 !py-1 !px-1.5 text-center text-sm font-mono tabular-nums"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.seriesCountAria}
+              value={series.length}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value, 10);
+                if (!Number.isNaN(parsed)) setSeriesCount(parsed);
+              }}
+            />
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={series.length >= 12}
+              onClick={() => setSeriesCount(series.length + 1)}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.increaseSeriesAria}
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{PAGE_CONTENT_EDITOR_LABELS.chart.addSeriesButton}</span>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={`pbtn sm ${showPreview ? 'on' : ''}`}
+          onClick={() => setShowPreview((v) => !v)}
+          aria-pressed={showPreview}
+        >
+          <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+          <span>{PAGE_CONTENT_EDITOR_LABELS.chart.previewButton}</span>
+        </button>
+      </div>
+
+      {/* Editable Chart Data Spreadsheet */}
+      <div className="overflow-x-auto pb-1">
+        <table className="w-full border-collapse min-w-[400px]">
+          <thead>
+            <tr>
+              <th className="p-1 align-bottom text-left font-normal min-w-[140px]">
+                <div className="flex items-center justify-between gap-1 h-6 mb-1 px-0.5">
+                  <span className="text-[11px] font-mono opacity-70">
+                    {PAGE_CONTENT_EDITOR_LABELS.chart.categoryHeader}
+                  </span>
+                </div>
+                <div className="pinput !py-1.5 !px-2 text-sm font-semibold opacity-80 bg-black/5 select-none">
+                  {PAGE_CONTENT_EDITOR_LABELS.chart.categoryHeader}
+                </div>
+              </th>
+              {series.map((ser, sIdx) => (
+                <th
+                  key={ser.id}
+                  className="p-1 align-bottom text-left font-normal min-w-[116px]"
+                >
+                  <div className="flex items-center justify-between gap-1 h-6 mb-1 px-0.5">
+                    <span className="text-[11px] font-mono opacity-70">
+                      {PAGE_CONTENT_EDITOR_LABELS.chart.seriesPrefix} {sIdx + 1}
+                    </span>
+                    {series.length > 1 && (
+                      <button
+                        type="button"
+                        className="pbtn sm !p-0 !w-6 !h-6"
+                        onClick={() => removeSeries(sIdx)}
+                        aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.deleteSeriesPrefix} ${sIdx + 1}`}
+                        title={`${PAGE_CONTENT_EDITOR_LABELS.chart.deleteSeriesPrefix} ${sIdx + 1}`}
+                      >
+                        <X className="w-3 h-3" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    className="pinput !py-1.5 !px-2 text-sm font-semibold"
+                    placeholder={`${PAGE_CONTENT_EDITOR_LABELS.chart.seriesPrefix} ${sIdx + 1}`}
+                    aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.seriesAriaPrefix} ${sIdx + 1}`}
+                    value={ser.name}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onUpdate((prev) => ({
+                        ...prev,
+                        series: prev.series.map((item, idx) =>
+                          idx === sIdx ? { ...item, name: val } : item
+                        ),
+                      }));
+                    }}
+                  />
+                </th>
+              ))}
+              {categories.length > 1 && (
+                <th
+                  className="w-9 p-1"
+                  aria-label={PAGE_CONTENT_EDITOR_LABELS.table.rowActionsAria}
+                />
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map((cat, cIdx) => (
+              <tr key={cIdx}>
+                <td className="p-1 align-middle">
+                  <input
+                    type="text"
+                    className="pinput !py-1.5 !px-2 text-sm"
+                    placeholder={`${PAGE_CONTENT_EDITOR_LABELS.chart.categoryPlaceholderPrefix} ${cIdx + 1}`}
+                    aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.categoryAriaPrefix} ${cIdx + 1}`}
+                    value={cat}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onUpdate((prev) => ({
+                        ...prev,
+                        categories: prev.categories.map((item, idx) =>
+                          idx === cIdx ? val : item
+                        ),
+                      }));
+                    }}
+                  />
+                </td>
+                {series.map((ser, sIdx) => {
+                  const cellKey = `${ser.id}:${cIdx}`;
+                  const storedVal = ser.values[cIdx] ?? 0;
+                  const inputValue =
+                    cellKey in draftValues
+                      ? draftValues[cellKey]
+                      : String(storedVal);
+                  return (
+                    <td key={ser.id} className="p-1 align-middle">
+                      <input
+                        type="number"
+                        step="any"
+                        className="pinput !py-1.5 !px-2 text-sm font-mono tabular-nums text-right"
+                        aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.valueAriaPrefix} ${cat || `${PAGE_CONTENT_EDITOR_LABELS.chart.categoryPlaceholderPrefix} ${cIdx + 1}`} - ${ser.name || `${PAGE_CONTENT_EDITOR_LABELS.chart.seriesPrefix} ${sIdx + 1}`}`}
+                        value={inputValue}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          setDraftValues((prev) => ({ ...prev, [cellKey]: raw }));
+                          const num = Number(raw);
+                          if (raw.trim() !== '' && Number.isFinite(num)) {
+                            onUpdate((prev) => ({
+                              ...prev,
+                              series: prev.series.map((item, idx) =>
+                                idx === sIdx
+                                  ? {
+                                      ...item,
+                                      values: prev.categories.map((_, vIdx) =>
+                                        vIdx === cIdx
+                                          ? num
+                                          : item.values[vIdx] ?? 0
+                                      ),
+                                    }
+                                  : item
+                              ),
+                            }));
+                          }
+                        }}
+                        onBlur={() => {
+                          const raw = draftValues[cellKey];
+                          if (raw === undefined) return;
+                          const num = Number(raw);
+                          const finalNum =
+                            raw.trim() !== '' && Number.isFinite(num) ? num : 0;
+                          onUpdate((prev) => ({
+                            ...prev,
+                            series: prev.series.map((item, idx) =>
+                              idx === sIdx
+                                ? {
+                                    ...item,
+                                    values: prev.categories.map((_, vIdx) =>
+                                      vIdx === cIdx
+                                        ? finalNum
+                                        : item.values[vIdx] ?? 0
+                                    ),
+                                  }
+                                : item
+                            ),
+                          }));
+                          setDraftValues((prev) => {
+                            const next = { ...prev };
+                            delete next[cellKey];
+                            return next;
+                          });
+                        }}
+                      />
+                    </td>
+                  );
+                })}
+                {categories.length > 1 && (
+                  <td className="p-1 align-middle text-center">
+                    <button
+                      type="button"
+                      className="pbtn sm !p-0 !w-7 !h-7"
+                      onClick={() => removeCategory(cIdx)}
+                      aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.deleteCategoryPrefix} ${cIdx + 1}`}
+                      title={`${PAGE_CONTENT_EDITOR_LABELS.chart.deleteCategoryPrefix} ${cIdx + 1}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {block.chartType === 'pie' && series.length > 1 && (
+        <p className="text-xs opacity-70 m-0">
+          {PAGE_CONTENT_EDITOR_LABELS.chart.pieMultiSeriesHint}
+        </p>
+      )}
+
+      {showPreview && (
+        <div className="p-3 rounded-lg border border-current/20 bg-[var(--bg)]">
+          <div className="text-xs font-mono opacity-60 mb-2">
+            {PAGE_CONTENT_EDITOR_LABELS.chart.previewHeading}
+          </div>
+          <ChartView block={block} live={false} interactive={true} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function PageContentEditor({
   deck,
   slideIndex,
@@ -628,6 +1187,11 @@ export function PageContentEditor({
   const [showHtmlImport, setShowHtmlImport] = React.useState(false);
   const [pastedHtml, setPastedHtml] = React.useState('');
   const [guideOpen, setGuideOpen] = React.useState(false);
+  const [chartPickerState, setChartPickerState] = React.useState<
+    | { kind: 'add'; ownerId?: string }
+    | { kind: 'change-type'; blockId: string; currentType: ChartType }
+    | null
+  >(null);
   const pendingImgTargetRef = React.useRef<{
     kind: 'add' | 'replace';
     id?: string;
@@ -679,6 +1243,8 @@ export function PageContentEditor({
           onClick={() => {
             if (t === 'img') {
               pickImage({ kind: 'add', id: ownerId });
+            } else if (t === 'chart') {
+              setChartPickerState({ kind: 'add', ownerId });
             } else {
               onAddBlock(createBlock(t), ownerId);
             }
@@ -708,24 +1274,44 @@ export function PageContentEditor({
     ddNumber = 1,
     titleNumber = 1
   ): React.ReactNode => {
+    const editorBlockTitle =
+      b.t === 'chart' ? formatChartEditorTitle(b.chartType) : BLOCK_NAMES[b.t];
     return (
       <div key={b.id} className="ec space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <strong className="text-sm">{BLOCK_NAMES[b.t]}</strong>
-          <button
-            type="button"
-            className="pbtn sm"
-            onClick={() =>
-              onDeleteBlock(
-                b.id,
-                b.t === 'box' && b.children.length > 0
-              )
-            }
-            aria-label={`${PAGE_CONTENT_EDITOR_LABELS.block.deleteAriaPrefix} ${BLOCK_NAMES[b.t]}`}
-          >
-            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>{PAGE_CONTENT_EDITOR_LABELS.block.deleteButton}</span>
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <strong className="text-sm">{editorBlockTitle}</strong>
+          <div className="flex items-center gap-1.5">
+            {b.t === 'chart' && (
+              <button
+                type="button"
+                className="pbtn sm"
+                onClick={() =>
+                  setChartPickerState({
+                    kind: 'change-type',
+                    blockId: b.id,
+                    currentType: b.chartType,
+                  })
+                }
+              >
+                <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>{PAGE_CONTENT_EDITOR_LABELS.chart.changeTypeButton}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              className="pbtn sm"
+              onClick={() =>
+                onDeleteBlock(
+                  b.id,
+                  b.t === 'box' && b.children.length > 0
+                )
+              }
+              aria-label={`${PAGE_CONTENT_EDITOR_LABELS.block.deleteAriaPrefix} ${editorBlockTitle}`}
+            >
+              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{PAGE_CONTENT_EDITOR_LABELS.block.deleteButton}</span>
+            </button>
+          </div>
         </div>
 
         {b.t === 'text' && (
@@ -735,6 +1321,8 @@ export function PageContentEditor({
             placeholder={PAGE_CONTENT_EDITOR_LABELS.block.textPlaceholder}
             align={b.align}
             isBold={b.b}
+            isItalic={b.i}
+            isUnderline={b.u}
             sizeClass={b.size}
             allowWholeBlockStyle={true}
             onChange={(val) =>
@@ -745,6 +1333,16 @@ export function PageContentEditor({
             onToggleBold={() =>
               onUpdateBlock(b.id, (prev) =>
                 prev.t === 'text' ? { ...prev, b: !prev.b } : prev
+              )
+            }
+            onToggleItalic={() =>
+              onUpdateBlock(b.id, (prev) =>
+                prev.t === 'text' ? { ...prev, i: !prev.i } : prev
+              )
+            }
+            onToggleUnderline={() =>
+              onUpdateBlock(b.id, (prev) =>
+                prev.t === 'text' ? { ...prev, u: !prev.u } : prev
               )
             }
             onChangeAlign={(al) =>
@@ -926,6 +1524,17 @@ export function PageContentEditor({
             onUpdate={(updater) =>
               onUpdateBlock(b.id, (prev) =>
                 prev.t === 'table' ? updater(prev) : prev
+              )
+            }
+          />
+        )}
+
+        {b.t === 'chart' && (
+          <ChartBlockEditor
+            block={b}
+            onUpdate={(updater) =>
+              onUpdateBlock(b.id, (prev) =>
+                prev.t === 'chart' ? updater(prev) : prev
               )
             }
           />
@@ -1242,6 +1851,27 @@ export function PageContentEditor({
       </div>
 
       <PageContentEditorGuide open={guideOpen} onClose={() => setGuideOpen(false)} />
+      <PageEditChartModal
+        open={chartPickerState !== null}
+        mode={chartPickerState?.kind ?? 'add'}
+        initialType={
+          chartPickerState?.kind === 'change-type'
+            ? chartPickerState.currentType
+            : 'column'
+        }
+        onClose={() => setChartPickerState(null)}
+        onConfirm={(chosenType) => {
+          if (!chartPickerState) return;
+          if (chartPickerState.kind === 'add') {
+            onAddBlock(createChartBlock(chosenType), chartPickerState.ownerId);
+          } else {
+            onUpdateBlock(chartPickerState.blockId, (prev) =>
+              prev.t === 'chart' ? { ...prev, chartType: chosenType } : prev
+            );
+          }
+          setChartPickerState(null);
+        }}
+      />
     </section>
   );
 }

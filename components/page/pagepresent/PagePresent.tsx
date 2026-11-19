@@ -9,7 +9,8 @@ import {
   stripMarkup,
 } from '@/lib/page/page-present/page-present';
 import type { Block, Slide, ThemeId } from '@/lib/deck-types';
-import { MarkupText } from '../pageedit/PageEditMarkupTextAi';
+import { MarkupText } from '../pageedit/PageEditMarkupText';
+import { ChartView } from '../../presentation/PresentationChartView';
 import { TableView } from '../../presentation/PresentationTableView';
 
 interface SlideBlockContentProps {
@@ -45,7 +46,7 @@ export function SlideBlockContent({
   if (b.t === 'text') {
     return (
       <div
-        className={`tx s-${b.size || 'm'} a-${b.align || 'l'} ${b.b ? 'bd' : ''}`}
+        className={`tx s-${b.size || 'm'} a-${b.align || 'l'} ${b.b ? 'bd' : ''} ${b.i ? 'it' : ''} ${b.u ? 'ul' : ''}`}
       >
         {b.text ? (
           <MarkupText
@@ -232,6 +233,18 @@ export function SlideBlockContent({
       <TableView
         block={b}
         live={live}
+        onTermClick={onTermClick}
+        onModalClick={onModalClick}
+      />
+    );
+  }
+
+  if (b.t === 'chart') {
+    return (
+      <ChartView
+        block={b}
+        live={live}
+        interactive={live}
         onTermClick={onTermClick}
         onModalClick={onModalClick}
       />

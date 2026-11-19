@@ -283,6 +283,24 @@ function serializeInline(node: HtmlNode): string {
     return ` **${trimmed}** `;
   }
 
+  if (node.tag === 'em' || node.tag === 'i') {
+    if (
+      (trimmed.startsWith('***') && trimmed.endsWith('***')) ||
+      (trimmed.startsWith('*') &&
+        !trimmed.startsWith('**') &&
+        trimmed.endsWith('*') &&
+        !trimmed.endsWith('**'))
+    ) {
+      return ` ${trimmed} `;
+    }
+    return ` *${trimmed}* `;
+  }
+
+  if (node.tag === 'u') {
+    if (trimmed.startsWith('__') && trimmed.endsWith('__')) return ` ${trimmed} `;
+    return ` __${trimmed}__ `;
+  }
+
   if (node.attrs['data-mt'] !== undefined || (hasClass(node, 'term') && hasClass(node, 'mt'))) {
     const title = node.attrs['data-mt'] || trimmed;
     return ` [[[${title.trim()}]]] `;

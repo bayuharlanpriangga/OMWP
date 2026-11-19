@@ -1,5 +1,6 @@
 import type {
   BoxBlock,
+  ChartBlock,
   ConclusionBlock,
   Deck,
   DropdownBlock,
@@ -8,6 +9,7 @@ import type {
   TextBlock,
   TitleBlock,
 } from '../deck-types';
+import { formatChartEditorTitle } from './presentation-chart';
 import { stripMarkup } from './presentation-clear-markup-text';
 import { flattenBlocks } from './presentation-utils';
 
@@ -88,6 +90,12 @@ export function getSlideTitle(slide: Slide): string {
       .filter(Boolean)
       .join(' · ')
       .slice(0, 80);
+  }
+
+  const firstChart = flat.find((b): b is ChartBlock => b.t === 'chart');
+  if (firstChart) {
+    const cleanTitle = stripMarkup(firstChart.title || '').trim();
+    return (cleanTitle || formatChartEditorTitle(firstChart.chartType)).slice(0, 80);
   }
 
   const headerFallback = (slide.headerTitle || '').trim();

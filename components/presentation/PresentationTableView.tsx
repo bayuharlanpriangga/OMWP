@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { computeTableColumnWidths } from '@/lib/presentation/presentation-table-view';
+import { resolveTableColumnWidths } from '@/lib/presentation/presentation-table-view';
 import type { TableBlock } from '@/lib/deck-types';
-import { MarkupText } from '../page/pageedit/PageEditMarkupTextAi';
+import { MarkupText } from '../page/pageedit/PageEditMarkupText';
 
 interface TableViewProps {
   block: TableBlock;
@@ -22,14 +22,14 @@ export function TableView({
 }: TableViewProps) {
   const headers = block.headers.length > 0 ? block.headers : ['Kolom 1'];
   const rows = block.rows.length > 0 ? block.rows : [headers.map(() => '')];
-  const layout = computeTableColumnWidths(headers, rows, block.w);
+  const layout = resolveTableColumnWidths(headers.length, block.colWidths);
 
   return (
     <div className="ptbl-wrap">
       <table
         className="ptbl"
-        data-layout-mode={layout.mode}
-        data-col-widths={layout.widths.map((w) => Math.round(w)).join(',')}
+        data-layout-mode={layout.isCustom ? 'manual' : 'equal'}
+        data-col-widths={layout.widths.map((w) => Number(w.toFixed(2))).join(',')}
       >
         <colgroup>
           {layout.widths.map((pct, colIdx) => (

@@ -1,53 +1,82 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { computeTableColumnWidths } from '../presentation-table-view';
+import {
+  createEqualTableColumnWidths,
+  removeTableColumnWidth,
+  resizeTableColumnWidths,
+  resolveTableColumnWidths,
+} from '../presentation-table-view';
+import { normalizeBlocks } from '../presentation-utils';
 
-test('computeTableColumnWidths stays symmetric for short balanced columns and adapts when a column has long text', () => {
-  // 1. Short symmetrical 2 columns
-  const sym2 = computeTableColumnWidths(
-    ['Nama', 'Status'],
-    [
-      ['Andi', 'Aktif'],
-      ['Budi Santoso', 'Lulus'],
-    ]
-  );
-  assert.equal(sym2.mode, 'symmetric');
-  assert.deepEqual(sym2.widths, [50, 50]);
+test('createEqualTableColumnWidths splits percentages cleanly to sum to 100', () => {
+  assert.deepEqual(createEqualTableColumnWidths(1), [100]);
+  assert.deepEqual(createEqualTableColumnWidths(2), [50, 50]);
+  assert.deepEqual(createEqualTableColumnWidths(3), [34, 33, 33]);
+  assert.deepEqual(createEqualTableColumnWidths(4), [25, 25, 25, 25]);
+});
 
-  // 2. Short symmetrical 3 columns
-  const sym3 = computeTableColumnWidths(
-    ['Kode', 'Kategori', 'Satuan'],
-    [['A-01', 'Material', 'Unit']]
-  );
-  assert.equal(sym3.mode, 'symmetric');
-  assert.equal(sym3.widths.length, 3);
-  assert.equal(Number(sym3.widths.reduce((a, b) => a + b, 0).toFixed(2)), 100);
+test('resolveTableColumnWidths uses manual percentages and normalizes proportional totals', () => {
+  // Without colWidths -> equal split regardless of text length
+  const defaultLayout = resolveTableColumnWidths(2);
+  assert.equal(defaultLayout.isCustom, false);
+  assert.deepEqual(defaultLayout.widths, [50, 50]);
+  assert.equal(defaultLayout.rawTotal, 100);
 
-  // 3. Adaptive 2 columns: "Nama" (short) vs "Keterangan" (long description)
-  const adap2 = computeTableColumnWidths(
-    ['Nama', 'Keterangan'],
-    [
-      [
-        'Biaya Tetap',
-        'Biaya operasional rutin yang jumlah totalnya tetap konstan meskipun volume produksi berubah sepanjang periode berjalan.',
-      ],
-    ]
-  );
-  assert.equal(adap2.mode, 'adaptive');
-  assert.ok(adap2.widths[0] < 28, `Expected short col width < 28%, got ${adap2.widths[0]}`);
-  assert.ok(adap2.widths[1] > 72, `Expected long col width > 72%, got ${adap2.widths[1]}`);
-  assert.equal(Number(adap2.widths.reduce((a, b) => a + b, 0).toFixed(2)), 100);
+  // Exact custom percentages summing to 100
+  const exact = resolveTableColumnWidths(3, [20, 50, 30]);
+  assert.equal(exact.isCustom, true);
+  assert.deepEqual(exact.widths, [20, 50, 30]);
+  assert.deepEqual(exact.rawWidths, [20, 50, 30]);
+  assert.equal(exact.rawTotal, 100);
 
-  // 4. Strips markup before measuring & handles multi-line cells cleanly
-  const markupShort = computeTableColumnWidths(
-    ['**Nama**', '[[Istilah]]'],
-    [['[[[Modal]]] singkat', '**Teks** pendek']]
-  );
-  assert.equal(markupShort.mode, 'symmetric');
-  assert.deepEqual(markupShort.widths, [50, 50]);
+  // Non-100 manual percentages keep rawWidths intact and normalize rendered widths proportionally
+  const nonHundred = resolveTableColumnWidths(2, [30, 30]);
+  assert.equal(nonHundred.isCustom, true);
+  assert.deepEqual(nonHundred.rawWidths, [30, 30]);
+  assert.equal(nonHundred.rawTotal, 60);
+  assert.deepEqual(nonHundred.widths, [50, 50]);
 
-  // 5. Single column always returns 100%
-  const single = computeTableColumnWidths(['Ringkasan'], [['Isi panjang']]);
-  assert.equal(single.mode, 'symmetric');
+  // Single column always returns 100
+  const single = resolveTableColumnWidths(1, [40]);
   assert.deepEqual(single.widths, [100]);
+});
+
+test('resizeTableColumnWidths and removeTableColumnWidth maintain valid percentage distributions', () => {
+  const grown = resizeTableColumnWidths([20, 80], 2, 3);
+  assert.equal(grown.length, 3);
+  assert.equal(
+    grown.reduce((s, w) => s + w, 0),
+    100
+  );
+
+  const shrunk = resizeTableColumnWidths([20, 50, 30], 3, 2);
+  assert.equal(shrunk.length, 2);
+  assert.equal(
+    shrunk.reduce((s, w) => s + w, 0),
+    100
+  );
+  assert.ok(shrunk[0] < shrunk[1]);
+
+  const removed = removeTableColumnWidth([20, 50, 30], 3, 1);
+  assert.deepEqual(removed, [40, 60]);
+});
+
+test('normalizeBlocks preserves valid custom colWidths on TableBlock', () => {
+  const normalized = normalizeBlocks([
+    {
+      id: 't1',
+      t: 'table',
+      headers: ['Kode', 'Uraian', 'Nilai'],
+      rows: [['A', 'Keterangan panjang sekali', '100']],
+      colWidths: [15, 65, 20],
+      w: 12,
+    },
+  ]);
+
+  assert.equal(normalized.length, 1);
+  const tbl = normalized[0];
+  assert.equal(tbl.t, 'table');
+  if (tbl.t === 'table') {
+    assert.deepEqual(tbl.colWidths, [15, 65, 20]);
+  }
 });

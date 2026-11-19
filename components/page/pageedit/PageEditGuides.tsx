@@ -95,6 +95,8 @@ export function PageContentEditorGuide({
               menyesuaikan teks terpanjang jika ada kolom yang berisi keterangan
               panjang. Mendukung{' '}
               <code className="font-mono">**tebal**</code>,{' '}
+              <code className="font-mono">*miring*</code>,{' '}
+              <code className="font-mono">__garis bawah__</code>,{' '}
               <code className="font-mono">[[istilah]]</code>, dan{' '}
               <code className="font-mono">[[[modal]]]</code>.
             </p>

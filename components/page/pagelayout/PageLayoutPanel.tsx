@@ -7,11 +7,14 @@ import {
   ArrowRight,
   ArrowUp,
   Bold,
+  Italic,
   Minus,
   Plus,
+  Underline,
   X,
 } from 'lucide-react';
 import { BLOCK_NAMES } from '@/lib/page/page-layout/page-layout-panel';
+import { formatChartEditorTitle } from '@/lib/presentation/presentation-chart';
 import type { Block, TextAlign, TextSize } from '@/lib/deck-types';
 
 interface PageLayoutEditorPanelProps {
@@ -23,6 +26,8 @@ interface PageLayoutEditorPanelProps {
   onResizeWidth: (delta: number) => void;
   onSetSize: (size: TextSize) => void;
   onToggleBold: () => void;
+  onToggleItalic: () => void;
+  onToggleUnderline: () => void;
   onSetAlign: (align: TextAlign) => void;
 }
 
@@ -42,6 +47,8 @@ export function PageLayoutEditorPanel({
   onResizeWidth,
   onSetSize,
   onToggleBold,
+  onToggleItalic,
+  onToggleUnderline,
   onSetAlign,
 }: PageLayoutEditorPanelProps) {
   return (
@@ -50,7 +57,11 @@ export function PageLayoutEditorPanel({
       aria-label="Inspektor tata letak blok"
     >
       <div className="flex items-center gap-3">
-        <strong className="text-sm">{BLOCK_NAMES[block.t]}</strong>
+        <strong className="text-sm">
+          {block.t === 'chart'
+            ? formatChartEditorTitle(block.chartType)
+            : BLOCK_NAMES[block.t]}
+        </strong>
         <span className="text-xs opacity-70 font-mono tabular-nums">
           lebar {block.w}/12
         </span>
@@ -158,6 +169,22 @@ export function PageLayoutEditorPanel({
             aria-label="Tebal"
           >
             <Bold className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className={`pbtn sm ${block.i ? 'on' : ''}`}
+            onClick={onToggleItalic}
+            aria-label="Miring"
+          >
+            <Italic className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className={`pbtn sm ${block.u ? 'on' : ''}`}
+            onClick={onToggleUnderline}
+            aria-label="Garis bawah"
+          >
+            <Underline className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
           {ALIGNS.map((al) => (
             <button

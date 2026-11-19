@@ -22,6 +22,8 @@ export function scanModalTitles(slide: Slide): string[] {
     } else if (b.t === 'table') {
       b.headers.forEach(collectFromString);
       b.rows.forEach((row) => row.forEach(collectFromString));
+    } else if (b.t === 'chart' && b.title) {
+      collectFromString(b.title);
     }
   });
   return out;

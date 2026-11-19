@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ChevronRight, X } from 'lucide-react';
 import { stripMarkup } from '@/lib/page/page-edit/page-edit-markup-text-modal';
 import type { Block, SlideModal } from '@/lib/deck-types';
-import { MarkupText } from './PageEditMarkupTextAi';
+import { MarkupText } from './PageEditMarkupText';
+import { ChartView } from '@/components/presentation/PresentationChartView';
 import { TableView } from '@/components/presentation/PresentationTableView';
 
 interface MarkupTextModalProps {
@@ -43,7 +44,7 @@ function ModalBlockList({
           <div key={b.id} className="blk col-span-12">
             {b.t === 'text' && (
               <div
-                className={`tx s-${b.size || 'm'} a-${b.align || 'l'} ${b.b ? 'bd' : ''}`}
+                className={`tx s-${b.size || 'm'} a-${b.align || 'l'} ${b.b ? 'bd' : ''} ${b.i ? 'it' : ''} ${b.u ? 'ul' : ''}`}
               >
                 <MarkupText
                   text={b.text}
@@ -138,6 +139,14 @@ function ModalBlockList({
             )}
             {b.t === 'table' && (
               <TableView
+                block={b}
+                live={true}
+                insideModal={true}
+                onTermClick={onTermClick}
+              />
+            )}
+            {b.t === 'chart' && (
+              <ChartView
                 block={b}
                 live={true}
                 insideModal={true}
