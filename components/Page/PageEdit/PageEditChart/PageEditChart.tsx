@@ -1,304 +1,385 @@
 'use client';
 
 import React from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
-import {
-  CHART_PALETTE,
-  isChartZoomExemptTarget,
-  type ChartHoveredItem,
-} from '@/lib/page/page-edit/page-edit-chart';
-import { formatChartNumber } from '@/lib/presentation/presentation-chart';
+import { Eye, Minus, Plus, Trash2, X } from 'lucide-react';
+import { PAGE_CONTENT_EDITOR_LABELS } from '@/lib/data/data-page-content-editor';
+import { clamp } from '@/lib/page/page-edit/page-edit';
+import { uid } from '@/lib/presentation/presentation-utils';
 import type { ChartBlock } from '@/lib/deck-types';
-import { MarkupText } from '../PageEditMarkupText';
-import { PageEditChartTypesBatang } from './PageEditChartTypes/PageEditChartTypesBatang';
-import { PageEditChartTypesGaris } from './PageEditChartTypes/PageEditChartTypesGaris';
-import { PageEditChartTypesKolom } from './PageEditChartTypes/PageEditChartTypesKolom';
-import { PageEditChartTypesPie } from './PageEditChartTypes/PageEditChartTypesPie';
-import { PageEditChartTypesSunburst } from './PageEditChartTypes/PageEditChartTypesSunburst';
+import { PageEditPreviewChart } from '../PageEditPreview/PageEditPreviewChart';
 
-interface ChartViewProps {
+export function ChartBlockEditor({
+  block,
+  onUpdate,
+}: {
   block: ChartBlock;
-  live?: boolean;
-  interactive?: boolean;
-  zoomable?: boolean;
-  insideModal?: boolean;
-  compact?: boolean;
-  onTermClick?: (term: string, event: React.MouseEvent<HTMLButtonElement>) => void;
-  onModalClick?: (title: string, event: React.MouseEvent<HTMLButtonElement>) => void;
-}
-
-interface ChartCardContentProps extends ChartViewProps {
-  categories: string[];
-  series: ChartBlock['series'];
-  allValues: number[];
-  isZoomedView?: boolean;
-  onRequestZoom?: () => void;
-}
-
-function ChartCardContent({
-  block,
-  categories,
-  series,
-  allValues,
-  live = true,
-  interactive = live,
-  zoomable = true,
-  insideModal = false,
-  compact = false,
-  isZoomedView = false,
-  onTermClick,
-  onModalClick,
-  onRequestZoom,
-}: ChartCardContentProps) {
-  const [hovered, setHovered] = React.useState<ChartHoveredItem | null>(null);
-  const canZoom = Boolean(interactive && zoomable && !isZoomedView && onRequestZoom);
-
-  const sharedChartProps = {
-    block,
-    categories,
-    series,
-    allValues,
-    compact,
-    interactive,
-    hovered,
-    onHover: setHovered,
-  };
-
-  return (
-    <div className="pchart-wrap">
-      <div
-        className={`card pchart-card ${compact ? 'pchart-card-compact' : ''} ${
-          canZoom ? 'cursor-zoom-in' : ''
-        }`}
-        onClick={(e) => {
-          if (!canZoom) return;
-          if (isChartZoomExemptTarget(e.target)) return;
-          setHovered(null);
-          onRequestZoom?.();
-        }}
-      >
-        {canZoom && (
-          <button
-            type="button"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-10 pbtn sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              setHovered(null);
-              onRequestZoom?.();
-            }}
-            aria-label={`Perbesar chart ${block.title?.trim() || ''}`.trim()}
-          >
-            Perbesar chart
-          </button>
-        )}
-
-        {hovered && (
-          <div className="pchart-readout tabular-nums" aria-live="polite">
-            <span
-              className="pchart-swatch"
-              style={{ backgroundColor: hovered.color }}
-              aria-hidden="true"
-            />
-            <span className="font-semibold">{hovered.category}</span>
-            {block.chartType !== 'pie' && hovered.series && (
-              <span className="opacity-75">· {hovered.series}</span>
-            )}
-            <span className="font-mono font-bold">
-              {formatChartNumber(hovered.value)}
-              {hovered.percentage !== undefined
-                ? ` (${Math.round(hovered.percentage)}%)`
-                : ''}
-            </span>
-          </div>
-        )}
-
-        {block.title?.trim() && (
-          <div
-            className={`pchart-head ${
-              block.chartType === 'sunburst' ? 'pchart-head-center' : ''
-            }`}
-          >
-            <div className="pchart-title">
-              {onTermClick ? (
-                <MarkupText
-                  text={block.title}
-                  live={live}
-                  insideModal={insideModal}
-                  onTermClick={onTermClick}
-                  onModalClick={onModalClick}
-                />
-              ) : (
-                block.title
-              )}
-            </div>
-          </div>
-        )}
-
-        {block.chartType === 'sunburst' && (
-          <div className="pchart-legend !mt-0 !mb-2 !pt-0 !border-t-0">
-            {categories.map((cat, cIdx) => (
-              <div key={`${cIdx}-${cat}`} className="pchart-legend-item">
-                <span
-                  className="pchart-swatch"
-                  style={{
-                    backgroundColor: CHART_PALETTE[cIdx % CHART_PALETTE.length],
-                  }}
-                  aria-hidden="true"
-                />
-                <span>{cat.trim() || `Kategori ${cIdx + 1}`}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="pchart-canvas">
-          {block.chartType === 'column' && (
-            <PageEditChartTypesKolom {...sharedChartProps} />
-          )}
-          {block.chartType === 'bar' && (
-            <PageEditChartTypesBatang {...sharedChartProps} />
-          )}
-          {block.chartType === 'line' && (
-            <PageEditChartTypesGaris {...sharedChartProps} />
-          )}
-          {block.chartType === 'pie' && (
-            <PageEditChartTypesPie {...sharedChartProps} />
-          )}
-          {block.chartType === 'sunburst' && (
-            <PageEditChartTypesSunburst {...sharedChartProps} />
-          )}
-        </div>
-
-        {block.chartType !== 'pie' && block.chartType !== 'sunburst' && (
-          <div className="pchart-legend">
-            {series.map((ser, sIdx) => (
-              <div key={ser.id} className="pchart-legend-item">
-                <span
-                  className="pchart-swatch"
-                  style={{
-                    backgroundColor: CHART_PALETTE[sIdx % CHART_PALETTE.length],
-                  }}
-                  aria-hidden="true"
-                />
-                <span>{ser.name.trim() || `Seri ${sIdx + 1}`}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export function ChartView({
-  block,
-  live = true,
-  interactive = live,
-  zoomable = true,
-  insideModal = false,
-  compact = false,
-  onTermClick,
-  onModalClick,
-}: ChartViewProps) {
-  const [isZoomed, setIsZoomed] = React.useState(false);
+  onUpdate: (updater: (prev: ChartBlock) => ChartBlock) => void;
+}) {
+  const [showPreview, setShowPreview] = React.useState(false);
+  const [draftValues, setDraftValues] = React.useState<Record<string, string>>({});
 
   const categories =
     block.categories.length > 0 ? block.categories : ['Kategori 1'];
   const series =
     block.series.length > 0
       ? block.series
-      : [{ id: 's1', name: 'Seri 1', values: [0] }];
+      : [{ id: uid(), name: 'Seri 1', values: [0] }];
 
-  const allValues = series.flatMap((s) =>
-    categories.map((_, cIdx) => {
-      const n = Number(s.values[cIdx] ?? 0);
-      return Number.isFinite(n) ? n : 0;
-    })
-  );
+  const setCategoryCount = (nextCount: number) => {
+    const target = clamp(nextCount, 1, 20);
+    onUpdate((prev) => {
+      const curCats =
+        prev.categories.length > 0 ? prev.categories : ['Kategori 1'];
+      if (target === curCats.length) return prev;
+      const nextCats =
+        target > curCats.length
+          ? [
+              ...curCats,
+              ...Array.from(
+                { length: target - curCats.length },
+                (_, idx) => `Kategori ${curCats.length + idx + 1}`
+              ),
+            ]
+          : curCats.slice(0, target);
+      const nextSeries = prev.series.map((s) => ({
+        ...s,
+        values:
+          target > s.values.length
+            ? [
+                ...s.values,
+                ...Array.from({ length: target - s.values.length }, () => 0),
+              ]
+            : s.values.slice(0, target),
+      }));
+      return { ...prev, categories: nextCats, series: nextSeries };
+    });
+  };
 
-  React.useEffect(() => {
-    if (!isZoomed) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setIsZoomed(false);
-        return;
-      }
-      if (
-        e.key === 'ArrowRight' ||
-        e.key === 'ArrowLeft' ||
-        e.key === 'PageDown' ||
-        e.key === 'PageUp' ||
-        e.key === ' '
-      ) {
-        e.stopImmediatePropagation();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown, true);
-    return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [isZoomed]);
+  const setSeriesCount = (nextCount: number) => {
+    const target = clamp(nextCount, 1, 12);
+    onUpdate((prev) => {
+      const catLen = Math.max(1, prev.categories.length);
+      const curSeries =
+        prev.series.length > 0
+          ? prev.series
+          : [{ id: uid(), name: 'Seri 1', values: Array.from({ length: catLen }, () => 0) }];
+      if (target === curSeries.length) return prev;
+      const nextSeries =
+        target > curSeries.length
+          ? [
+              ...curSeries,
+              ...Array.from({ length: target - curSeries.length }, (_, idx) => ({
+                id: uid(),
+                name: `Seri ${curSeries.length + idx + 1}`,
+                values: Array.from({ length: catLen }, () => 0),
+              })),
+            ]
+          : curSeries.slice(0, target);
+      return { ...prev, series: nextSeries };
+    });
+  };
+
+  const removeCategory = (catIdx: number) => {
+    if (categories.length <= 1) return;
+    onUpdate((prev) => ({
+      ...prev,
+      categories: prev.categories.filter((_, i) => i !== catIdx),
+      series: prev.series.map((s) => ({
+        ...s,
+        values: s.values.filter((_, i) => i !== catIdx),
+      })),
+    }));
+  };
+
+  const removeSeries = (serIdx: number) => {
+    if (series.length <= 1) return;
+    onUpdate((prev) => ({
+      ...prev,
+      series: prev.series.filter((_, i) => i !== serIdx),
+    }));
+  };
 
   return (
-    <>
-      <ChartCardContent
-        block={block}
-        categories={categories}
-        series={series}
-        allValues={allValues}
-        live={live}
-        interactive={interactive}
-        zoomable={zoomable}
-        insideModal={insideModal}
-        compact={compact}
-        onTermClick={onTermClick}
-        onModalClick={onModalClick}
-        onRequestZoom={() => setIsZoomed(true)}
+    <div className="space-y-3">
+      {/* Chart Title Input */}
+      <input
+        type="text"
+        className="pinput text-sm font-semibold"
+        placeholder={PAGE_CONTENT_EDITOR_LABELS.chart.titlePlaceholder}
+        aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.titleAria}
+        value={block.title ?? ''}
+        onChange={(e) => {
+          const val = e.target.value;
+          onUpdate((prev) => ({ ...prev, title: val }));
+        }}
       />
 
-      {isZoomed &&
-        typeof document !== 'undefined' &&
-        createPortal(
-          <div
-            className="fixed inset-0 bg-black/88 z-50 grid place-items-center p-4 sm:p-8 cursor-zoom-out"
-            role="dialog"
-            aria-modal="true"
-            aria-label={block.title?.trim() || 'Pratinjau chart'}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setIsZoomed(false);
-            }}
-          >
+      {/* Category & Series Dimension Controls + Preview Toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-current/15">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold opacity-80">
+              {PAGE_CONTENT_EDITOR_LABELS.chart.categoryLabel}
+            </span>
             <button
               type="button"
-              className="pbtn sm fixed top-4 right-4 z-10"
-              onClick={() => setIsZoomed(false)}
-              aria-label="Tutup pratinjau chart"
+              className="pbtn sm !px-2"
+              disabled={categories.length <= 1}
+              onClick={() => setCategoryCount(categories.length - 1)}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.decreaseCategoriesAria}
             >
-              <X className="w-4 h-4" aria-hidden="true" />
+              <Minus className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
-            <div
-              className="w-full max-w-[min(980px,94vw)] max-h-[90vh] overflow-auto cursor-default"
-              onClick={(e) => e.stopPropagation()}
+            <input
+              type="number"
+              min={1}
+              max={20}
+              className="pinput !w-14 !py-1 !px-1.5 text-center text-sm font-mono tabular-nums"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.categoriesCountAria}
+              value={categories.length}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value, 10);
+                if (!Number.isNaN(parsed)) setCategoryCount(parsed);
+              }}
+            />
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={categories.length >= 20}
+              onClick={() => setCategoryCount(categories.length + 1)}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.increaseCategoriesAria}
             >
-              <ChartCardContent
-                block={block}
-                categories={categories}
-                series={series}
-                allValues={allValues}
-                live={live}
-                interactive={true}
-                zoomable={false}
-                insideModal={insideModal}
-                compact={false}
-                isZoomedView={true}
-                onTermClick={onTermClick}
-                onModalClick={onModalClick}
-              />
-            </div>
-          </div>,
-          document.body
-        )}
-    </>
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{PAGE_CONTENT_EDITOR_LABELS.chart.addCategoryButton}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold opacity-80">
+              {PAGE_CONTENT_EDITOR_LABELS.chart.seriesLabel}
+            </span>
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={series.length <= 1}
+              onClick={() => setSeriesCount(series.length - 1)}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.decreaseSeriesAria}
+            >
+              <Minus className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={12}
+              className="pinput !w-14 !py-1 !px-1.5 text-center text-sm font-mono tabular-nums"
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.seriesCountAria}
+              value={series.length}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.target.value, 10);
+                if (!Number.isNaN(parsed)) setSeriesCount(parsed);
+              }}
+            />
+            <button
+              type="button"
+              className="pbtn sm !px-2"
+              disabled={series.length >= 12}
+              onClick={() => setSeriesCount(series.length + 1)}
+              aria-label={PAGE_CONTENT_EDITOR_LABELS.chart.increaseSeriesAria}
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{PAGE_CONTENT_EDITOR_LABELS.chart.addSeriesButton}</span>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={`pbtn sm ${showPreview ? 'on' : ''}`}
+          onClick={() => setShowPreview((v) => !v)}
+          aria-pressed={showPreview}
+        >
+          <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+          <span>{PAGE_CONTENT_EDITOR_LABELS.chart.previewButton}</span>
+        </button>
+      </div>
+
+      {/* Editable Chart Data Spreadsheet */}
+      <div className="overflow-x-auto pb-1">
+        <table className="w-full border-collapse min-w-[400px]">
+          <thead>
+            <tr>
+              <th className="p-1 align-bottom text-left font-normal min-w-[140px]">
+                <div className="flex items-center justify-between gap-1 h-6 mb-1 px-0.5">
+                  <span className="text-[11px] font-mono opacity-70">
+                    {PAGE_CONTENT_EDITOR_LABELS.chart.categoryHeader}
+                  </span>
+                </div>
+                <div className="pinput !py-1.5 !px-2 text-sm font-semibold opacity-80 bg-black/5 select-none">
+                  {PAGE_CONTENT_EDITOR_LABELS.chart.categoryHeader}
+                </div>
+              </th>
+              {series.map((ser, sIdx) => (
+                <th
+                  key={ser.id}
+                  className="p-1 align-bottom text-left font-normal min-w-[116px]"
+                >
+                  <div className="flex items-center justify-between gap-1 h-6 mb-1 px-0.5">
+                    <span className="text-[11px] font-mono opacity-70">
+                      {PAGE_CONTENT_EDITOR_LABELS.chart.seriesPrefix} {sIdx + 1}
+                    </span>
+                    {series.length > 1 && (
+                      <button
+                        type="button"
+                        className="pbtn sm !p-0 !w-6 !h-6"
+                        onClick={() => removeSeries(sIdx)}
+                        aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.deleteSeriesPrefix} ${sIdx + 1}`}
+                        title={`${PAGE_CONTENT_EDITOR_LABELS.chart.deleteSeriesPrefix} ${sIdx + 1}`}
+                      >
+                        <X className="w-3 h-3" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    className="pinput !py-1.5 !px-2 text-sm font-semibold"
+                    placeholder={`${PAGE_CONTENT_EDITOR_LABELS.chart.seriesPrefix} ${sIdx + 1}`}
+                    aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.seriesAriaPrefix} ${sIdx + 1}`}
+                    value={ser.name}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onUpdate((prev) => ({
+                        ...prev,
+                        series: prev.series.map((item, idx) =>
+                          idx === sIdx ? { ...item, name: val } : item
+                        ),
+                      }));
+                    }}
+                  />
+                </th>
+              ))}
+              {categories.length > 1 && (
+                <th
+                  className="w-9 p-1"
+                  aria-label={PAGE_CONTENT_EDITOR_LABELS.table.rowActionsAria}
+                />
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map((cat, cIdx) => (
+              <tr key={cIdx}>
+                <td className="p-1 align-middle">
+                  <input
+                    type="text"
+                    className="pinput !py-1.5 !px-2 text-sm"
+                    placeholder={`${PAGE_CONTENT_EDITOR_LABELS.chart.categoryPlaceholderPrefix} ${cIdx + 1}`}
+                    aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.categoryAriaPrefix} ${cIdx + 1}`}
+                    value={cat}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onUpdate((prev) => ({
+                        ...prev,
+                        categories: prev.categories.map((item, idx) =>
+                          idx === cIdx ? val : item
+                        ),
+                      }));
+                    }}
+                  />
+                </td>
+                {series.map((ser, sIdx) => {
+                  const cellKey = `${ser.id}:${cIdx}`;
+                  const storedVal = ser.values[cIdx] ?? 0;
+                  const inputValue =
+                    cellKey in draftValues
+                      ? draftValues[cellKey]
+                      : String(storedVal);
+                  return (
+                    <td key={ser.id} className="p-1 align-middle">
+                      <input
+                        type="number"
+                        step="any"
+                        className="pinput !py-1.5 !px-2 text-sm font-mono tabular-nums text-right"
+                        aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.valueAriaPrefix} ${cat || `${PAGE_CONTENT_EDITOR_LABELS.chart.categoryPlaceholderPrefix} ${cIdx + 1}`} - ${ser.name || `${PAGE_CONTENT_EDITOR_LABELS.chart.seriesPrefix} ${sIdx + 1}`}`}
+                        value={inputValue}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          setDraftValues((prev) => ({ ...prev, [cellKey]: raw }));
+                          const num = Number(raw);
+                          if (raw.trim() !== '' && Number.isFinite(num)) {
+                            onUpdate((prev) => ({
+                              ...prev,
+                              series: prev.series.map((item, idx) =>
+                                idx === sIdx
+                                  ? {
+                                      ...item,
+                                      values: prev.categories.map((_, vIdx) =>
+                                        vIdx === cIdx
+                                          ? num
+                                          : item.values[vIdx] ?? 0
+                                      ),
+                                    }
+                                  : item
+                              ),
+                            }));
+                          }
+                        }}
+                        onBlur={() => {
+                          const raw = draftValues[cellKey];
+                          if (raw === undefined) return;
+                          const num = Number(raw);
+                          const finalNum =
+                            raw.trim() !== '' && Number.isFinite(num) ? num : 0;
+                          onUpdate((prev) => ({
+                            ...prev,
+                            series: prev.series.map((item, idx) =>
+                              idx === sIdx
+                                ? {
+                                    ...item,
+                                    values: prev.categories.map((_, vIdx) =>
+                                      vIdx === cIdx
+                                        ? finalNum
+                                        : item.values[vIdx] ?? 0
+                                    ),
+                                  }
+                                : item
+                            ),
+                          }));
+                          setDraftValues((prev) => {
+                            const next = { ...prev };
+                            delete next[cellKey];
+                            return next;
+                          });
+                        }}
+                      />
+                    </td>
+                  );
+                })}
+                {categories.length > 1 && (
+                  <td className="p-1 align-middle text-center">
+                    <button
+                      type="button"
+                      className="pbtn sm !p-0 !w-7 !h-7"
+                      onClick={() => removeCategory(cIdx)}
+                      aria-label={`${PAGE_CONTENT_EDITOR_LABELS.chart.deleteCategoryPrefix} ${cIdx + 1}`}
+                      title={`${PAGE_CONTENT_EDITOR_LABELS.chart.deleteCategoryPrefix} ${cIdx + 1}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {block.chartType === 'pie' && series.length > 1 && (
+        <p className="text-xs opacity-70 m-0">
+          {PAGE_CONTENT_EDITOR_LABELS.chart.pieMultiSeriesHint}
+        </p>
+      )}
+
+      {showPreview && <PageEditPreviewChart block={block} />}
+    </div>
   );
 }

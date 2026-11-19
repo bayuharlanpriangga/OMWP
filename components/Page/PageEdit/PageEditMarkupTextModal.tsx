@@ -6,7 +6,7 @@ import { ChevronRight, X } from 'lucide-react';
 import { stripMarkup } from '@/lib/page/page-edit/page-edit-markup-text-modal';
 import type { Block, SlideModal } from '@/lib/deck-types';
 import { MarkupText } from './PageEditMarkupText';
-import { ChartView } from './PageEditChart/PageEditChart';
+import { ChartView } from './PageEditChart/PageEditChartView';
 import { TableView } from './PageEditTable/PageEditTableView';
 
 interface MarkupTextModalProps {

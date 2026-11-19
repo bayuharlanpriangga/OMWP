@@ -16,7 +16,7 @@ import {
   getChartTypeMeta,
 } from '@/lib/page/page-edit/page-edit-chart';
 import type { ChartBlock, ChartType } from '@/lib/deck-types';
-import { ChartView } from './PageEditChart';
+import { ChartView } from './PageEditChartView';
 
 interface PageEditChartModalProps {
   open: boolean;

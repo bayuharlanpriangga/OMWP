@@ -31,7 +31,7 @@ import {
   SystemsConfirmDialog,
   type SystemsConfirmDialogState,
 } from '../Systems/SystemsConfirmDialog';
-import { ChartView } from '../Page/PageEdit/PageEditChart/PageEditChart';
+import { PresentationChart } from './PresentationChart';
 import { ImageLightbox } from './PresentationImageView';
 import { SlideNav } from './PresentationSlideNavigation';
 import { SystemsToastBanner } from '../Systems/SystemsToastBanner';
@@ -265,7 +265,7 @@ export function SlideBlockContent({
 
   if (b.t === 'chart') {
     return (
-      <ChartView
+      <PresentationChart
         block={b}
         live={live}
         interactive={live}
