@@ -16,6 +16,7 @@ export const THEME_ORDER: ThemeId[] = [
   'dino',
   'zodiac',
   'tarot',
+  'joker',
   'ai',
 ];
 
@@ -94,10 +95,15 @@ export const THEME_META: Record<ThemeId, { name: string; description: string }> 
     description:
       'Sanctum mistis beludru ungu-merah anggur dan emas antik: kartu Major Arcana melayang berputar membuka simbol arkana, lingkaran alkitab suci & fase bulan kembar tiga, kabut dupa mengalun, dan bara lilin.',
   },
+  joker: {
+    name: 'Joker',
+    description:
+      'Panggung sandiwara hot pink & beludru gelap bernuansa Joker: sorotan lampu panggung menyilang, mahkota badut & simbol kartu remi berputar, kartu Joker & kerajaan melayang berbalik 3D, gema tawa HAHA melayang, serta konfeti berlian menyala.',
+  },
   ai: {
     name: 'AI Nexus',
     description:
-      'Konvergensi kecerdasan frontier (Gemini, Claude, ChatGPT, DeepSeek): nexus orbital 4 inti AI yang saling mengirim paket penalaran di atas kisi tensor biru obsidian, gelombang harmonik, dan partikel atensi beranimasi.',
+      'Konvergensi kecerdasan frontier (Gemini, Claude, ChatGPT, DeepSeek): nexus orbital 4 inti AI berwarna putih bersih beraksen palet 4 AI di atas kisi tensor putih, gelombang harmonik, dan partikel atensi beranimasi.',
   },
 };
 
@@ -168,8 +174,12 @@ export const THEME_SWATCHES: Record<
     name: 'Tarot',
     colors: ['#0c0611', '#221033', '#8b2c4e', '#c99846', '#f5ecda'],
   },
+  joker: {
+    name: 'Joker',
+    colors: ['#12040c', '#2b091d', '#ff1f8e', '#ff66b2', '#fff1f7'],
+  },
   ai: {
     name: 'AI Nexus',
-    colors: ['#060913', '#60a5fa', '#d97757', '#10a37f', '#4d6bfe'],
+    colors: ['#ffffff', '#4285f4', '#d97757', '#10a37f', '#4d6bfe'],
   },
 };

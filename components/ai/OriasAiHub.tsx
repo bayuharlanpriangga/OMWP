@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { uid } from '@/lib/logic/logic-presentation-app';
+import { uid } from '@/lib/page/page-presentation';
 import type { ChatMessage, PresenterPrefs, ThemeId } from '@/lib/deck-types';
 import type { ByokKeyEntry } from '@/lib/ai/ai-providers';
 import { ApiKeysModal } from './ApiKeysModal';

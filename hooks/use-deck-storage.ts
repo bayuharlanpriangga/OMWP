@@ -5,7 +5,7 @@ import {
   createDefaultDeck,
   getDeckDisplayTitle,
   loadAndNormalizeDeck,
-} from '@/lib/logic/logic-presentation-app';
+} from '@/lib/page/page-presentation';
 import type { Deck, PresenterPrefs } from '@/lib/deck-types';
 import type { ByokKeyEntry } from '@/lib/ai/ai-providers';
 

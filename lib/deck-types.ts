@@ -16,6 +16,7 @@ export type ThemeId =
   | 'dino'
   | 'zodiac'
   | 'tarot'
+  | 'joker'
   | 'ai';
 export type WorkspaceMode = 'present' | 'edit' | 'layout';
 export type TextSize = 's' | 'm' | 'l' | 'xl' | 'xxl';

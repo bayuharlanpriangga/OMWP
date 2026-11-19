@@ -6,9 +6,9 @@ import {
   findBlockInSlide,
   moveBlockInParent,
   updateBlockInSlide,
-} from '@/lib/logic/logic-presentation-app';
+} from '@/lib/page/page-presentation';
 import type { Slide, TextAlign, TextSize, WorkspaceMode } from '@/lib/deck-types';
-import type { PageLayoutEditorHandle } from '@/components/page/pagelayout/PageLayoutEditor';
+import type { PageLayoutEditorHandle } from '@/components/page/pagelayout/PageLayout';
 
 export function useLayoutInspector({
   mode,

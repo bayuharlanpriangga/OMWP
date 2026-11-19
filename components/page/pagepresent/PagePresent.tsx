@@ -7,10 +7,10 @@ import {
   clamp,
   computeReflowPositions,
   stripMarkup,
-} from '@/lib/logic/logic-page/logic-page-present/logic-page-present';
+} from '@/lib/page/page-present/page-present';
 import type { Block, Slide, ThemeId } from '@/lib/deck-types';
-import { MarkupText } from '../pagecontent/MarkupTextAi';
-import { TableView } from '../../TableView';
+import { MarkupText } from '../pageedit/PageEditMarkupTextAi';
+import { TableView } from '../../presentation/PresentationTableView';
 
 interface SlideBlockContentProps {
   block: Block;

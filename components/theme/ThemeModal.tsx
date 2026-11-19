@@ -85,6 +85,7 @@ export function ThemeModal({
             const isDino = id === 'dino';
             const isZodiac = id === 'zodiac';
             const isTarot = id === 'tarot';
+            const isJoker = id === 'joker';
             const isAi = id === 'ai';
 
             return (
@@ -183,13 +184,19 @@ export function ThemeModal({
                                                     ? 'border-[#e3b96c] shadow-[0_0_16px_rgba(201,152,70,0.38)]'
                                                     : 'border-[#c99846]/55 hover:border-[#e3b96c]'
                                                 }`
-                                              : isAi
-                                                ? `bg-[#070b18] text-[#eef4ff] border rounded-[6px] ${
+                                              : isJoker
+                                                ? `bg-[#12040c] text-[#fff1f7] border rounded-[6px] ${
                                                     active
-                                                      ? 'border-[#60a5fa] shadow-[0_0_16px_rgba(77,107,254,0.4)]'
-                                                      : 'border-[#4d6bfe]/55 hover:border-[#60a5fa]'
+                                                      ? 'border-[#ff1f8e] shadow-[0_0_18px_rgba(255,31,142,0.48)]'
+                                                      : 'border-[#ff1f8e]/55 hover:border-[#ff66b2]'
                                                   }`
-                                                : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
+                                                : isAi
+                                                  ? `bg-[#ffffff] text-[#0f172a] border rounded-[6px] ${
+                                                      active
+                                                        ? 'border-[#0f172a] ring-1 ring-[#0f172a] shadow-[0_6px_18px_rgba(15,23,42,0.12)]'
+                                                        : 'border-[#cbd5e1] hover:border-[#4d6bfe]'
+                                                    }`
+                                                  : 'bg-[#f4f6f9] text-[#14243d] border border-[#c5ccd8] border-t-[3px] border-t-[#14243d] rounded-[6px] shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -709,17 +716,58 @@ export function ThemeModal({
                       />
                       <span>{visual.name}</span>
                     </motion.span>
+                  ) : isJoker ? (
+                    <motion.span
+                      className="relative inline-flex items-center gap-2 text-xl font-bold italic tracking-wider"
+                      style={{
+                        fontFamily:
+                          'var(--font-joker-display), var(--font-serif), Georgia, serif',
+                        color: '#fff1f7',
+                        textShadow:
+                          isEngaged || active
+                            ? '0 0 12px rgba(255, 31, 142, 0.85)'
+                            : '0 0 6px rgba(255, 31, 142, 0.35)',
+                      }}
+                      animate={
+                        clickedTheme === id
+                          ? { scale: 1.06, rotate: -2 }
+                          : isEngaged
+                            ? { x: 2 }
+                            : { x: 0, scale: 1, rotate: 0 }
+                      }
+                      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-block w-3.5 h-3.5 shrink-0"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, #ff1f8e 0%, #ff66b2 55%, #fff1f7 100%)',
+                          clipPath:
+                            'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                          boxShadow:
+                            active || isEngaged
+                              ? '0 0 10px rgba(255, 31, 142, 0.85)'
+                              : 'none',
+                        }}
+                        animate={
+                          clickedTheme === id
+                            ? { rotate: 180, scale: 1.25 }
+                            : isEngaged || active
+                              ? { rotate: 45, scale: 1.12 }
+                              : { rotate: 0, scale: 1 }
+                        }
+                        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                      <span>{visual.name}</span>
+                    </motion.span>
                   ) : isAi ? (
                     <motion.span
                       className="relative inline-flex items-center gap-2 text-xl font-semibold tracking-wide"
                       style={{
                         fontFamily:
                           'var(--font-astro-display), var(--font-orias-sans), system-ui, sans-serif',
-                        color: '#eef4ff',
-                        textShadow:
-                          isEngaged || active
-                            ? '0 0 12px rgba(96, 165, 250, 0.58)'
-                            : 'none',
+                        color: '#0f172a',
                       }}
                       animate={
                         clickedTheme === id
@@ -735,7 +783,7 @@ export function ThemeModal({
                         className="inline-block w-3.5 h-3.5 shrink-0"
                         style={{
                           background:
-                            'linear-gradient(135deg, #60a5fa 0%, #d97757 38%, #10a37f 72%, #4d6bfe 100%)',
+                            'linear-gradient(135deg, #4285f4 0%, #d97757 38%, #10a37f 72%, #4d6bfe 100%)',
                           clipPath:
                             'polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%)',
                         }}
@@ -813,9 +861,11 @@ export function ThemeModal({
                                                   ? 'bg-[#d4af37] text-[#070b1a] rounded-[3px]'
                                                   : isTarot
                                                     ? 'bg-[#c99846] text-[#0c0611] rounded-[3px]'
-                                                    : isAi
-                                                      ? 'bg-[#60a5fa] text-[#060913] rounded-[3px]'
-                                                      : 'bg-[#14243d] text-[#ffffff] rounded-full'
+                                                    : isJoker
+                                                      ? 'bg-[#ff1f8e] text-[#12040c] rounded-[3px]'
+                                                      : isAi
+                                                        ? 'bg-[#0f172a] text-[#ffffff] rounded-[3px]'
+                                                        : 'bg-[#14243d] text-[#ffffff] rounded-full'
                       }`}
                       aria-hidden="true"
                     >
@@ -860,9 +910,11 @@ export function ThemeModal({
                                                   ? 'rounded-full border border-[#d4af37]/65'
                                                   : isTarot
                                                     ? 'rounded-[3px] border border-[#c99846]/65'
-                                                    : isAi
-                                                      ? 'rounded-[3px] border border-[#60a5fa]/65'
-                                                      : 'rounded-[3px] border border-[#c5ccd8]'
+                                                    : isJoker
+                                                      ? 'rounded-[2px] border border-[#ff1f8e]/75'
+                                                      : isAi
+                                                        ? 'rounded-[3px] border border-[#cbd5e1]'
+                                                        : 'rounded-[3px] border border-[#c5ccd8]'
                       }`}
                       style={{ backgroundColor: hex }}
                     />

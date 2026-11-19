@@ -199,18 +199,17 @@ export function ThemeTypesAi() {
       bgCanvas.width = w;
       bgCanvas.height = h;
 
-      // 1. Deep obsidian-cobalt background canvas
+      // 1. Clean pure-white studio canvas (inspired by ChatGPT, Gemini, Claude & DeepSeek light badges)
       const bg = bgCtx.createLinearGradient(0, 0, w, h);
-      bg.addColorStop(0, '#050814');
-      bg.addColorStop(0.45, '#091022');
-      bg.addColorStop(0.82, '#070e1d');
-      bg.addColorStop(1, '#04060f');
+      bg.addColorStop(0, '#ffffff');
+      bg.addColorStop(0.5, '#fafbfc');
+      bg.addColorStop(1, '#ffffff');
       bgCtx.fillStyle = bg;
       bgCtx.fillRect(0, 0, w, h);
 
-      // 2. Subtle precision tensor coordinate grid
+      // 2. Subtle neutral architectural tensor coordinate grid
       const gridStep = w < 640 ? 44 : 56;
-      bgCtx.strokeStyle = 'rgba(77, 107, 254, 0.045)';
+      bgCtx.strokeStyle = 'rgba(15, 23, 42, 0.042)';
       bgCtx.lineWidth = 1;
       for (let gx = 0; gx < w; gx += gridStep) {
         bgCtx.beginPath();
@@ -225,24 +224,24 @@ export function ThemeTypesAi() {
         bgCtx.stroke();
       }
 
-      // 3. Quad-spectrum soft atmospheric glow pools (Gemini, Claude, ChatGPT, DeepSeek)
+      // 3. Quad-AI soft pastel ambient washes (Gemini, Claude, ChatGPT, DeepSeek)
       const glows: Array<[number, number, number, string]> = [
-        [cx - r * 0.7, cy - r * 0.65, r * 1.9, 'rgba(66, 133, 244, 0.13)'],
-        [cx + r * 0.75, cy - r * 0.55, r * 1.6, 'rgba(217, 119, 87, 0.10)'],
-        [cx + r * 0.65, cy + r * 0.75, r * 1.6, 'rgba(16, 163, 127, 0.11)'],
-        [cx - r * 0.65, cy + r * 0.7, r * 1.85, 'rgba(77, 107, 254, 0.14)'],
-        [w * 0.16, h * 0.25, Math.max(w, h) * 0.34, 'rgba(77, 107, 254, 0.08)'],
+        [cx - r * 0.7, cy - r * 0.65, r * 1.85, 'rgba(66, 133, 244, 0.055)'],
+        [cx + r * 0.75, cy - r * 0.55, r * 1.55, 'rgba(217, 119, 87, 0.05)'],
+        [cx + r * 0.65, cy + r * 0.75, r * 1.55, 'rgba(16, 163, 127, 0.055)'],
+        [cx - r * 0.65, cy + r * 0.7, r * 1.8, 'rgba(77, 107, 254, 0.055)'],
+        [w * 0.16, h * 0.25, Math.max(w, h) * 0.34, 'rgba(139, 92, 246, 0.035)'],
       ];
       for (const [gx, gy, gr, gc] of glows) {
         const rg = bgCtx.createRadialGradient(gx, gy, 0, gx, gy, gr);
         rg.addColorStop(0, gc);
-        rg.addColorStop(1, 'rgba(6, 9, 19, 0)');
+        rg.addColorStop(1, 'rgba(255, 255, 255, 0)');
         bgCtx.fillStyle = rg;
         bgCtx.fillRect(0, 0, w, h);
       }
 
-      // 4. Outer subtle orbital calibration arcs
-      bgCtx.strokeStyle = 'rgba(148, 163, 184, 0.08)';
+      // 4. Outer subtle neutral orbital calibration arcs
+      bgCtx.strokeStyle = 'rgba(15, 23, 42, 0.065)';
       bgCtx.lineWidth = 1;
       for (const scale of [1.42, 1.88, 2.38]) {
         bgCtx.beginPath();
@@ -267,7 +266,7 @@ export function ThemeTypesAi() {
         ctx.save();
         ctx.globalAlpha = wave.alpha;
         ctx.strokeStyle = wave.color;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
         const step = w < 640 ? 18 : 22;
         for (let x = 0; x <= w + step; x += step) {
@@ -291,7 +290,7 @@ export function ThemeTypesAi() {
       const maxDistSq = maxDist * maxDist;
 
       // Synaptic links
-      ctx.lineWidth = 0.85;
+      ctx.lineWidth = 0.9;
       for (let i = 0; i < nodes.length; i++) {
         const a = nodes[i];
         for (let j = i + 1; j < nodes.length; j++) {
@@ -301,7 +300,7 @@ export function ThemeTypesAi() {
           const dSq = dx * dx + dy * dy;
           if (dSq < maxDistSq) {
             const strength = 1 - Math.sqrt(dSq) / maxDist;
-            ctx.globalAlpha = strength * 0.16;
+            ctx.globalAlpha = strength * 0.22;
             ctx.strokeStyle = a.color;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -329,21 +328,21 @@ export function ThemeTypesAi() {
       const midR = r * 0.66;
       const coreR = r * 0.31;
 
-      // 1. Central core radial halo
+      // 1. Central soft luminous quad-spectrum aura on white
       const haloPulse = 0.85 + 0.15 * Math.sin(t * 1.6);
-      const halo = ctx.createRadialGradient(cx, cy, coreR * 0.15, cx, cy, outerR * 1.15);
-      halo.addColorStop(0, `rgba(96, 165, 250, ${(0.16 * haloPulse).toFixed(3)})`);
-      halo.addColorStop(0.42, 'rgba(77, 107, 254, 0.08)');
-      halo.addColorStop(0.75, 'rgba(16, 163, 127, 0.04)');
-      halo.addColorStop(1, 'rgba(6, 9, 19, 0)');
+      const halo = ctx.createRadialGradient(cx, cy, coreR * 0.2, cx, cy, outerR * 1.15);
+      halo.addColorStop(0, `rgba(66, 133, 244, ${(0.08 * haloPulse).toFixed(3)})`);
+      halo.addColorStop(0.42, 'rgba(217, 119, 87, 0.055)');
+      halo.addColorStop(0.75, 'rgba(16, 163, 127, 0.045)');
+      halo.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx.fillStyle = halo;
       ctx.beginPath();
       ctx.arc(cx, cy, outerR * 1.15, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Elliptical orbital path + calibrated segmented token ring
+      // 2. Elliptical orbital path + calibrated segmented token ring in 4 AI colors
       ctx.save();
-      ctx.strokeStyle = 'rgba(96, 165, 250, 0.18)';
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.14)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 6]);
       ctx.beginPath();
@@ -360,8 +359,8 @@ export function ThemeTypesAi() {
         const coreSpec = AI_MODEL_CORES[Math.floor((i / ticks) * 4) % 4];
         const waveGlow = 0.25 + 0.55 * Math.max(0, Math.sin(t * 2.1 - i * 0.35));
         ctx.strokeStyle = coreSpec.primaryColor;
-        ctx.globalAlpha = 0.16 + waveGlow * 0.34;
-        ctx.lineWidth = i % 4 === 0 ? 1.6 : 0.9;
+        ctx.globalAlpha = 0.26 + waveGlow * 0.48;
+        ctx.lineWidth = i % 4 === 0 ? 1.8 : 1.0;
         const rIn = i % 4 === 0 ? outerR * 0.87 : outerR * 0.91;
         ctx.beginPath();
         ctx.moveTo(Math.cos(a) * rIn, Math.sin(a) * rIn);
@@ -371,23 +370,38 @@ export function ThemeTypesAi() {
       ctx.restore();
       ctx.globalAlpha = 1;
 
-      // 3. Counter-rotating ChatGPT-inspired 6-petal Möbius bloom around center
+      // 3. White central nexus disc backing so the center emblem sits on crisp white
+      ctx.save();
+      ctx.shadowColor = 'rgba(15, 23, 42, 0.1)';
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetY = 4;
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.1)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, midR * 0.92, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.stroke();
+      ctx.restore();
+
+      // 4. Counter-rotating ChatGPT-inspired 6-petal Möbius bloom around center
       drawChatGptBloom(
         ctx,
         cx,
         cy,
-        midR * 0.82,
-        'rgba(52, 211, 153, 0.28)',
+        midR * 0.78,
+        'rgba(16, 163, 127, 0.38)',
         world.innerRingAngle
       );
 
-      // 4. Inner Claude warm terracotta sunburst + Gemini 4-point star at the singularity core
+      // 5. Inner Claude warm terracotta sunburst + Gemini 4-point star at the core
       drawClaudeSunburst(
         ctx,
         cx,
         cy,
-        coreR * 0.92,
-        'rgba(217, 119, 87, 0.52)',
+        coreR * 0.94,
+        'rgba(217, 119, 87, 0.62)',
         t * 0.18
       );
 
@@ -397,12 +411,12 @@ export function ThemeTypesAi() {
         cx + coreR * 0.7,
         cy + coreR * 0.7
       );
-      starGrad.addColorStop(0, '#60a5fa');
-      starGrad.addColorStop(0.5, '#c4b5fd');
-      starGrad.addColorStop(1, '#38bdf8');
-      drawGeminiStar(ctx, cx, cy, coreR * 0.74, starGrad, 0.92);
+      starGrad.addColorStop(0, '#4285f4');
+      starGrad.addColorStop(0.5, '#8b5cf6');
+      starGrad.addColorStop(1, '#4d6bfe');
+      drawGeminiStar(ctx, cx, cy, coreR * 0.72, starGrad, 0.96);
 
-      // 5. Curved neural bridges & bidirectional packets to the 4 orbital AI model cores
+      // 6. Curved neural bridges & bidirectional packets to the 4 orbital AI model cores
       const modelCoords = AI_MODEL_CORES.map((spec) => ({
         spec,
         pos: getAiModelOrbitalPosition(world, spec),
@@ -420,8 +434,8 @@ export function ThemeTypesAi() {
         // Synapse curve
         ctx.save();
         ctx.strokeStyle = spec.primaryColor;
-        ctx.globalAlpha = 0.26;
-        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.34;
+        ctx.lineWidth = 1.3;
         ctx.beginPath();
         ctx.moveTo(cx, cy);
         ctx.quadraticCurveTo(ctrlX, ctrlY, pos.x, pos.y);
@@ -456,24 +470,29 @@ export function ThemeTypesAi() {
 
           ctx.save();
           const lineGrad = ctx.createLinearGradient(tail.x, tail.y, pt.x, pt.y);
-          lineGrad.addColorStop(0, 'rgba(6, 9, 19, 0)');
+          lineGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
           lineGrad.addColorStop(1, pkt.color);
           ctx.strokeStyle = lineGrad;
-          ctx.lineWidth = 2.1;
+          ctx.lineWidth = 2.2;
           ctx.beginPath();
           ctx.moveTo(tail.x, tail.y);
           ctx.lineTo(pt.x, pt.y);
           ctx.stroke();
 
-          ctx.fillStyle = '#eef4ff';
+          ctx.fillStyle = pkt.color;
           ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 2.2, 0, Math.PI * 2);
+          ctx.arc(pt.x, pt.y, 2.7, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 1.1, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         }
       }
 
-      // 6. Render the 4 orbital AI model core pods
+      // 7. Render the 4 orbital AI model core pods as crisp white discs with brand-colored borders & glyphs
       const nodeRadius = Math.max(15, r * 0.145);
       for (const { spec, pos } of modelCoords) {
         ctx.save();
@@ -486,18 +505,22 @@ export function ThemeTypesAi() {
           nodeRadius * 2.1
         );
         podGlow.addColorStop(0, spec.glowColor);
-        podGlow.addColorStop(1, 'rgba(6, 9, 19, 0)');
+        podGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
         ctx.fillStyle = podGlow;
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, nodeRadius * 2.1, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = 'rgba(9, 15, 31, 0.92)';
+        ctx.shadowColor = 'rgba(15, 23, 42, 0.14)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 3;
+        ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = spec.primaryColor;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, nodeRadius, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowColor = 'transparent';
         ctx.stroke();
 
         drawModelGlyph(
@@ -524,7 +547,7 @@ export function ThemeTypesAi() {
       if (bgCtx) {
         ctx.drawImage(bgCanvas, 0, 0);
       } else {
-        ctx.fillStyle = '#060913';
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, w, h);
       }
 
@@ -535,7 +558,7 @@ export function ThemeTypesAi() {
       // Ambient 4-point AI attention sparkles
       for (const sp of world.sparkles) {
         const flicker = 0.5 + 0.5 * Math.sin(t * sp.twinkleSpeed + sp.phase);
-        const al = Math.max(0.1, Math.min(0.85, sp.alpha * flicker));
+        const al = Math.max(0.14, Math.min(0.88, sp.alpha * flicker));
         if (sp.size >= 2.8) {
           drawGeminiStar(ctx, sp.x, sp.y, sp.size * 1.4, sp.color, al);
         } else {

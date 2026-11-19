@@ -9,6 +9,7 @@ import { ThemeTypesDetective } from './themetypes/ThemeTypesDetective';
 import { ThemeTypesDino } from './themetypes/ThemeTypesDino';
 import { ThemeTypesGhost } from './themetypes/ThemeTypesGhost';
 import { ThemeTypesHalloween } from './themetypes/ThemeTypesHalloween';
+import { ThemeTypesJoker } from './themetypes/ThemeTypesJoker';
 import { ThemeTypesMatrixRain } from './themetypes/ThemeTypesMatrixRain';
 import { ThemeTypesPixel } from './themetypes/ThemeTypesPixel';
 import { ThemeTypesSpace } from './themetypes/ThemeTypesSpace';
@@ -76,6 +77,7 @@ export function ThemeBackdrop({ theme }: ThemeBackdropProps) {
       {theme === 'dino' && <ThemeTypesDino />}
       {theme === 'zodiac' && <ThemeTypesZodiac />}
       {theme === 'tarot' && <ThemeTypesTarot />}
+      {theme === 'joker' && <ThemeTypesJoker />}
       {theme === 'ai' && <ThemeTypesAi />}
       <span className="tb-a" />
       <span className="tb-b" />

@@ -18,7 +18,7 @@ import {
   type AiProviderId,
   type ByokKeyEntry,
 } from '@/lib/ai/ai-providers';
-import { uid } from '@/lib/deck-logic';
+import { uid } from '@/lib/presentation/presentation-utils';
 import { ProviderIcon } from './ProviderBadge';
 
 interface ApiKeysModalProps {

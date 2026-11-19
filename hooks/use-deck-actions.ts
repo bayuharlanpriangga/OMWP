@@ -8,12 +8,13 @@ import {
   duplicateSlide,
   getDeckDisplayTitle,
   getSlideTitle,
-  loadAndNormalizeDeck,
   uid,
   updateBlockInSlide,
-} from '@/lib/logic/logic-presentation-app';
+} from '@/lib/page/page-presentation';
 import { buildStandaloneHtml, slugifyTitle } from '@/lib/export/export-html';
-import { importDeckFromHtml } from '@/lib/import/import-html';
+import { buildDeckJsonExport } from '@/lib/export/export-json';
+import { importDeckFromHtml } from '@/lib/import/import-types/import-types-html';
+import { importDeckFromJson } from '@/lib/import/import-types/import-types-json';
 import { orderByokKeysForRequest, type ByokKeyEntry } from '@/lib/ai/ai-providers';
 import type { Block, Deck, PresenterPrefs, Slide } from '@/lib/deck-types';
 import type { SystemsConfirmDialogState } from '@/components/systems/SystemsConfirmDialog';
@@ -177,20 +178,17 @@ export function useDeckActions({
   }, [byokKeys, deck, prefs, showToast]);
 
   const exportJson = React.useCallback(() => {
-    triggerFileDownload(
-      `${slugifyTitle(getDeckDisplayTitle(deck))}.json`,
-      JSON.stringify(deck, null, 2),
-      'application/json'
-    );
+    const exported = buildDeckJsonExport(deck);
+    triggerFileDownload(exported.filename, exported.content, exported.mimeType);
     showToast('File JSON berhasil diunduh.');
   }, [deck, showToast]);
 
   const importJsonFile = React.useCallback(
     async (file: File) => {
       try {
-        const parsed = loadAndNormalizeDeck(JSON.parse(await file.text()));
-        if (!parsed) throw new Error('Invalid');
-        setDeck(parsed);
+        const result = importDeckFromJson(await file.text());
+        if (!result) throw new Error('Invalid');
+        setDeck(result.deck);
         setSlideIndex(0);
         setSelectedBlockId(null);
         setOpenBlockIds(new Set());

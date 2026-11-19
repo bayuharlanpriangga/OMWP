@@ -5,7 +5,7 @@ import {
   buildSlideAiContext,
   stripMarkup,
   uid,
-} from '@/lib/logic/logic-presentation-app';
+} from '@/lib/page/page-presentation';
 import type {
   ChatMessage,
   Deck,

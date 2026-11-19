@@ -73,9 +73,9 @@ export const AI_MODEL_CORES: readonly AiModelCoreSpec[] = [
   {
     id: 'gemini',
     label: 'Gemini',
-    primaryColor: '#60a5fa',
-    secondaryColor: '#a78bfa',
-    glowColor: 'rgba(96, 165, 250, 0.42)',
+    primaryColor: '#4285f4',
+    secondaryColor: '#8b5cf6',
+    glowColor: 'rgba(66, 133, 244, 0.24)',
     orbitAngleOffset: -Math.PI * 0.75,
     orbitSpeed: 0.19,
   },
@@ -84,7 +84,7 @@ export const AI_MODEL_CORES: readonly AiModelCoreSpec[] = [
     label: 'Claude',
     primaryColor: '#d97757',
     secondaryColor: '#f59e0b',
-    glowColor: 'rgba(217, 119, 87, 0.42)',
+    glowColor: 'rgba(217, 119, 87, 0.24)',
     orbitAngleOffset: -Math.PI * 0.25,
     orbitSpeed: 0.19,
   },
@@ -92,8 +92,8 @@ export const AI_MODEL_CORES: readonly AiModelCoreSpec[] = [
     id: 'chatgpt',
     label: 'ChatGPT',
     primaryColor: '#10a37f',
-    secondaryColor: '#34d399',
-    glowColor: 'rgba(16, 163, 127, 0.42)',
+    secondaryColor: '#059669',
+    glowColor: 'rgba(16, 163, 127, 0.24)',
     orbitAngleOffset: Math.PI * 0.25,
     orbitSpeed: 0.19,
   },
@@ -101,8 +101,8 @@ export const AI_MODEL_CORES: readonly AiModelCoreSpec[] = [
     id: 'deepseek',
     label: 'DeepSeek',
     primaryColor: '#4d6bfe',
-    secondaryColor: '#38bdf8',
-    glowColor: 'rgba(77, 107, 254, 0.44)',
+    secondaryColor: '#2563eb',
+    glowColor: 'rgba(77, 107, 254, 0.24)',
     orbitAngleOffset: Math.PI * 0.75,
     orbitSpeed: 0.19,
   },
@@ -158,7 +158,7 @@ function buildNeuralNodes(
       phase: rng() * Math.PI * 2,
       pulseSpeed: 1.4 + rng() * 1.8,
       color: palette[i % palette.length],
-      alpha: 0.26 + rng() * 0.44,
+      alpha: 0.34 + rng() * 0.4,
     };
   });
 }
@@ -169,7 +169,7 @@ function buildSparkles(
   rng: () => number
 ): AiSparkParticle[] {
   const count = width < 640 ? 26 : 52;
-  const palette = ['#60a5fa', '#d97757', '#34d399', '#38bdf8', '#c4b5fd'];
+  const palette = ['#4285f4', '#8b5cf6', '#d97757', '#10a37f', '#4d6bfe'];
   return Array.from({ length: count }, (_, i) => ({
     x: rng() * width,
     y: rng() * height,
@@ -178,7 +178,7 @@ function buildSparkles(
     size: i % 6 === 0 ? 3.8 : 1.4 + rng() * 1.4,
     phase: rng() * Math.PI * 2,
     twinkleSpeed: 1.5 + rng() * 2.4,
-    alpha: 0.22 + rng() * 0.5,
+    alpha: 0.28 + rng() * 0.48,
     color: palette[i % palette.length],
   }));
 }
@@ -218,7 +218,7 @@ function buildTensorWaves(): AiTensorWave[] {
       speed: 0.72,
       phase: 0.3,
       color: '#4d6bfe',
-      alpha: 0.16,
+      alpha: 0.2,
     },
     {
       yFrac: 0.83,
@@ -227,7 +227,7 @@ function buildTensorWaves(): AiTensorWave[] {
       speed: -0.58,
       phase: 2.1,
       color: '#10a37f',
-      alpha: 0.12,
+      alpha: 0.18,
     },
     {
       yFrac: 0.88,
@@ -236,7 +236,7 @@ function buildTensorWaves(): AiTensorWave[] {
       speed: 0.45,
       phase: 4.0,
       color: '#d97757',
-      alpha: 0.1,
+      alpha: 0.18,
     },
   ];
 }
